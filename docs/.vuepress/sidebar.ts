@@ -2,6 +2,173 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 
 export const sidebarConfig = defineSidebarConfig({
   // 应该把更精确的路径放置在前边
+
+  /* "/android/": [//Android相关的Blog
+
+  ], */
+
+  "/resume/": [//个人简历
+    {
+      text: "技能列表",
+      collapsable: false,
+      prefix: "skill-list/",
+      children: [
+        {
+          text: "个人优势",
+          collapsable: true,
+          prefix: "personal-advantage/",
+          children: [
+            "java-reflect", // 反射机制
+            "java-annotation", // 注解技术
+            "java-genericity", // 泛型编程
+            "design-model", // 设计模式（单例模式，代理模式，工厂模式，建造者模式，外观模式等 ）
+            "android-custom-view", // 自定义View
+            "android-ui-draw-process", // UI绘制流程
+            "android-event-dispatch-mechanism", // 事件分发机制
+            "android-memory-optimize", // 内存优化
+            "android-layout-optimize", // 布局优化
+            "frame-okhttp", // OkHttp框架
+            "frame-retrofit", // Retrofit框架
+            "frame-glide", // Glide框架
+            "frame-eventbus", // EventBus框架
+            "architecture-mvc-mvp-mvvm", // MVC/MVP/MVVM 模式
+          ]
+        },
+        {
+          text: "VCAT+重构",
+          prefix: "vcat-plus-refactor/",
+          collapsable: true,
+          children: [
+            "component-design", // 组件化设计（ARouter框架）
+            "kotlin-program", // Kotlin编程语言
+            "migrate-androidx", // Support库迁移至AndroidX的步骤和要点
+          ]
+        },
+        {
+          text: "VCAT+",
+          prefix: "vcat-plus/",
+          collapsable: true,
+          children: [
+            "netease-nimlib-sdk", // 网易云信SDK的使用方式和要点
+            "recyclerview", // RecyclerView的基本使用，自定义LayoutManager，无限轮播的实现方式，ViewHolder的回收复用
+            "smartrefreshlayout", // SmartRefreshLayout实现下拉刷新的原理
+            "lottie", // Lottie动画的使用场景和使用方式，怎样结合SmartRefreshLayout实现自定义刷新动画
+            "realm", // Realm数据库的特点和使用方式
+            "reactnative", // ReactNative混合开发的流程
+            "hot-fix", // 热修复的概念，Sophix热修复框架的使用方式
+            "ping-plus-plus", // Ping++ SDK的特点和使用方式
+            "leakcanary", // LeakCanary监测内存的原理
+          ]
+        },
+        {
+          text: "即时猫",
+          prefix: "instant-cat/",
+          collapsable: true,
+          children: [
+            "constraintlayout", // ConstraintLayout约束布局的特点和使用方式
+            "coordinatorlayout", // CoordinatorLayout布局的使用场景，如何实现折叠效果
+            "frame-MPAndroidChart", // MPAndroidChart的使用方式和绘制图表的原理
+            "frame-PickerView", // PickerView的使用方式和实现原理
+            "plugin-switch-skin", // 插件化的概念，动态换肤的实现原理
+            "android-camera2", // Camera2的使用方式，如何实现人脸检测的
+            "frame-gson", // Gson框架的使用方式和实现原理
+          ]
+        },
+        {
+          text: "党建展厅",
+          prefix: "party-oto/",
+          collapsable: true,
+          children: [
+            "viewpager-fragment-lazy-load", // ViewPager+Fragment如何实现懒加载
+            "frame-rxjava", // RxJava的使用方式和实现原理
+            "frame-retrofit", // Retrofit的使用方式和实现原理
+            "frame-okhttp", // OkHttp的使用方式和实现原理
+            "frame-glide", // Glide的使用方式和实现原理
+            "frame-glide-transformations", // glide-transformations如何实现图片转换的（如怎么得到圆角图或圆形图的）
+            "frame-GSYVideoPlayer", // GSYVideoPlayer的特点，使用方式和实现原理
+            "frame-RichText", // RichText的使用方式和实现原理
+            "viewpager-auto-play", // ViewPager的自动轮播是怎样实现的
+          ]
+        },
+        {
+          text: "车载音乐",
+          prefix: "car-music/",
+          collapsable: true,
+          children: [
+            "android-AsyncTask", // AsyncTask的使用场景，使用方式和实现原理
+            "frame-GreenDao", // GreenDao的特点，使用方式和实现原理
+            "java-thread-pool", // 线程池的特点，使用方式，几个参数的意义，常用的线程池
+            "java-RandomAccesFile", // RandomAccesFile的特点和使用方式
+            "breakpoint-download", // 如何实现断点下载的，
+            "real-network-speed-and-download-speed", // 如何获取实时网速，如何获取下载进度
+            "recyclerview-refresh-methods", // RecyclerView的几个刷新列表的方法的区别
+            "android-ContentResolver-MediaStore", // ContentProvider的作用，使用方式，MediaStore的作用，
+            "id3-intro", // 什么是ID3信息
+            "android-MediaPlayer", // MediaPlayer的使用方式和状态图
+            "background-play", // 如何实现后台播放功能
+            "lyric-sync", // 自定义控件如何实现lrc歌词的同步显示
+          ]
+        },
+        {
+          text: "车载控制系统",
+          prefix: "car-control-system/",
+          collapsable: true,
+          children: [
+            "binder", // binder通信的概念，两个进程间如何实现binder通信
+            "aidl", // aidl的概念和使用方式
+            "XmlPullParser", // XmlPullParser的使用方式
+            "abstract-factory-model", // 什么是抽象工厂模式
+            "proxy-model", // 什么是静态代理模式和动态代理模式
+            "frame-eventbus", // EventBus的特点，使用方式和实现原理
+          ]
+        },
+        {
+          text: "车载收音机",
+          prefix: "car-fmam/",
+          collapsable: true,
+          children: [
+            "architecture-mvc-mvp-mvvm", // MVC/MVP/MVVM 的概念，特点，区别
+            "viewpager-fragment-lazy-load", // ViewPager+Fragment如何实现懒加载
+            "android-RemoteViews", // RemoteViews的作用，和普通View的区别，使用场景
+            "android-AppWidget", // 桌面小部件的实现方式
+            "android-ListView-RecyclerView-compare", // ListView和RecyclerView的区别，如何选择
+            "frame-PullToRefresh", // PullToRefresh实现上拉刷新的原理
+            "frame-Universal-Image-Loader", // Universal Image Loader 的实现原理，和Glide的区别
+            "ListView-RecyclerView-scroll-event-listener", // ListView和RecyclerView中各自如何监听列表滑动事件
+            "android-FrameAnimation", // 帧动画的使用方式
+          ]
+        },
+        {
+          text: "远东支付",
+          prefix: "yd-pay/",
+          collapsable: true,
+          children: [
+            "custom-circle-menu", // 自定义圆形转盘控件的实现原理
+            "bezier-line-draw", // 如何绘制贝塞尔曲线，如何实现手签功能
+            "android-AsyncTask", // AsyncTask的使用场景，使用方式和实现原理
+            "frame-HttpClient-Okhttp-compare", // HttpClient的使用方式，和OkHttp的区别
+            "traditional-bluetooth-and-ble", // 传统蓝牙和BLE蓝牙的概念，区别
+            "ble-characteristic", // BLE蓝牙中什么是特征值
+            "android-api-traditional-bluetooth", // 传统蓝牙API的使用方式（如何进行扫描，连接，通信）
+            "android-api-ble-bluetooth", // BLE蓝牙API的使用方式
+          ]
+        },
+        {
+          text: "其他",
+          prefix: "others/",
+          collapsable: true,
+          children: [
+            "serializable-and-parcelable", // 对象序列化的概念，Serializeable实现序列化的方式，Parcelable实现序列化的方式，这两种方式的区别和使用场景
+            "greendao-realm-compare", // GreenDao和Realm的对比，如何选择
+            "android-nested-scroll", // 嵌套滑动的实现方式和原理
+            "android-Anim", // 帧动画，补间动画，属性动画各自的概念，特点，使用场景。什么是插值器，什么是估值器
+            "java-thread", // 线程的状态，sleep/wait的区别
+          ]
+        }
+      ],
+    }
+  ],
+
   "/javaguide/": ["intro", "contribution-guideline", "faq", "todo"],
   "/zhuanlan/": ["java-mian-shi-zhi-bei", "handwritten-rpc-framework"],
   "/open-source-project/": [
