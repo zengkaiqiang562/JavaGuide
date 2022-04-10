@@ -97,3 +97,8 @@ node_modules\vuepress-theme-hope\lib\client\module\sidebar\styles\
 .search-box .suggestions {
     width: max-content; // 设置为最长行的宽度
 }
+
+// 设置正文中代码框中的代码注释 不为斜体
+code .comment, code .doc-comment {
+  font-style: normal!important;
+}
