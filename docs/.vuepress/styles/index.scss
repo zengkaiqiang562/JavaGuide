@@ -1,0 +1,91 @@
+/* 
+Everything filling in this will be parsed to standard CSS and then injected after theme and plugins styles.
+So you can add new styles or overide styles here:
+
+
+Demo:
+
+// make site name in navbar italic
+.site-name {
+  font-style: italic;
+}
+*/
+
+
+/*
+在谷歌浏览器中的调式模式下查看对应html标签上的选择器，
+参考选择器来进行css样式设计
+
+为了避免自定义的属性值被覆盖，可以考虑采用 !important 提高优先级
+*/
+
+//正文字体大小的基准
+body {
+    font-size: 15px;
+}
+
+//正文中 引用块">" 的字体大小
+blockquote {
+    font-size: 15px!important;
+}
+
+/*
+参考：
+node_modules\@mr-hope\vuepress-plugin-components\lib\client\styles\toc.scss
+*/
+#toc-list { // 修改 文章中的目录列表
+    min-width: 10rem;
+    max-width: 50rem;
+    // max-height: 80vh;
+}
+
+#toc-list .toc-link.level2 {
+    font-size: 12px;
+}
+
+
+/*
+参考：
+node_modules\@vuepress\theme-default\lib\client\styles\sidebar.scss
+node_modules\vuepress-theme-hope\lib\client\module\sidebar\styles\
+*/
+
+// 左侧目录列表的字体大小的基准
+.sidebar .sidebar-links { 
+    font-size: 16px;
+}
+
+// 一级目录 （相对于原始的字体大小）
+.sidebar .sidebar-links .sidebar-link {
+    font-size: 1em;
+}
+.sidebar .sidebar-links .sidebar-group .sidebar-heading {
+    font-size: 1em;
+}
+
+// 二级目录 （相对于原始的字体大小）
+.sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-link {
+    font-size: 0.95em;
+}
+.sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-heading {
+    font-size: 0.95em;
+}
+
+// 三级目录 （相对于原始的字体大小）
+.sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-link {
+    font-size: 0.90em;
+}
+.sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-heading {
+    font-size: 0.90em;
+}
+
+// 四级目录 （相对于原始的字体大小）
+.sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-link {
+    font-size: 0.85em;
+}
+.sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-heading {
+    font-size: 0.85em;
+}
+
+
+
