@@ -98,6 +98,23 @@ node_modules\vuepress-theme-hope\lib\client\module\sidebar\styles\
     width: max-content; // 设置为最长行的宽度
 }
 
+// 搜索结果项的行高
+.search-box .suggestion {
+  line-height: 0.7;
+}
+
+// 搜索结果项中的正文标题(title)
+.search-box .suggestion .page-title {
+  font-weight: 600;
+  font-size: 0.7em;
+}
+
+// 搜索结果项中的正文目录(h1-h6表示的目录)
+.search-box .suggestion .page-header {
+  font-weight: 400;
+  font-size: 0.6em;
+}
+
 // 设置正文中代码框中的代码注释 不为斜体
 code .comment, code .doc-comment {
   font-style: normal!important;
