@@ -1,8 +1,9 @@
-const { defineHopeConfig } = require("vuepress-theme-hope");
+import { defineHopeConfig }  from "vuepress-theme-hope";
 import themeConfig from "./themeConfig";
+import { createMarkdown } from '@vuepress/markdown';
 
 module.exports = defineHopeConfig({
-  port: "8080",
+  port: 8080,
   title: "JavaGuide",
   description: "Java学习&&面试指南",
   //指定 vuepress build 的输出目录
@@ -34,5 +35,18 @@ module.exports = defineHopeConfig({
       lang: "zh-CN"
     }
   },
+  markdown: {
+    anchor: {
+      level: [1,2,3,4,5,6]
+    },
+    toc: {
+      level: [1,2,3,4,5,6],
+    },
+    extractHeaders: {
+      level: [1,2,3,4,5,6],
+    },
+    
+  },
   themeConfig,
 });
+
