@@ -455,3 +455,89 @@ public synchronized void init(ProcessingEnvironment processingEnv)
 */
 public abstract boolean process(Set<? extends TypeElement> annotation, RoundEnvironment roundEnv);
 ```
+
+#### 相关API
+
+**`javax.annotation.processing.RoundEnvironment`**
+
+```java
+public interface RoundEnvironment
+
+/**
+* 获取被注解a修饰的Element集合，此处返回的Element表示的程序元素是类
+*/
+Set<? extends Element> getElementsAnnotatedWith(Class<? extends Annotation> a);
+```
+
+**`javax.lang.model.element.Element`**
+
+`Element`表示程序元素，可以是包、类、构造器、方法、成员变量等
+
+```java
+public interface Element extends javax.lang.model.AnnotatedConstruct
+
+/**
+* 获取此Element表示的程序元素的名字，如当表示类时，返回的是类名
+*/
+Name getSimpleName();
+
+/**
+* 获取修饰此程序元素的注解，参数annotationType指定要获取的注解类型
+*/
+<A extends Annotation> A getAnnotation(Class<A> annotationType);
+
+/**
+* 返回此Element所表示的程度元素的类型，如包、类、构造器、方法、成员变量等
+*/
+ElementKind getKind();
+
+/**
+* 返回此程序元素范围内包含的程序元素，如类中包含有构造器，方法，成员变量
+*/
+List<? extends Element> getEnclosedElements();
+```
+
+**`javax.lang.model.element.ElementKind`**
+
+```java
+public enum ElementKind {
+    PACKAGE,
+
+    /*--------------Declared types------------*/
+
+    ENUM,  //An enum type
+
+    CLASS,  //A class not described by a more specific kind (like ENUM)
+
+    ANNOTATION_TYPE,  //An annotation type
+
+    INTERFACE,  //An interface not described by a more specific kind (like ANNOTATION_TYPE)
+
+    /*-------------Declared Variables--------------*/
+    ENUM_CONSTANT,  //An enum constant
+
+    FIELD,  //A field not described by a more specific kind (like ENUM_CONSTANT)
+
+    PARAMETER,  //A parameter of a method or constructor
+
+    LOCAL_VARIABLE, //A local variable
+
+    EXCEPTION_PARAMETER,  //A parameter of an exception handler
+
+    /*------------Declared Executables--------------*/
+    METHOD,  //A method
+
+    CONSTRUCTOR,  //A constructor
+
+    STATIC_INIT,  //A static initializer
+
+    INSTANCE_INIT,  //An instance initializer
+
+    /** A type parameter. */
+    TYPE_PARAMETER,  //A type parameter
+
+    OTHER,  //An implementation-reserved element. This is not the element you are looking for.
+
+    RESOURCE_VARIABLE;  //A resource variable
+}
+```
