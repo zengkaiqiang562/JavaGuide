@@ -21,7 +21,20 @@ export const sidebarConfig = defineSidebarConfig({
             "java-reflect", // 反射机制
             "java-annotation", // 注解技术
             "java-genericity", // 泛型编程
-            "design-model", // 设计模式（单例模式，代理模式，工厂模式，建造者模式，外观模式等 ）
+            // "design-model", // 设计模式（单例模式，代理模式，工厂模式，建造者模式，外观模式等 ）
+            {
+              text: "设计模式",
+              collapsable: true,
+              prefix: "design-pattern/",
+              children: [
+                "object-oriented-design-principles",
+                "Singleton-Pattern",
+                "Proxy-Pattern",
+                "Factory-Pattern",
+                "Builder-Pattern",
+                "Facade-Pattern",
+              ]
+            },
             "android-custom-view", // 自定义View
             "android-ui-draw-process", // UI绘制流程
             "android-event-dispatch-mechanism", // 事件分发机制
