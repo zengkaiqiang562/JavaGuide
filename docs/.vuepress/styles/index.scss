@@ -140,3 +140,10 @@ node_modules\vuepress-theme-hope\lib\client\module\sidebar\styles\
 code .comment, code .doc-comment {
   font-style: normal!important;
 }
+
+.theme-container .page {
+    // leave space for sidebar
+    padding-left: calc(var(--sidebar-width));
+}
+
+      
