@@ -143,6 +143,13 @@ code .comment, code .doc-comment {
   font-style: normal!important;
 }
 
+code {
+    background: transparent;
+    padding: 0rem 0rem;
+    font-size: 0.85em;
+    color: orangered;
+  }
+
 
 // 参考 node_modules/vuepress-theme-hope/lib/client/styles/common.scss
 .theme-container .page { 
