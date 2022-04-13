@@ -143,12 +143,19 @@ code .comment, code .doc-comment {
     font-style: normal!important;
 }
 
+// code span 的样式
 code {
     background: transparent;
     padding: 0rem 0rem;
     font-size: 0.9em;
     color: orangered;
 }
+
+// code block 的样式
+pre[class*='language-']>code {
+    font-size: 0.85em;
+}
+
 
 
 // 参考 node_modules/vuepress-theme-hope/lib/client/styles/common.scss
