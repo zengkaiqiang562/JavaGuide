@@ -11,6 +11,8 @@ Demo:
 }
 */
 
+@use "@sass-palette/hope-config";
+
 
 /*
 在谷歌浏览器中的调式模式下查看对应html标签上的选择器，
@@ -141,9 +143,19 @@ code .comment, code .doc-comment {
   font-style: normal!important;
 }
 
-.theme-container .page {
-    // leave space for sidebar
-    padding-left: calc(var(--sidebar-width));
-}
 
-      
+// 参考 node_modules/vuepress-theme-hope/lib/client/styles/common.scss
+.theme-container .page { 
+    // leave space for sidebar
+    padding-left: calc(var(--sidebar-width)); // 适配PC
+
+    @media (max-width: hope-config.$pad) { // 适配平板
+        // leave space for sidebar
+        padding-left: calc(var(--sidebar-width));
+    }
+
+    @media (max-width: hope-config.$mobile) { // 适配手机
+        // leave space for sidebar
+        padding-left: 0;
+    }
+}
