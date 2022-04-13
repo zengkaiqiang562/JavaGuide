@@ -123,32 +123,32 @@ node_modules\vuepress-theme-hope\lib\client\module\sidebar\styles\
 
 // 搜索结果项的行高
 .search-box .suggestion {
-  line-height: 0.7;
+    line-height: 0.7;
 }
 
 // 搜索结果项中的正文标题(title)
 .search-box .suggestion .page-title {
-  font-weight: 600;
-  font-size: 0.7em;
+    font-weight: 600;
+    font-size: 0.7em;
 }
 
 // 搜索结果项中的正文目录(h1-h6表示的目录)
 .search-box .suggestion .page-header {
-  font-weight: 400;
-  font-size: 0.6em;
+    font-weight: 400;
+    font-size: 0.6em;
 }
 
 // 设置正文中代码框中的代码注释 不为斜体
 code .comment, code .doc-comment {
-  font-style: normal!important;
+    font-style: normal!important;
 }
 
 code {
     background: transparent;
     padding: 0rem 0rem;
-    font-size: 0.85em;
+    font-size: 0.9em;
     color: orangered;
-  }
+}
 
 
 // 参考 node_modules/vuepress-theme-hope/lib/client/styles/common.scss
@@ -166,3 +166,8 @@ code {
         padding-left: 0;
     }
 }
+
+ul, ol {
+    padding-left: 3em;
+}
+
