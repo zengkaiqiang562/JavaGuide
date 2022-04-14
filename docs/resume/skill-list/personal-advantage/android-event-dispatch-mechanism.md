@@ -163,7 +163,7 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
             所以当收到 ACTION_DOWN 事件时，需要做一些重置和初始化工作，包括：
                 1. 取消对上一个事件序列的分发；
                 2. 清理掉在处理上一个事件序列时保留的状态信息；
-                3. 重置并清空触摸目标链表（即由 TouchTarget 构成的单链表，TouchTarget 中持有能接收事件的 直接子View 的引用）
+                3. 重置并清空触摸目标链表（即由 TouchTarget 构成的单链表，TouchTarget 中持有能接收事件的直接子View的引用）
         */
         if (actionMasked == MotionEvent.ACTION_DOWN) {
             cancelAndClearTouchTargets(ev);
@@ -177,9 +177,9 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
 
 /*
     取消对上一个事件序列的分发，重置并清空触摸目标链表，具体为：
-        1. 遍历上一个事件序列中产生的触摸目标链表，获取各个TouchTarget中持有的 直接子View；
-        2. 调用 resetCancelNextUpFlag 方法，取消 直接子View 中的 PFLAG_CANCEL_NEXT_UP_EVENT 标记。
-        3. 向 直接子View 分发 ACTION_CANCEL 事件；
+        1. 遍历上一个事件序列中产生的触摸目标链表，获取各个TouchTarget中持有的直接子View；
+        2. 调用 resetCancelNextUpFlag 方法，取消直接子View中的 PFLAG_CANCEL_NEXT_UP_EVENT 标记。
+        3. 向直接子View分发 ACTION_CANCEL 事件；
         4. 调用 clearTouchTargets() 方法清空触摸目标链表。
 */
 private void cancelAndClearTouchTargets(MotionEvent event) {
@@ -197,8 +197,8 @@ private void cancelAndClearTouchTargets(MotionEvent event) {
 /*
     清理掉在处理上一个事件序列时保留的状态信息，具体为：
         1. 调用 clearTouchTargets() 方法清空触摸目标链表；
-        2. 取消 当前View 中的 PFLAG_CANCEL_NEXT_UP_EVENT 标记。
-        3. 取消 当前View 中的 FLAG_DISALLOW_INTERCEPT 标记。
+        2. 取消当前View中的 PFLAG_CANCEL_NEXT_UP_EVENT 标记。
+        3. 取消当前View中的 FLAG_DISALLOW_INTERCEPT 标记。
             只有不存在该标记时，是否拦截事件才由 ViewGroup.onInterceptTouchEvent 方法的返回值确定。
             当存在该标记时，那么肯定不会拦截事件，intercepted 固定为 false。
 */
@@ -211,7 +211,7 @@ private void resetTouchState() {
 /*
     清空触摸目标链表（即由 TouchTarget 构成的单链表），具体为：
         1. 从头节点 mFirstTouchTarget 开始遍历链表；
-        2. 调用 TouchTarget.recycle() 方法，在该方法中会移除 TouchTarget 对 直接子View 的引用。
+        2. 调用 TouchTarget.recycle() 方法，在该方法中会移除 TouchTarget 对直接子View的引用。
         3. 将头节点置为 null，即 mFirstTouchTarget = null，达到清空单链表的目的。
 */
 private void clearTouchTargets() {
@@ -257,26 +257,27 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
 
         /*
             ACTION_DOWN 为一个事件序列的开始
-            mFirstTouchTarget 是触摸目标链表的头节点，表示最后接收到按下事件（ACTION_DOWN 或 ACTION_POINTER_DOWN）的直接子View。
-                触摸目标链表用来保存接收到按下事件的直接子View，
-                    1. 当多点触摸时，会有多个按下事件触发，接收到这些按下事件的直接子View会插入到链表的头部，
-                    于是头节点 mFirstTouchTarget 表示最后接收到按下事件的直接子View；
+            mFirstTouchTarget 是触摸目标链表的头节点，表示最后接收到并消费掉按下事件（ACTION_DOWN 或 ACTION_POINTER_DOWN）的直接子View。
+                触摸目标链表用来保存接收到并消费掉按下事件的直接子View，
+                    1. 当多点触摸时，会有多个按下事件触发，接收到并消费掉这些按下事件的直接子View会插入到链表的头部，
+                    于是头节点 mFirstTouchTarget 表示最后接收到并消费掉按下事件的直接子View；
                     2. 当单点触摸时，只有一个按下事件触发，此时链表中只可能有一个直接子View。
 
             只有在分发按下事件时，才会向链表中插入TouchTarget。
             也就是说，如果 mFirstTouchTarget != null，那么当前分发的事件肯定不是 ACTION_DOWN。
             所以 if 条件成立的情况有2种：
                 1. 事件序列开始时的 ACTION_DOWN 事件的分发；
-                2. 当已有直接子View接收了按下事件时，分发按下之后的事件。
+                2. 当已有直接子View接收到并消费掉按下事件时，分发按下之后的事件。
 
             当 if 条件成立时才会考虑将当前事件分发给直接子View，此时才需要判断要不要拦截：
-                1. 如果在 直接子View 中调用了 getParent().requestDisallowInterceptTouchEvent(true) 方法，
-                那么 当前View 中就会设置 FLAG_DISALLOW_INTERCEPT 标记，此时 intercepted 固定为 false，表示不拦截事件；
-                2. 如果 当前View 没有设置该标记，那么是否拦截事件由 当前View 的 onInterceptTouchEvent 方法的返回值确定。
+                1. 如果在直接子View中调用了 getParent().requestDisallowInterceptTouchEvent(true) 方法，
+                那么当前View中就会设置 FLAG_DISALLOW_INTERCEPT 标记，此时 intercepted 固定为 false，表示不拦截事件；
+                2. 如果当前View没有设置该标记，那么是否拦截事件由当前View的 onInterceptTouchEvent 方法的返回值确定。
             
-            当 if 条件不成立时，说明没有 直接子View 接收过 ACTION_DOWN 事件，即 ACTION_DOWN 事件被拦截了。
-            此时，同一事件序列中的后续事件也会被拦截掉。
-            也就是说，如果 直接子View 没有接收过 ACTION_DOWN 事件，那么就不可能接收到后续事件。
+            当 if 条件不成立时，说明没有直接子View接收过并消费掉 ACTION_DOWN 事件，
+            即 ACTION_DOWN 事件被拦截了或者没有被消费掉。
+            此时，同一事件序列中的后续事件就会被拦截掉。
+            也就是说，如果直接子View没有接收过并消费掉 ACTION_DOWN 事件，那么就不可能接收到后续事件。
                     
         */
         if (actionMasked == MotionEvent.ACTION_DOWN || mFirstTouchTarget != null) {
@@ -297,7 +298,7 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
 
 /*
     ViewGroup 默认提供的 onInterceptTouchEvent 方法在判断是否拦截事件的依据是：
-        如果通过鼠标左键按在 当前View 的滚动条上，那么就拦截事件不分发给直接子View。
+        如果通过鼠标左键按在当前View的滚动条上，那么就拦截事件不分发给直接子View。
 */
 public boolean onInterceptTouchEvent(MotionEvent ev) {
     if (ev.isFromSource(InputDevice.SOURCE_MOUSE) // 判断事件是否由鼠标触发
@@ -325,10 +326,10 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
         ......
 
         /*
-            如果 当前View 设置了 PFLAG_CANCEL_NEXT_UP_EVENT 标记，或者当前事件为 ACTION_CANCEL，
+            如果当前View设置了 PFLAG_CANCEL_NEXT_UP_EVENT 标记，或者当前事件为 ACTION_CANCEL，
             那么就表示取消事件，即 canceled == true，此时：
-                1. 不会再将 按下事件分发给 直接子View；
-                2. 在 当前View 自己在处理事件时，会当作 ACTION_CANCLE 进行处理。
+                1. 不会再将 按下事件分发给直接子View；
+                2. 在当前View自己在处理事件时，会当作 ACTION_CANCLE 进行处理。
                 3. 当前事件分发处理完后，会调用 resetTouchState() 方法清理掉本次事件序列中所保留的状态信息。
         */
         final boolean canceled = resetCancelNextUpFlag(this) || actionMasked == MotionEvent.ACTION_CANCEL;
@@ -337,11 +338,11 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
         TouchTarget newTouchTarget = null;
         boolean alreadyDispatchedToNewTouchTarget = false;
 
-        // 取消事件时 canceled 为 true，if 条件不成立，于是不会将按下事件分发给 直接子View。
+        // 取消事件时 canceled 为 true，if 条件不成立，于是不会将按下事件分发给直接子View。
         if (!canceled && !intercepted) {...}
         
         if (mFirstTouchTarget == null) {
-            // 取消事件时 canceled 为 true，当前View 自己在处理事件时，会当作 ACTION_CANCLE 进行处理。
+            // 取消事件时 canceled 为 true，当前View自己在处理事件时，会当作 ACTION_CANCLE 进行处理。
             handled = dispatchTransformedTouchEvent(ev, canceled, null, TouchTarget.ALL_POINTER_IDS);
         } else {
             TouchTarget predecessor = null;
@@ -352,12 +353,12 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
                     handled = true;
                 } else {
                     /*
-                        如果 当前View 在分发后续事件时取消事件，
-                        那么当前的后续事件还是会分发给接收过 ACTION_DOWN 事件的直接子View。
-                        直接子View 取消事件的条件是：
-                            1. 直接子View 本身设置了 PFLAG_CANCEL_NEXT_UP_EVENT 标记；
-                            2. 当前View 将当前的后续事件拦截了。
-                        也就是说 当前View 取消事件并不意味着 直接子View 也取消事件。
+                        如果当前View在分发后续事件时取消事件，
+                        那么当前的后续事件还是会分发给接收过并消费掉 ACTION_DOWN 事件的直接子View。
+                        直接子View取消事件的条件是：
+                            1. 直接子View本身设置了 PFLAG_CANCEL_NEXT_UP_EVENT 标记；
+                            2. 当前View将当前的后续事件拦截了。
+                        也就是说当前View取消事件并不意味着直接子View也取消事件。
                     */
                     final boolean cancelChild = resetCancelNextUpFlag(target.child) || intercepted;
                     if (dispatchTransformedTouchEvent(ev, cancelChild, target.child, target.pointerIdBits)) {
@@ -365,8 +366,8 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
                     }
 
                     /*
-                        如果 直接子View 取消事件了，那么 直接子View 就会从链表中移除，
-                        于是，直接子View 就无法再接收到后续事件了。
+                        如果直接子View取消事件了，那么直接子View就会从链表中移除，
+                        于是，直接子View就无法再接收到后续事件了。
                     */ 
                     if (cancelChild) {
                         if (predecessor == null) {
@@ -387,11 +388,11 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
         /*
             取消事件时，在当前事件分发处理完后，会调用 resetTouchState() 方法清理掉本次事件序列中所保留的状态信息，包括：
                 1. 调用 clearTouchTargets() 方法清空触摸目标链表；
-                2. 取消 当前View 中的 PFLAG_CANCEL_NEXT_UP_EVENT 标记。
-                3. 取消 当前View 中的 FLAG_DISALLOW_INTERCEPT 标记 
+                2. 取消当前View中的 PFLAG_CANCEL_NEXT_UP_EVENT 标记。
+                3. 取消当前View中的 FLAG_DISALLOW_INTERCEPT 标记 
 
-            这就表示，虽然 当前View 取消事件并不意味着 直接子View 也取消事件，
-            但是由于 当前View 取消事件，使得触摸目标链表被清空了，导致 直接子View 再也无法接收到后续事件了。
+            这就表示，虽然当前View取消事件并不意味着直接子View也取消事件，
+            但是由于当前View取消事件，使得触摸目标链表被清空了，导致直接子View再也无法接收到后续事件了。
         */
         if (canceled
                 || actionMasked == MotionEvent.ACTION_UP
@@ -406,12 +407,599 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
 
 #### 事件分发中对多点触摸的支持
 
+```java
+/* ViewGroup.java */
+@Override
+public boolean dispatchTouchEvent(MotionEvent ev) {
+    ......
+    if (onFilterTouchEventForSecurity(ev)) {
+        final int action = ev.getAction();
+        final int actionMasked = action & MotionEvent.ACTION_MASK;
+        ......
+        final boolean intercepted;
+        ......
+
+        final boolean canceled = resetCancelNextUpFlag(this) || actionMasked == MotionEvent.ACTION_CANCEL;
+
+        /*
+            Android 3.0 以上，ViewGroup 默认设置了 FLAG_SPLIT_MOTION_EVENTS 标记。
+            该标记用于支持多点触摸，当设置了该标记时，就会单独保存每个按下的 手指id，
+            从而能够根据每个按下的 手指id 单独地对每个手指的触摸事件进行分发。
+        */
+        final boolean split = (mGroupFlags & FLAG_SPLIT_MOTION_EVENTS) != 0;
+
+        TouchTarget newTouchTarget = null;
+        boolean alreadyDispatchedToNewTouchTarget = false;
+        
+        if (!canceled && !intercepted) { // 只有当前View未取消事件，且未拦截事件时，才分发按下事件
+
+            /*
+                这里只会对三种类型的事件进行分发：
+                    1. ACTION_DOWN ：多点触摸中表示第 1 根手指的按下事件
+                    2. ACTION_POINTER_DOWN ：仅在多点触摸中产生，表示非第 1 根手指的按下事件
+                    3. ACTION_HOVER_MOVE ：鼠标未按下时的移动事件（不考虑）
+            */
+            if (actionMasked == MotionEvent.ACTION_DOWN
+                    || (split && actionMasked == MotionEvent.ACTION_POINTER_DOWN)
+                    || actionMasked == MotionEvent.ACTION_HOVER_MOVE) {
+
+                /*
+                    actionIndex 表示事件 ev 是由第几根手指触发的。
+                    其中，第 1 根手指触发的按下事件 ACTION_DOWN 的 actionIndex 为 0。
+                    ev.getActionIndex() 方法只有在按下事件或抬起事件时才有效。
+                    注意：MotionEvent 中有的方法需要传入的参数 pointerIndex 就是这里的 actionIndex。
+                */
+                final int actionIndex = ev.getActionIndex(); // always 0 for down
+
+                /*
+                    Android 3.0 以上，默认设置了 FLAG_SPLIT_MOTION_EVENTS 标记，所以变量 split 默认为 true，
+                    ev.getPointerId(actionIndex) 方法用于获取第 actionIndex 根手指的 id。
+                    1 << pointerId 的含义是将 1 左移 pointerId 位，于是，pointerId 不同，1 左移的位数也不同 ，
+                    因此，左移运算的结果 idBitsToAssign 就可以用来标记 pointerId。
+                    并且，通过位或运算，可以将多个 pointerId 对应的 idBitsToAssign 保存在一个 int 型变量中。
+                */
+                final int idBitsToAssign = split ? 1 << ev.getPointerId(actionIndex)
+                        : TouchTarget.ALL_POINTER_IDS;
+
+                /*
+                    在分发 pointerId 触发的按下事件之前，如果之前已经有直接子View接收过并消费掉该 pointerId 触发的按下事件，
+                    那么就通过 pointerId 找到触摸目标链表中对应的 TouchTarget，清除掉其中对该 pointerId 的标记，
+                    若 TouchTarget 只保存了该 pointerId 的标记，则在清理之后，该 TouchTarget 会从链表中移除掉。
+                    也就是说，在同一事件序列中：
+                        1. 一根手指触发的按下事件最多只会被一个直接子View消费掉，
+                        2. 一根手指触发的后续事件最多只会分发给一个直接子View（就是消费掉按下事件的直接子View）。
+                    注意：但是一个直接子View可以接收并消费掉多根手指触发的事件。
+                */
+                removePointersFromTouchTargets(idBitsToAssign);
+                ......
+            }
+        }
+        ......
+    }
+    ......
+    return handled;
+}
+```
+
+##### 参考
+
+[Android多点触控详解](https://blog.csdn.net/l707941510/article/details/81300333)
+
+[MotionEvent详解](https://blog.csdn.net/vansbelove/article/details/78416791)
+
+[Android触摸滑动全解（四）——MotionEvent详解](https://www.jianshu.com/p/1885f3ec49c0)
+
+
+
 #### 事件分发前如何指定分发顺序
+
+**按下事件的分发顺序**
+
+1. 先分发给`Z`坐标最大的直接子`View`；
+   
+2. `Z`坐标相同时，看是否设置了 `FLAG_USE_CHILD_DRAWING_ORDER` 标记，
+   
+     1. 若没有设置 `FLAG_USE_CHILD_DRAWING_ORDER` 标记，
+    则先分发给插入索引最大的直接子`View`；
+
+     2. 若设置了 `FLAG_USE_CHILD_DRAWING_ORDER` 标记，
+    则先分发给插入索引最大的直接子`View` 经过 `getChildDrawingOrder` 方法映射后的直接子`View`。
+
+**后续事件的分发顺序**
+
+- 同一事件序列中的后续事件只会分发给消费掉按下事件的直接子`View`，这些直接子`View`会保存在触摸目标链表中。
+在链表中，后消费掉按下事件的直接子`View`排在链表的前面。在分发后续事件时，是通过对触摸目标链表进行遍历来分发的，所以先分发给后消费掉按下事件的直接子`View`。
+
+**注意：**
+
+1. 在单点触摸中，按下事件只有一个 `ACTION_DOWN`，所以最多只有一个直接子`View`消费掉按下事件。因此，不用考虑事件的分发顺序。
+
+2. 在多点触摸中，如果一个消费掉 `ACTION_DOWN` 的直接子View 又将要接收到 `ACTION_POINTER_DOWN` 事件，那么并不会改变该直接子`View`在链表中的顺序，仅仅只是把 `ACTION_POINTER_DOWN` 事件的 `pointerId` 添加到该直接子`View`对应的 `TouchTarget` 中，将该 `ACTION_POINTER_DOWN` 事件作为后续事件处理。
+
+
+```java
+/* ViewGroup.java */
+@Override
+public boolean dispatchTouchEvent(MotionEvent ev) {
+    ......
+    if (onFilterTouchEventForSecurity(ev)) {
+        final int action = ev.getAction();
+        final int actionMasked = action & MotionEvent.ACTION_MASK;
+        ......
+        final boolean intercepted;
+        ......
+
+        final boolean canceled = resetCancelNextUpFlag(this) || actionMasked == MotionEvent.ACTION_CANCEL;
+        
+        final boolean split = (mGroupFlags & FLAG_SPLIT_MOTION_EVENTS) != 0;
+
+        TouchTarget newTouchTarget = null;
+        boolean alreadyDispatchedToNewTouchTarget = false;
+        
+        if (!canceled && !intercepted) { // 只有当前View未取消事件，且未拦截事件时，才分发按下事件
+
+            View childWithAccessibilityFocus = ev.isTargetAccessibilityFocus()
+                        ? findChildWithAccessibilityFocus() : null;
+
+            if (actionMasked == MotionEvent.ACTION_DOWN
+                    || (split && actionMasked == MotionEvent.ACTION_POINTER_DOWN)
+                    || actionMasked == MotionEvent.ACTION_HOVER_MOVE) {
+
+                ......
+                if (newTouchTarget == null && childrenCount != 0) {
+                    
+                    /*
+                        buildTouchDispatchChildList 方法返回的 preorderedList 的排序规则为：
+                            1. 若当前View只有一个直接子View，或者所有直接子View的Z坐标都为0，
+                            则 preorderedList 为 null，不进行预排序。
+                            1. preorderedList 中优先按Z坐标从小到大排序；
+                            2. Z坐标相同时，看当前View是否设置了 FLAG_USE_CHILD_DRAWING_ORDER 标记，
+                                3.1 若没有设置了该标记，则按直接子View添加到当前View中时的插入顺序从前到后排序；
+                                3.2 若设置了该标记，则 preorderedList 集合中按插入顺序从前到后排序的直接子View
+                                被映射成以当前View的 getChildDrawingOrder 方法返回值为索引的直接子View。
+                    */
+                    final ArrayList<View> preorderedList = buildTouchDispatchChildList();
+                    final boolean customOrder = preorderedList == null && isChildrenDrawingOrderEnabled();
+                    final View[] children = mChildren;
+
+                    // 这里按直接子View添加到当前View中时的插入顺序从后到前进行遍历
+                    for (int i = childrenCount - 1; i >= 0; i--) {
+                        /*
+                            customOrder 为 true 成立的条件是同时满足以下点：
+                                1. 没有进行预排序，即 preorderedList 集合为null；
+                                2. 当前View设置了 FLAG_USE_CHILD_DRAWING_ORDER 标记。
+                            在 customOrder 为 true 的情况下，childIndex 就是 getChildDrawingOrder 方法的返回值；
+                            在 customOrder 为 false 的情况下，childIndex 就是当前遍历的直接子View在当前View中的插入索引。
+                        */
+                        final int childIndex = getAndVerifyPreorderedIndex(childrenCount, i, customOrder);
+                        
+                        /*
+                            如果进行了预排序，即 preorderedList != null，那么按下事件的分发顺序是：
+                                1. 先分发给Z坐标最大的直接子View；
+                                2. Z坐标相同时，看是否设置了 FLAG_USE_CHILD_DRAWING_ORDER 标记，
+                                    2.1 若没有设置 FLAG_USE_CHILD_DRAWING_ORDER 标记，
+                                    则先分发给插入索引最大的直接子View；
+                                    2.2 若设置了 FLAG_USE_CHILD_DRAWING_ORDER 标记，
+                                    则先分发给插入索引最大的直接子View 经过 getChildDrawingOrder 方法映射后的直接子View。
+                            如果没有预排序，即 preorderedList == null，那么按下事件的分发顺序是：
+                                1. 若没有设置 FLAG_USE_CHILD_DRAWING_ORDER 标记，
+                                则先分发给插入索引最大的直接子View；
+                                2 若设置了 FLAG_USE_CHILD_DRAWING_ORDER 标记，
+                                则先分发给插入索引最大的直接子View 经过 getChildDrawingOrder 方法映射后的直接子View。
+                        */
+                        final View child = getAndVerifyPreorderedView(preorderedList, children, childIndex);
+
+                        /*
+                            如果当前的按下事件是由无障碍服务触发的，
+                            并且无障碍服务指定的焦点View在当前View的子View中（不一定是直接子View），
+                            那么找到包含该焦点View的当前View下的直接子View，即 childWithAccessibilityFocus，
+                            优先将按下事件分发给 childWithAccessibilityFocus，
+                            然后重置循环因子 i = childCount - 1，在对包含焦点View的直接子View分发完按下事件后，
+                            再重新向不包含焦点View的直接子View进行按下事件的分发。
+                        */
+                        if (childWithAccessibilityFocus != null) {
+                            if (childWithAccessibilityFocus != child) {
+                                continue;
+                            }
+                            childWithAccessibilityFocus = null;
+                            i = childrenCount - 1;
+                        }
+                        ......
+                    }
+                    if (preorderedList != null) preorderedList.clear();
+                }
+                ......
+            }
+        }
+        ......
+    }
+    ......
+    return handled;
+}
+```
 
 #### 事件分发前如何确定目标 `View`
 
+```java
+/* ViewGroup.java */
+@Override
+public boolean dispatchTouchEvent(MotionEvent ev) {
+    ......
+    if (onFilterTouchEventForSecurity(ev)) {
+        final int action = ev.getAction();
+        final int actionMasked = action & MotionEvent.ACTION_MASK;
+        ......
+        final boolean intercepted;
+        ......
+
+        final boolean canceled = resetCancelNextUpFlag(this) || actionMasked == MotionEvent.ACTION_CANCEL;
+        
+        final boolean split = (mGroupFlags & FLAG_SPLIT_MOTION_EVENTS) != 0;
+
+        TouchTarget newTouchTarget = null;
+        boolean alreadyDispatchedToNewTouchTarget = false;
+        
+        if (!canceled && !intercepted) { // 只有当前View未取消事件，且未拦截事件时，才分发按下事件
+
+            View childWithAccessibilityFocus = ev.isTargetAccessibilityFocus()
+                        ? findChildWithAccessibilityFocus() : null;
+
+            if (actionMasked == MotionEvent.ACTION_DOWN
+                    || (split && actionMasked == MotionEvent.ACTION_POINTER_DOWN)
+                    || actionMasked == MotionEvent.ACTION_HOVER_MOVE) {
+
+                ......
+                if (newTouchTarget == null && childrenCount != 0) {
+                    final float x = ev.getX(actionIndex);
+                    final float y = ev.getY(actionIndex);
+                    final ArrayList<View> preorderedList = buildTouchDispatchChildList();
+                    final boolean customOrder = preorderedList == null && isChildrenDrawingOrderEnabled();
+                    final View[] children = mChildren;
+
+                    for (int i = childrenCount - 1; i >= 0; i--) {
+                        final int childIndex = getAndVerifyPreorderedIndex(childrenCount, i, customOrder);
+                        final View child = getAndVerifyPreorderedView(preorderedList, children, childIndex);
+                        ......
+                        /*
+                            canViewReceivePointerEvents 方法用来判断直接子View是否能接收事件，满足以下条件之一即可：
+                                1. 直接子View是可见的，即 child.getVisibility() == View.VISIBLE；
+                                2. 直接子View设置了View动画（即补间动画）
+                            isTransformedTouchPointInView 方法用来判断当前的按下事件的按下坐标点是否在直接子View的区域内。
+
+                            综上，如果直接子View是可见的或者设置了补间动画，
+                            那么当按下事件发生在直接子View的区域内时，按下事件就能分发给这个直接子View。
+                        */
+                        if (!canViewReceivePointerEvents(child)
+                                || !isTransformedTouchPointInView(x, y, child, null)) {
+                            ev.setTargetAccessibilityFocus(false);
+                            continue;
+                        }
+                        ......
+                    }
+                }
+                ......
+            }
+        }
+        ......
+    }
+    ......
+    return handled;
+}
+```
+
 #### 按下事件的分发
+
+```java
+/* ViewGroup.java */
+@Override
+public boolean dispatchTouchEvent(MotionEvent ev) {
+    ......
+    if (onFilterTouchEventForSecurity(ev)) {
+        final int action = ev.getAction();
+        final int actionMasked = action & MotionEvent.ACTION_MASK;
+        ......
+        final boolean intercepted;
+        ......
+
+        final boolean canceled = resetCancelNextUpFlag(this) || actionMasked == MotionEvent.ACTION_CANCEL;
+        
+        final boolean split = (mGroupFlags & FLAG_SPLIT_MOTION_EVENTS) != 0;
+
+        TouchTarget newTouchTarget = null;
+        boolean alreadyDispatchedToNewTouchTarget = false;
+        
+        if (!canceled && !intercepted) { // 只有当前View未取消事件，且未拦截事件时，才分发按下事件
+
+            View childWithAccessibilityFocus = ev.isTargetAccessibilityFocus()
+                        ? findChildWithAccessibilityFocus() : null;
+
+            if (actionMasked == MotionEvent.ACTION_DOWN
+                    || (split && actionMasked == MotionEvent.ACTION_POINTER_DOWN)
+                    || actionMasked == MotionEvent.ACTION_HOVER_MOVE) {
+                final int actionIndex = ev.getActionIndex(); // always 0 for down
+                final int idBitsToAssign = split ? 1 << ev.getPointerId(actionIndex) : TouchTarget.ALL_POINTER_IDS;
+                ......
+                if (newTouchTarget == null && childrenCount != 0) {
+                    ......
+                    for (int i = childrenCount - 1; i >= 0; i--) {
+                        final int childIndex = getAndVerifyPreorderedIndex(childrenCount, i, customOrder);
+                        final View child = getAndVerifyPreorderedView(preorderedList, children, childIndex);
+                        ......
+                        /*
+                            如果 newTouchTarget != null，说明直接子View已经消费掉 ACTION_DOWN 事件了，
+                            那么当前分发的肯定是 ACTION_POINTER_DOWN 事件，
+                            也就是说，在当前直接子View消费掉 ACTION_DOWN 事件之后，又有 ACTION_POINTER_DOWN 事件分发给它了。
+                            此时，仅仅把 ACTION_POINTER_DOWN 事件的 pointerId 记录在 TouchTarget 中，先不分发给这个直接子View，
+                            而是在下面的分发后续事件的代码中再进行分发。
+                        */
+                        newTouchTarget = getTouchTarget(child);
+                        if (newTouchTarget != null) {
+                            /*
+                                执行位或运算，将 ACTION_POINTER_DOWN 事件的 pointerId 添加到 TouchTarget 中，
+                                idBitsToAssign 就是 1 << pointerId 的运算结果，是 pointerId 的位表示形式，
+                                TouchTarget.pointerIdBits 中保存的数据可能是：
+                                    1. ACTION_DOWN 的 pointerId；
+                                    2. 1个 ACTION_DOWN 和 n个 ACTION_POINTER_DOWN 的 pointerId。（n=1,2,3,...）
+                            */ 
+                            newTouchTarget.pointerIdBits |= idBitsToAssign;
+                            break;
+                        }
+
+                        /*
+                            清除直接子View的 PFLAG_CANCEL_NEXT_UP_EVENT 标记后再分发按下事件，
+                            因为直接子View在接收到按下事件时，认为是一次事件序列的开始，
+                            所以一开始，直接子View中不应该存在取消事件的标记。
+                        */ 
+                        resetCancelNextUpFlag(child);
+
+                        /*
+                            调用 dispatchTransformedTouchEvent 方法将按下事件分发给直接子View，
+                            参数 cancel 固定位false，于是这里肯定不会将 ACTION_CANCEL 分发给直接子View
+                        */ 
+                        if (dispatchTransformedTouchEvent(ev, false, child, idBitsToAssign)) {
+                            ......
+                            /*
+                                如果直接子View消费掉按下事件，那么就把直接子View以及按下事件的 pointerId 封装到 TouchTarget 中，
+                                然后将该 TouchTarget 插入到触摸目标链表的头节点上，
+                                也就是说触摸目标链表的头节点 mFirstTouchTarget 指向消费掉最后一个按下事件的直接子View。
+                                注意：
+                                只有当直接子View首次消费掉按下事件时成立，
+                                直接子View非首次消费掉按下事件时，不是在这里分发处理的，不会改变链表的结构。
+                            */
+                            newTouchTarget = addTouchTarget(child, idBitsToAssign);
+
+                            /*
+                                标记当前的按下事件已经被消费掉了，
+                                避免在下面分发后续事件的代码中又分发一次。
+                            */
+                            alreadyDispatchedToNewTouchTarget = true;
+
+                            /*
+                                执行 break 语句退出循环，于是已消费掉的按下事件不会再分发给其他直接子View了，
+                                也就是说，如果按照分发顺序，优先接收到按下事件的直接子View消费掉按下事件了，
+                                那么分发顺序靠后的其他直接子View即使能接收按下事件且按下事件发生在其区域内，
+                                该按下事件也不会再分发给它们了。
+                            */
+                            break;
+                        }
+                    }
+                }
+
+                /*
+                    if 条件描述的情况只会在多点触摸时分发 ACTION_POINTER_DOWN 事件时发生：
+                        如果已消费掉 ACTION_DOWN 事件的直接子View 无法接收 ACTION_POINTER_DOWN 事件，
+                        且能接收 ACTION_POINTER_DOWN 事件的其他直接子View 也没有消费掉，
+                        那么把当前的 ACTION_POINTER_DOWN 事件的 pointerId 添加到已消费掉 ACTION_DOWN 事件的直接子View的 TouchTarget 中，
+                        在下面分发后续事件的代码中再分发一次该 ACTION_POINTER_DOWN 事件。
+                */
+                if (newTouchTarget == null && mFirstTouchTarget != null) {
+                    /*
+                        ACTION_DOWN 事件最先触发，所以会最先被消费掉，而消费掉按下事件的直接子View的 TouchTarget
+                        总是插入到链表的头部，所以链表的尾节点就是消费掉 ACTION_DOWN 事件的直接子View对应的TouchTarget。
+                        于是，这里就是将 ACTION_POINETR_DOWN 事件的 pointerId 的位表示形式 idBitsToAssign 添加到链表的尾节点上，
+                        即消费掉 ACTION_DOWN 事件的直接子View对应的 TouchTarget 中。
+                    */
+                    newTouchTarget = mFirstTouchTarget;
+                    while (newTouchTarget.next != null) {
+                        newTouchTarget = newTouchTarget.next;
+                    }
+                    newTouchTarget.pointerIdBits |= idBitsToAssign;
+                }
+            }
+        }
+        ......
+    }
+    ......
+    return handled;
+}
+```
 
 #### 后续事件的分发
 
-#### `ViewGroup` 自己处理事件
+```java
+/* ViewGroup.java */
+@Override
+public boolean dispatchTouchEvent(MotionEvent ev) {
+    ......
+    if (onFilterTouchEventForSecurity(ev)) {
+        final int action = ev.getAction();
+        final int actionMasked = action & MotionEvent.ACTION_MASK;
+        ......
+        final boolean intercepted;
+        ......
+
+        final boolean canceled = resetCancelNextUpFlag(this) || actionMasked == MotionEvent.ACTION_CANCEL;
+        
+        final boolean split = (mGroupFlags & FLAG_SPLIT_MOTION_EVENTS) != 0;
+
+        TouchTarget newTouchTarget = null;
+        boolean alreadyDispatchedToNewTouchTarget = false;
+        
+        if (!canceled && !intercepted) { // 只有当前View未取消事件，且未拦截事件时，才分发按下事件
+
+            View childWithAccessibilityFocus = ev.isTargetAccessibilityFocus()
+                        ? findChildWithAccessibilityFocus() : null;
+
+            if (actionMasked == MotionEvent.ACTION_DOWN
+                    || (split && actionMasked == MotionEvent.ACTION_POINTER_DOWN)
+                    || actionMasked == MotionEvent.ACTION_HOVER_MOVE) {
+                ......
+            }
+        }
+
+        /*
+            如果 mFirstTouchTarget == null 说明不存在消费掉按下事件的直接子View，
+            此时按下事件由当前View自己处理，且同一事件序列中的后续事件也都由当前View自己处理，不再分发给直接子View。
+
+            如果 mFirstTouchTarget != null 说明存在消费掉按下事件的直接子View，
+            此时，当前View不会再处理被消费掉的按下事件，也不会再处理同一事件序列中的后续事件。
+        */
+        if (mFirstTouchTarget == null) {
+            /*
+                参数 child 传 null，表示由当前View自己处理事件ev。
+                如果当前View设置了 PFLAG_CANCEL_NEXT_UP_EVENT 标记，或者当前事件为 ACTION_CANCEL，
+                那么参数 canceled 为 true，表示取消事件
+                TouchTarget.ALL_POINTER_IDS 值为 -1，即int型参数 desiredPointerIdBits 的 32 位都是 1，
+                表示不单独处理各个手指的触摸事件，因为此时就一个当前View在处理事件，没必要再单独分离各个手指处理了。
+            */
+            handled = dispatchTransformedTouchEvent(ev, canceled, null,
+                    TouchTarget.ALL_POINTER_IDS);
+        } else {
+            // 这里开始，进行后续事件的分发（包括 ACTION_POINTER_DOWN 事件）
+            TouchTarget predecessor = null;
+            TouchTarget target = mFirstTouchTarget;
+            while (target != null) {
+                final TouchTarget next = target.next;
+                /*
+                    alreadyDispatchedToNewTouchTarget 为 true，则当前事件可能是 ACTION_DOWN 或 ACTION_POINTER_DOWN，
+                    且表示当前事件已经被 newTouchTarget中的直接子View消费掉了。
+                    注意：
+                        对于已消费掉的 ACTION_POINTER_DOWN 事件，不会再分发给消费过它的直接子View了，
+                        但是还会分发给链表中的消费过其它按下事件的直接子View。
+                        也就是说，在多点触摸中，不管 ACTION_POINTER_DOWN 事件有没有被消费掉，
+                        都会分发给每个消费过按下事件的直接子View。
+
+                        而对于已消费掉的 ACTION_DOWN 事件，不可能会在这里被再次分发。
+                        因为分发 ACTION_DOWN 事件时，链接中除了消费掉它的直接子View外，不存在其他直接子View。
+                */
+                if (alreadyDispatchedToNewTouchTarget && target == newTouchTarget) {
+                    handled = true;
+                } else {
+                    /*
+                        如果消费掉按下事件的直接子View中设置了 PFLAG_CANCEL_NEXT_UP_EVENT 标记，或者当前View对事件进行了拦截，
+                        那么分发给直接子View的会是 ACTION_CANCEL 事件，即在直接子View中会取消事件。
+                    */
+                    final boolean cancelChild = resetCancelNextUpFlag(target.child)
+                            || intercepted;
+
+                    // 这里会分发除 ACTION_DOWN 之外的其他事件。
+                    if (dispatchTransformedTouchEvent(ev, cancelChild,
+                            target.child, target.pointerIdBits)) {
+                        handled = true;
+                    }
+
+                    /*
+                        对于取消事件的直接子View，在将 ACTION_CANCEL 分发给该直接子View后，
+                        就会将其对应的 TouchTarget 从触摸目标链表中移除。
+                        于是，该直接子View就不会再接收到同一事件序列中的后续事件了。
+                    */
+                    if (cancelChild) {
+                        if (predecessor == null) {
+                            mFirstTouchTarget = next;
+                        } else {
+                            predecessor.next = next;
+                        }
+                        target.recycle();
+                        target = next;
+                        continue;
+                    }
+                }
+                predecessor = target;
+                target = next;
+            }
+        }
+    }
+    ......
+    return handled;
+}
+```
+
+### ViewGroup.dispatchTransformedTouchEvent 方法分析
+
+**`dispatchTransformedTouchEvent` 方法中主要考虑以下几种场景**
+
+1. 分发取消事件
+
+2. 
+
+```java
+private boolean dispatchTransformedTouchEvent(MotionEvent event, boolean cancel,
+        View child, int desiredPointerIdBits) {
+    final boolean handled;
+    /*
+        如果参数 cancel 为 true，那么就是分发取消事件，
+        此时，不管真实触发的是什么事件，都当作 ACTION_CANCEL 事件进行分发。
+    */
+    final int oldAction = event.getAction();
+    if (cancel || oldAction == MotionEvent.ACTION_CANCEL) {
+        // 当作 ACTION_CANCEL 事件进行分发
+        event.setAction(MotionEvent.ACTION_CANCEL);
+        if (child == null) {
+            // 当前View自己处理取消事件（调用父类View的 dispatchTouchEvent 方法处理）
+            handled = super.dispatchTouchEvent(event); 
+        } else {
+            // 将取消事件分发给直接子View处理
+            handled = child.dispatchTouchEvent(event);
+        }
+        // 还原触发的真实事件类型
+        event.setAction(oldAction);
+        return handled;
+    }
+
+    final int oldPointerIdBits = event.getPointerIdBits();
+    final int newPointerIdBits = oldPointerIdBits & desiredPointerIdBits;
+    
+    if (newPointerIdBits == 0) {
+        return false;
+    }
+    // If the number of pointers is the same and we don't need to perform any fancy
+    // irreversible transformations, then we can reuse the motion event for this
+    // dispatch as long as we are careful to revert any changes we make.
+    // Otherwise we need to make a copy.
+    final MotionEvent transformedEvent;
+    if (newPointerIdBits == oldPointerIdBits) {
+        if (child == null || child.hasIdentityMatrix()) {
+            if (child == null) {
+                handled = super.dispatchTouchEvent(event);
+            } else {
+                final float offsetX = mScrollX - child.mLeft;
+                final float offsetY = mScrollY - child.mTop;
+                event.offsetLocation(offsetX, offsetY);
+                handled = child.dispatchTouchEvent(event);
+                event.offsetLocation(-offsetX, -offsetY);
+            }
+            return handled;
+        }
+        transformedEvent = MotionEvent.obtain(event);
+    } else {
+        transformedEvent = event.split(newPointerIdBits);
+    }
+    // Perform any necessary transformations and dispatch.
+    if (child == null) {
+        handled = super.dispatchTouchEvent(transformedEvent);
+    } else {
+        final float offsetX = mScrollX - child.mLeft;
+        final float offsetY = mScrollY - child.mTop;
+        transformedEvent.offsetLocation(offsetX, offsetY);
+        if (! child.hasIdentityMatrix()) {
+            transformedEvent.transform(child.getInverseMatrix());
+        }
+        handled = child.dispatchTouchEvent(transformedEvent);
+    }
+    // Done.
+    transformedEvent.recycle();
+    return handled;
+}
+```
+
+### `ViewGroup` 自己处理事件
