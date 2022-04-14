@@ -38,6 +38,9 @@ export default defineThemeConfig({
       presentation: {
         plugins: ["highlight", "math", "search", "notes", "zoom"],
       },
+      container: true,
+      codegroup: true,
+      align: true,
     },
     feed: {
       json: true,
