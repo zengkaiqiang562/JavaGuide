@@ -1,5 +1,5 @@
 ---
-title: 事件分发机制（DOING）
+title: 事件分发机制
 category: android
 tag:
   - android
