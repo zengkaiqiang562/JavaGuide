@@ -928,9 +928,17 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
 
 **`dispatchTransformedTouchEvent` 方法中主要考虑以下几种场景**
 
-1. 分发取消事件
+1. 取消事件的分发
 
-2. 
+2. 当前`View`自己处理事件
+
+3. 多点触摸下只有部分手指按在直接子`View`中
+
+4. 直接子`View`的视图因补间动画而发生了改变
+
+**注意：**
+
+- 如果直接子`View`还是一个`ViewGroup`，那么在直接子`View`中，又会进行一次事件分发。也就是说，事件分发是一个递归的过程，直到直接子`View`是`View`为止。
 
 ```java
 private boolean dispatchTransformedTouchEvent(MotionEvent event, boolean cancel,
@@ -956,22 +964,47 @@ private boolean dispatchTransformedTouchEvent(MotionEvent event, boolean cancel,
         return handled;
     }
 
+    // oldPointerIdBits 表示所有按下的手指的 pointerId 的位表示形式的组合
     final int oldPointerIdBits = event.getPointerIdBits();
+
+    /*
+        如果是当前View自己处理事件，那么 desiredPointerIdBits 的 32 位都是 1；
+        如果一个直接子View只接收 1 个按下事件，那么 desiredPointerIdBits 只表示 1  个按下手指的 pointerId；
+        如果一个直接子View可以接收多个按下事件，那么 desiredPointerIdBits 表示多个按下手指的 pointerId 的组合；
+    */ 
     final int newPointerIdBits = oldPointerIdBits & desiredPointerIdBits;
-    
+
+    /*
+        当前分发的事件的 desiredPointerIdBits 肯定不会传0，所以 newPointerIdBits == 0 的情况有 2 种：
+            1. oldPointerIdBits == 0，即无法获取到本次事件序列中任何手指的 pointerId；
+            2. 无法从本次事件序列的所有手指的 pointerId 中找到可以被当前直接子View接收的手指的 pointerId。
+        不管是以上哪种情况，都无法正常地对事件进行分发了，所以当前事件肯定不会被消费掉，直接返回 false。
+    */ 
     if (newPointerIdBits == 0) {
         return false;
     }
-    // If the number of pointers is the same and we don't need to perform any fancy
-    // irreversible transformations, then we can reuse the motion event for this
-    // dispatch as long as we are careful to revert any changes we make.
-    // Otherwise we need to make a copy.
+
     final MotionEvent transformedEvent;
+    /*
+        newPointerIdBits == oldPointerIdBits 的情况有三种：
+            1. 当前View自己处理事件时，desiredPointerIdBits 的 32 位都是 1 ，此时 newPointerIdBits == oldPointerIdBits；
+            2. 单点触摸中，只存在 1 根手指，所以 newPointerIdBits == oldPointerIdBits 总是成立；
+            3. 多点触摸中，所有手指的按下事件都被当前直接子View接收到了；
+
+        newPointerIdBits != oldPointerIdBits 则表示：
+            多点触摸中，当前直接子View只接收到部分手指触发的事件。
+            这些部分手指的 pointerId 的位表示形式的组合就是 newPointerIdBits，
+            此时，调用 event.split(newPointerIdBits) 方法将这些手指触发的事件分离出来。
+    */
     if (newPointerIdBits == oldPointerIdBits) {
+        /*
+            child.hasIdentityMatrix() 返回 true，表示当前直接子View的视图没有因补间动画而发生改变，
+            此时，可以在这里把事件分发给直接子View。
+        */
         if (child == null || child.hasIdentityMatrix()) {
-            if (child == null) {
+            if (child == null) { // 当前View自己处理事件时，执行这里的，而不是执行下面的
                 handled = super.dispatchTouchEvent(event);
-            } else {
+            } else { // 当前直接子View的视图没有因补间动画而发生改变时，在这里进行事件分发
                 final float offsetX = mScrollX - child.mLeft;
                 final float offsetY = mScrollY - child.mTop;
                 event.offsetLocation(offsetX, offsetY);
@@ -980,26 +1013,184 @@ private boolean dispatchTransformedTouchEvent(MotionEvent event, boolean cancel,
             }
             return handled;
         }
+        // 如果当前直接子View的视图因补间动画而发生改变了，那么事件分发会在下面再进行。
         transformedEvent = MotionEvent.obtain(event);
-    } else {
+    } else { // 将按在当前直接子View上的那些手指所触发的事件分离出来。
         transformedEvent = event.split(newPointerIdBits);
     }
-    // Perform any necessary transformations and dispatch.
-    if (child == null) {
+
+    if (child == null) { 
+        /*
+            当前View自己处理事件时，newPointerIdBits == oldPointerIdBits 肯定成立，所以不会走这里。
+        */
         handled = super.dispatchTouchEvent(transformedEvent);
     } else {
+        /*
+            在这里分发事件的情况有两种：
+                1. 将分离出来的按在当前直接子View上的那些手指所触发的事件分发给当前直接子View。
+                2. 按下事件都发生在当前直接子View中，但直接子View因补间动画发生了视图变换。
+        */
         final float offsetX = mScrollX - child.mLeft;
         final float offsetY = mScrollY - child.mTop;
         transformedEvent.offsetLocation(offsetX, offsetY);
         if (! child.hasIdentityMatrix()) {
+            // 如果直接子View因补间动画发生了视图变换，那么需要通过逆矩阵将触摸事件转换成适应视图变换后的直接子View。
             transformedEvent.transform(child.getInverseMatrix());
         }
+        // 把事件分发给直接子View
         handled = child.dispatchTouchEvent(transformedEvent);
     }
-    // Done.
     transformedEvent.recycle();
     return handled;
 }
 ```
 
 ### `ViewGroup` 自己处理事件
+
+`ViewGroup` 通过调用父类 `View` 的 `dispatchTouchEvent(MotionEvent event)` 方法来处理事件。
+
+## `View` 的事件处理流程
+
+这里的`View` 特指没有子`View`的视图，所以事件分发到了 `View` 中，就分发完成了，此时开始处理事件。
+
+![](./images/android-event-dispatch-mechanism-08.png)
+
+### `View.dispatchTouchEvent` 方法分析
+
+```java
+public boolean dispatchTouchEvent(MotionEvent event) {
+    if (event.isTargetAccessibilityFocus()) {
+        /*
+            如果事件是由无障碍服务发起的，但是处理该事件的View并不是无障碍服务设置的焦点View，
+            那么就不消费掉事件，返回 false。
+        */
+        if (!isAccessibilityFocusedViewOrHost()) {
+            return false;
+        }
+        event.setTargetAccessibilityFocus(false);
+    }
+    boolean result = false;
+    final int actionMasked = event.getActionMasked();
+    if (actionMasked == MotionEvent.ACTION_DOWN) {
+        // ACTION_DOWN 是一次事件序列的开始，在开始处理前，保证未结束的嵌套滑动先停下来。
+        stopNestedScroll();
+    }
+
+    // 调用 onFilterTouchEventForSecurity 方法过滤掉不安全的触摸事件
+    if (onFilterTouchEventForSecurity(event)) {
+
+        /*
+            根据View的使能状态（enabled），在View中处理事件时分两种情况：
+                1. 使能状态标记为 ENABLE：
+                    1.1 若当前事件表示按下鼠标左键拖动View的滚动条，则先标记为消息掉事件，
+                    然后在设置了 OnTouchListener 的情况下，再执行 OnTouchListener.onTouch 方法处理事件。
+                    此时，不管 OnTouchListener.onTouch 方法是否消费掉事件，View都会消费掉事件。
+                    因为已经肯定View会消费掉事件了，所以不再执行 View.onTouchEvent 方法。
+                    1.2 若当前事件不是按下鼠标左键拖动View的滚动条，则默认不消费掉事件，
+                    然后在设置了 OnTouchListener 的情况下，再执行 OnTouchListener.onTouch 方法处理事件。
+                    此时，若 OnTouchListener.onTouch 方法消费掉事件，则不再执行 View.onTouchEvent 方法；
+                    若 OnTouchListener.onTouch 方法没有消费掉事件，则接着执行 View.onTouchEvent 方法，
+                    此时，View是否消费掉事件，由 View.onTouchEvent 方法的返回值确定。
+                2. 使能状态标记为 DISABLED：
+                    此时，不管当前事件是否为按下鼠标左键拖动View的滚动条，也不管是否设置了 OnTouchListener，
+                    都默认为不消费掉事件，并且也不会去执行 OnTouchListener.onTouch 方法，
+                    而是通过执行 View.onTouchEvent 方法来处理事件，
+                    此时，View是否消费掉事件，仅由 View.onTouchEvent 方法的返回值确定。
+        */
+
+        // 当按下鼠标左键拖动View的滚动条时，handleScrollBarDragging 方法返回 true。
+        if ((mViewFlags & ENABLED_MASK) == ENABLED && handleScrollBarDragging(event)) {
+            result = true;
+        }
+
+        /*
+            在View中设置的 OnClickListener，OnLongClickListener，OnTouchListener，OnKeyListener，
+            等事件监听器都会注册在 mListenerInfo 中。
+        */
+        ListenerInfo li = mListenerInfo;
+        if (li != null && li.mOnTouchListener != null
+                && (mViewFlags & ENABLED_MASK) == ENABLED
+                && li.mOnTouchListener.onTouch(this, event)) { // 先执行 OnTouchListener.onTouch 方法
+            result = true;
+        }
+        if (!result && onTouchEvent(event)) { // 再执行 View.onTouchEvent 方法
+            result = true;
+        }
+    }
+    
+    /*
+        以下三种情况会停止嵌套滑动：
+            1. 接收到了同一事件序列中最后触发的抬起事件；
+            2. 接收到了取消事件；
+            3. 接收到按下事件，但没有消费掉。
+    */
+    if (actionMasked == MotionEvent.ACTION_UP ||
+            actionMasked == MotionEvent.ACTION_CANCEL ||
+            (actionMasked == MotionEvent.ACTION_DOWN && !result)) {
+        stopNestedScroll();
+    }
+    return result;
+}
+```
+
+### `View.onTouchEvent` 方法分析
+
+```java
+public boolean onTouchEvent(MotionEvent event) {
+    final float x = event.getX();
+    final float y = event.getY();
+    final int viewFlags = mViewFlags;
+    final int action = event.getAction();
+
+    /*
+        判断View是否可点击，只要满足以下 3 个条件之一即可：
+            1. 设置了 CLICKABLE 标记，在设置 OnClickListener 监听器时，会调用 setClickable(true) 方法设置该标记；
+            2. 设置了 LONG_CLICKABLE 标记，在设置 OnLongClickListener 监听器时，会调用 setLongClickable(true) 方法设置该标记；
+            3. 设置了 CONTEXT_CLICKABLE 标记，在设置 OnContextClickListener 监听器时，会调用 setContextClickable(true) 方法设置该标记；
+    */
+    final boolean clickable = ((viewFlags & CLICKABLE) == CLICKABLE
+            || (viewFlags & LONG_CLICKABLE) == LONG_CLICKABLE)
+            || (viewFlags & CONTEXT_CLICKABLE) == CONTEXT_CLICKABLE;
+    if ((viewFlags & ENABLED_MASK) == DISABLED) {
+        if (action == MotionEvent.ACTION_UP && (mPrivateFlags & PFLAG_PRESSED) != 0) {
+            setPressed(false);
+        }
+        mPrivateFlags3 &= ~PFLAG3_FINGER_DOWN;
+        // A disabled view that is clickable still consumes the touch
+        // events, it just doesn't respond to them.
+        /*
+            如果View是可点击的，那么即使View的使能状态为 DISABLED，View.onTouchEvent 方法也会消费掉事件，
+            即：只要View是可点击的，即使没有触发点击效果，那么 View.onTouchEvent 方法也会消费掉事件。
+        */
+        return clickable;
+    }
+
+    /*
+        如果View调用了 setTouchDelegate 方法设置了一个触摸代理对象 mTouchDelegate，
+        那么在 View.onTouchEvent 方法中，先让 mTouchDelegate 来处理事件，
+        若 mTouchDelegate 消费掉了事件，则直接返回 true，否则才让View自己来处理事件。
+    */
+    if (mTouchDelegate != null) {
+        if (mTouchDelegate.onTouchEvent(event)) {
+            return true;
+        }
+    }
+
+    /*
+        如果View调用了 setTooltipText 方法设置了 tooltip 文本，就会设置 TOOLTIP 标记。
+        tooltip文件是在 Android 8.0 中添加的。这里只考虑 clickable 即可。
+    */
+    if (clickable || (viewFlags & TOOLTIP) == TOOLTIP) {
+
+        switch (action) {...}
+
+        // 只要View是可点击的，那么 View.onTouchEvent 方法一定会消费掉事件。
+        return true;
+    }
+    return false;
+}
+```
+
+**注意**
+
+只要`View`是可点击的，那么 `View.onTouchEvent` 方法一定会消费掉事件。这句话并不意味着只要`View`是可点击的，那么`View`一定会消费掉事件。只有当`View`是否消费掉事件，由 `View.onTouchEvent` 方法的返回值确定时才成立。
