@@ -179,3 +179,8 @@ pre[class*='language-']>code {
 ul, ol {
     padding-left: 3em;
 }
+
+svg .loopText, svg .loopText>tspan {
+    font-size: 12px!important;
+    fill: red!important;
+}
