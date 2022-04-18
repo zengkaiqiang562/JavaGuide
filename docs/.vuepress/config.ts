@@ -1,6 +1,5 @@
 import { defineHopeConfig }  from "vuepress-theme-hope";
 import themeConfig from "./themeConfig";
-import { createMarkdown } from '@vuepress/markdown';
 
 module.exports = defineHopeConfig({
   port: 8080,

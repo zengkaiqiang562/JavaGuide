@@ -41,6 +41,8 @@ export default defineThemeConfig({
       container: true,
       codegroup: true,
       align: true,
+      mermaid: true,
+      flowchart: true,
     },
     feed: {
       json: true,
