@@ -9,13 +9,11 @@ tag:
 
 ## 从启动 `Activity` 到 `UI` 绘制的时序图
 
+从 `startActivity` 到 `scheduleLaunchActivity`
+
 ```sequence
 participant A as Activity
 participant I as Instrumentation
-participant WMI as WindowManagerImpl
-participant LA as LoadedApk
-participant AT as ActivityThread
-participant ATH as ActivityThread.H
 participant APPT as ActivityThread.ApplicationThread
 participant AMS as ActivityManagerService
 participant ASS as ActivityStackSupervisor
@@ -36,6 +34,20 @@ AS ->> AS : resumeTopActivityInnerLocked
 AS ->> ASS : startSpecificActivityLocked
 ASS ->> ASS : realStartActivityLocked
 ASS ->> APPT : scheduleLaunchActivity
+```
+
+从 `scheduleLaunchActivity` 到 `addView`
+
+```sequence
+participant APPT as ActivityThread.ApplicationThread
+participant ATH as ActivityThread.H
+participant AT as ActivityThread
+participant LA as LoadedApk
+participant A as Activity
+participant I as Instrumentation
+participant WMI as WindowManagerImpl
+
+APPT ->> APPT : scheduleLaunchActivity
 APPT ->> ATH : sendMessage(H.LAUNCH_ACTIVITY, r)
 ATH ->> AT : handleLaunchActivity
 activate AT
