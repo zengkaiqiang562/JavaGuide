@@ -395,11 +395,9 @@ Response getResponseWithInterceptorChain() throws IOException {
 }
 ```
 
-从拦截器链的 `proceed(request)` 开始，将请求交给拦截器处理，并为下一个拦截器的处理做准备，即：
+在拦截器链的 `proceed(request)` 方法中，将请求交给拦截器处理，并为下一个拦截器的处理做准备，即：
 1. 在 `proceed` 方法中为下一个拦截器创建一个新的拦截器链对象 `nextChain`；
 2. 调用拦截器的 `intercept(nextChain)` 方法处理请求，并在处理后继续调用 `nextChain.proceed(request)` 方法，将处理后的请求继续交给下一个拦截器处理。
-
-后处理请求的拦截器，会将其得到的响应数据 `response` 返回给上一个拦截器，上一个拦截器接收到响应数据 `response` 后可以进行二次处理。最终，经过各个拦截器处理后的响应数据 `response` 作为 `getResponseWithInterceptorChain()` 方法的返回值传给发起请求的调用者。
 
 ```sequence
 participant RC as RealCall
@@ -423,6 +421,24 @@ activate RC
 deactivate RC
 ```
 
+拦截器链的 `proceed` 方法采用了递归算法，通过拦截器集合 `interceptors` 中的拦截器依次调用：
+```
+response = realCall.getResponseWithInterceptorChain() -> chain.proceed(request) -> new nextChain ->
+    -> interceptor1.intercept(nextChain) -> nextChain.proceed(request) -> new nextChain
+    -> interceptor2.intercept(nextChain) -> nextChain.proceed(request) -> new nextChain
+    -> ...
+    -> interceptorN.intercept(chain)
+```
+其中，通过 `chain.proceed` 和 `interceptor.intercept` 方法返回 `Response` 交给上一个拦截器处理。
+
+在不使用缓存的情况下，最后一个拦截器 `interceptorN` 必定是 `CallServerInterceptor`。
+
+一次网络请求的过程，就是依次调用拦截器集合中各个拦截器的 `intercept` 方法的过程，且：
+1. 拦截器集合中，后面的拦截器可以篡改前面的拦截器传入的请求 `Request` 对象；
+2. 拦截器集合中，前面的拦截器可以篡改后面的拦截器返回的响应 `Response` 对象。
+
+### `RetryAndFollowUpInterceptor` 重定向拦截器
+
 ```sequence
 participant RNFUI as RetryAndFollowUpInterceptor
 participant RIC as RealInterceptorChain
@@ -442,6 +458,60 @@ activate RNFUI
     RNFUI ->> RNFUI : return response
 deactivate RNFUI
 ```
+
+```java
+/* RetryAndFollowUpInterceptor.java */
+@Override 
+public Response intercept(Chain chain) throws IOException {
+    Request request = chain.request();
+    RealInterceptorChain realChain = (RealInterceptorChain) chain;
+    Call call = realChain.call();
+
+    // 创建 StreamAllocation 对象，建立网络连接、获取网络 IO 流，都是通过 StreamAllocation 实现的
+    streamAllocation = new StreamAllocation(client.connectionPool(), createAddress(request.url()), call, ...);
+
+    int followUpCount = 0; // 统计失败重连或重定向的次数
+
+    // 为了不断地进行失败重连或重定向，这里使用了死循环。
+    while (true) {
+        ...
+        /*
+            虽然在重定向拦截器中就创建好了 StreamAllocation，但是，
+                在 ConnectInterceptor 拦截器中才通过它来建立网络连接；
+                在 CallServerInterceptor 拦截器中才通过它来读写网络 IO 流。
+            所以，这里要把创建好的 StreamAllocation 对象通过拦截器链传递给后面的拦截器。
+        */ 
+        response = realChain.proceed(request, streamAllocation, null, null);
+        ...
+        /*
+            执行 followUpRequest(response) 方法，根据 response.code() 响应码判断是否需要重定向
+            如果需要重定向，那么 followUp != null，继续 while 循环；
+            如果不需要重定向，那么返回下一个拦截器返回的响应对象 response。
+        */
+        Request followUp = followUpRequest(response);
+        if (followUp == null) {
+          if (!forWebSocket) {
+            streamAllocation.release();
+          }
+          return response;
+        }
+
+        /*
+            MAX_FOLLOW_UPS 是 OkHttp 允许的最大重定向次数，固定为 20 次，
+            也就是说，当第 21 次请求时，如果还未成功获取响应数据，那么就不再重定向了，
+            而是抛出异常，提示 "Too many follow-up requests: 21"
+        */
+        if (++followUpCount > MAX_FOLLOW_UPS) {
+            streamAllocation.release();
+            throw new ProtocolException("Too many follow-up requests: " + followUpCount);
+        }
+        ...
+        request = followUp;
+    }
+}
+```
+
+### `BridgeInterceptor` 桥接和适配拦截器
 
 ```sequence
 participant BI as BridgeInterceptor
@@ -465,3 +535,155 @@ activate BI
 deactivate BI
 ```
 
+桥接和适配拦截器 `BridgeInterceptor` 的作用就是：
+1. 为 `Request` 添加必要的请求头信息；
+2. 对 `Response` 中的响应体数据 `body`，如果使用了 `gzip` 压缩，那么将 `body.source` 封装在     `GzipSource` 中，通过 `GzipSource` 解压响应体数据。
+
+### `CacheInterceptor` 缓存拦截器（以及缓存的简单介绍）
+
+```sequence
+participant CI as CacheInterceptor
+participant RIC as RealInterceptorChain
+participant ConI as ConnectInterceptor
+
+CI ->> CI : intercept(nextChain)
+activate CI
+    CI ->> CI : reqeust = nextChain.request()
+    CI ->> CI : cacheResponse = cache.get(request)
+    alt CacheStrategy.networkRequest == null，使用缓存的响应数据
+        CI ->> CI : return cacheResponse
+    else 获取网络中的响应数据
+        Note over CI,RIC : networkRequest 其实就是 nextChain.request() 返回的
+        CI ->> RIC : nextChain.proceed(networkRequest)  
+        activate RIC
+            RIC ->> RIC : curInterceptor = interceptors.get(index)
+            RIC ->> RIC : nextChain = new RealInterceptorChain(interceptors, ..., index + 1,    request, ...)
+            RIC ->> ConI : curInterceptor.intercept(nextChain)
+            ConI -->> RIC : return response
+        deactivate RIC
+        RIC -->> CI : return response
+        Note over CI : 缓存从网络中获取到的 response
+        CI ->> CI : cache.put(response)
+        CI ->> CI : return response
+    end
+deactivate CI
+```
+
+缓存拦截器 `CacheInterceptor` 中使用的缓存类对象 `cache` 是通过 `OkHttpClient.Builder.cache(Cache)` 方法配置的。
+
+缓存类 `Cache` 中通过 `DisLruCache` 实现了基于 `LRU` 算法的磁盘缓存（并没有提供内存缓存）。
+```java
+/* Cache.java */
+/*
+    参数 directory 指定存放缓存文件的磁盘目录
+    参数 maxSize 指定可以缓存的总数据大小（单位：字节）
+*/
+public Cache(File directory, long maxSize)
+```
+
+查看 `Cache.put(response)` 方法源码可知：**只对 `GET` 请求的数据进行缓存**。
+
+存取缓存数据时，是以请求地址 `url` 的 `md5` 加密后的 `16` 进制字符串为 `key` 进行存取的。
+```java
+/* Cache.java */
+public static String key(HttpUrl url) {
+    return ByteString.encodeUtf8(url.toString()).md5().hex();
+}
+```
+
+对于一次网络请求，会缓存的数据包括：
+1. 请求地址 `url`
+2. 请求头信息
+3. 响应码
+4. `http` 协议版本
+5. 响应头信息
+6. 响应体数据
+
+### `ConnectInterceptor` 网络连接拦截器（以及连接池的简单介绍）
+
+```sequence
+participant ConI as ConnectInterceptor
+participant RIC as RealInterceptorChain
+participant CSI as CallServerInterceptor
+
+ConI ->> ConI : intercept(nextChain)
+activate ConI
+    ConI ->> ConI : reqeust = nextChain.request()
+    Note over ConI : streamAllocation 在重定向拦截器的 intercept 方法中就已经创建好了
+    ConI ->> ConI : streamAllocation = nextChain.streamAllocation()
+    Note over ConI : 调用 newStream 方法获取到可用的 RealConnection 对象，并建立好网络连接。
+    ConI ->> ConI : httpCodec = streamAllocation.newStream(...)
+    Note over ConI : 返回可用的RealConnection对象 connection
+    ConI ->> ConI : connection = streamAllocation.connection()
+    ConI ->> RIC : proceed(request, streamAllocation, httpCodec, connection)
+    activate RIC
+        RIC ->> RIC : curInterceptor = interceptors.get(index)
+        RIC ->> RIC : nextChain = new RealInterceptorChain(interceptors, ..., index + 1,    request, ...)
+        RIC ->> CSI : curInterceptor.intercept(nextChain)
+        CSI -->> RIC : return response
+    deactivate RIC
+    RIC -->> ConI : return response
+    ConI ->> ConI : return response
+deactivate ConI
+```
+
+在 `StreamAllocation.newStream` 方法中会通过 `findHealthyConnection` 和 `findConnection` 方法来获取一个**建立好网络连接**的 `RealConnection` 对象。
+
+1. 在 `findConnection` 方法中会先从连接池 `ConnectionPool` 中查看是否有可用的 `RealConnection` 对象。
+    > 连接池 `ConnectionPool` 中的 `RealConnection` 对象都是还没有断开网络连接的。
+    > 
+    > 可用的 `RealConnection` 中连接的服务器主机必须跟本次请求的服务器主机相同（即同域名的 `url` 请求之间才可以复用）。
+
+2. 已建立起网络连接的 `RealConnection` 都会保存在连接池 `ConnectionPool` 中。并且，连接池会**定时**清理空闲的 `RealConnection`。
+    > 默认情况下，连接池中最多允许 `5` 个空闲的 `RealConnection` 同时存在，且空闲的时间不能超过 `5` 分钟，否则就会清理掉。
+
+3. 如果连接池中没有可用的 `RealConnection`，那么就会在 `findConnection` 方法中 `new` 一个新的 `RealConnection`，然后调用 `RealConnection.connect` 方法建立网络连接。
+    > 默认情况下，是通过 `Socket` 来建立网络连接的。
+    >
+    > 在 `CallServerInterceptor` 中，其实就是通过 `Socket` 提供的 `IO` 流与服务器进行读写操作的。
+
+### `CallServerInterceptor` 服务器调用拦截器
+
+`CallServerInterceptor` 是拦截器链中最后一个处理请求的拦截器，用来获取网络中的响应数据。
+> 用户自定义的网络拦截器是插入在 `ConnectInterceptor` 和 `CallServerInterceptor` 之间的。
+
+```sequence
+participant CSI as CallServerInterceptor
+participant HC as Http1Codec
+
+Note over CSI : 这里不会再调用 nextChain.proceed 方法了，因为不存在下一个拦截器了。
+CSI ->> CSI : intercept(nextChain)
+activate CSI
+    CSI ->> CSI : request = nextChain.request()
+    CSI ->> CSI : streamAllocation = nextChain.streamAllocation()
+    Note over CSI : 对于 http 1.1，这里返回的 httpCodec 就是 Http1Codec
+    Note over CSI : Http1Codec.sink 用来发送请求数据
+    Note over CSI : Http1Codec.source 用来读取响应数据
+    CSI ->> CSI : httpCodec = nextChain.httpStream()
+    CSI ->> CSI : connection = nextChain.connection()
+    Note over CSI,HC : 向 Http1Codec.sink 中写入请求头信息
+    CSI ->> HC : writeRequestHeaders(request)
+    opt request.method() == "POST" && request.body() != null
+        Note over CSI,HC : 向 Http1Codec.sink 中写入请求体信息
+        CSI ->> HC : request.body().writeTo(BufferedSink)
+    end
+    Note over CSI,HC : 将 Http1Codec.sink 中的请求数据刷新到IO流中，发送给服务器
+    CSI ->> HC : finishRequest()
+    Note over CSI,HC : 通过 Http1Codec.source 读取网络IO中返回的响应头信息
+    CSI ->> HC : readResponseHeaders
+    HC -->> CSI : return responseBuilder
+    CSI ->> CSI : responseBuilder.build() 构建封装响应数据的对象response
+    CSI ->> HC : openResonseBody
+    Note over CSI,HC : responseBody 只是持有 Http1Codec.source，还未从网络IO中读取响应体数据
+    HC ->> CSI : return responseBody
+    CSI ->> CSI : response.body(responseBody)
+    CSI ->>  CSI : return  response
+deactivate CSI
+```
+
+OkHttp返回给调用者的响应对象 `response` 中并没有保存响应体数据，`response` 的 `body` 中只是持有了 `Http1Codec.source` 的引用。当调用者拿到 `response` 后，执行 `response.body.string()` 方法时，才会通过 `Http1Codec.source` 从网络 `IO` 中读取响应体数据。
+> 也就是说， `response.body.string()` 方法涉及到 `IO` 操作，不能在 `UI` 线程中执行。
+>
+> 执行 `response.body.string()` 会将所有的响应体数据一次性地读取到内存中，如果响应体数据过大，则可能导致内存溢出。
+>
+> `response.body.string()` 是直接从网络 `IO` 中将响应体数据全部读取出来，所以只有第 `1` 次调用时才有数据。
