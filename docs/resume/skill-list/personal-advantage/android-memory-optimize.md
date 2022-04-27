@@ -50,7 +50,133 @@ public class SecondActivity extends AppCompatActivity {
 
 #### 1.2.2 多线程相关的匿名内部类/非静态内部类
 
+和非静态内部类一样，匿名内部类也会持有外部类实例的引用。因此，对于多线程相关的 `AsyncTask`、`Thread`、`Runnable` 等类，它们的匿名内部类/非静态内部类，如果做耗时操作就可能发生内存泄漏。以 `AsyncTask` 的匿名内部类为例：
+
+```java
+public class TaskActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        ...
+         findViewById(R.id.bt_next).setOnClickListener(v -> {
+             startAsyncTask();
+             finish();
+         });
+    }
+
+    void startAsyncTask() {
+        new AsyncTask<Void, Void, Void>() {
+            protected Void doInBackground(Void... params) {
+                while (true);
+            }
+        }.execute();
+    }
+}
+```
+
+如上代码所示，`AsyncTask` 的实例持有 `TaskActivity` 的引用。且 `AsyncTask` 的异步任务一直在子线程中执行（`while` 死循环），因此，即使 `TaskActivity.onDestroy` 方法执行完，`TaskActivity` 也不会被垃圾回收。
+
+> 同理，自定义的 `AsyncTask` 如果是非静态内部类，也会发生内存泄漏。
+
+解决办法就是自定义一个静态的 `AsyncTask`，如下代码所示：
+
+ ```java
+ public class TaskActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        ...
+         findViewById(R.id.bt_next).setOnClickListener(v -> {
+             startAsyncTask();
+             finish();
+         });
+    }
+
+    void startAsyncTask() {
+        new MyAsyncTask().execute();
+    }
+
+    private static class MyAsyncTask extends AsyncTask<Void, Void, Void> {
+        protected Void doInBackground(Void... params) {
+            while (true);
+        }
+    }
+}
+ ```
+
 #### 1.2.3 `Handler` 内存泄漏
+
+`Handler` 的 `Message` 被存储在 `MessageQueue` 中，有些 `Message` 并不能马上被处理，它们在 `MesaageQueue` 中存在的时间会很长，这就会导致 `Handler` 无法被垃圾回收。如果 `Handler` 是 `Activity` 中的非静态内部类/匿名内部类，则 `Handler` 同样会持有这个 `Activity`，导致这个 `Activity` 无法被垃圾回收。（对 `Service` 也存在同样的情况）
+
+```java
+public class MyActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        ...
+        findViewById(R.id.bt_next).setOnClickListener(v -> {
+            mHandler.sendMessageDelayed(Message.obtain(), 60000);
+            finish();
+        });
+    }
+
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            ...
+        }
+    }
+}
+```
+
+如上代码所示，`mHandler` 是匿名内部类的实例，它持有外部类 `MyActivity` 的引用。由于发送了一个延迟消息，所以引用了 `mHandler` 的消息在 `MyActivity.onDestroy` 执行完毕后还存在于 `MessageQueue` 中，从而导致被 `mHandler` 持有的 `MyActivity` 无法被垃圾回收。
+> 即：由于匿名内部类的实例没有被垃圾回收，所以被匿名内部类所持有的外部类实例也无法被垃圾回收。
+
+有两种解决方案：
+
+1. 使用静态的 `Handler` 内部类，且 `Handler` 需要访问 `MyActivity` 时，采用弱引用的方式持有 `MyActivity` 实例。
+
+    ```java
+    public class MyActivity extends AppCompatActivity {
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            ...
+            findViewById(R.id.bt_next).setOnClickListener(v -> {
+                mHandler.sendMessageDelayed(Message.obtain(), 60000);
+                finish();
+            });
+        }
+
+        private final Handler mHandler = new MyHandler(this);
+
+        private static class MyHandler extends Handler {
+            final WeakReference<MyActivity> mWRefActivity;
+
+            MyHandler(MyActivity activity) {
+                mWRefActivity = new WeakReference<>(activity);
+            }
+
+            @Override
+            public void handleMessage(Message msg) {
+                ...
+            }
+        }
+    }
+    ```
+
+    > `GitHub` 上提供了一个避免内存泄漏的 `Handler` 开源库 `WeakHandler`。地址为：`https://github.com/badoo/android-weak-handler`。
+
+2. 在 `Activity` 的 `onDestroy` 方法中移除 `MessageQueue` 中的消息。
+
+    ```java
+    @Override
+    public void onDestroy() {
+        if (mHandler != null) {
+            // 将 Callbacks 和 Messages 全部清除掉
+            mHandler.removeCallbacksAndMessages(null);
+        }
+        super.onDestroy();
+    }
+    ```
+
+    > 采用这种解决方案，`Handler` 中的消息可能无法全部处理完，因此建议采用第 `1` 种解决方案。
 
 #### 1.2.4 未正确使用 `Context`
 
