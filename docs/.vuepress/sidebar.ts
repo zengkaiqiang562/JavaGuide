@@ -175,7 +175,8 @@ export const sidebarConfig = defineSidebarConfig({
             "greendao-realm-compare", // GreenDao和Realm的对比，如何选择
             "android-nested-scroll", // 嵌套滑动的实现方式和原理
             "android-Anim", // 帧动画，补间动画，属性动画各自的概念，特点，使用场景。什么是插值器，什么是估值器
-            "java-thread", // 线程的状态，sleep/wait的区别
+            "java-thread", // 线程
+            "java-jmm", // Java内存模型——底层原理
             "android-handler", // 消息机制
           ]
         }

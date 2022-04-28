@@ -1,5 +1,5 @@
 ---
-title: 线程（DOING）
+title: 线程
 category: 
   - java
 tag:
@@ -530,16 +530,298 @@ suspend 和 resume 是搭配使用的，通过 suspend 将线程挂起，通过 
 
 ### 5.5 `yield` 方法
 
-![](./images/java-thread/java-thread-32.png)
+#### 5.5.1 作用
+
+当线程占用了 `CPU` 资源时，调用该线程的 `yield` 方法，会让该线程释放掉其所占用的 `CPU` 资源。
+
+> 需要指出的是：该线程仅仅只是释放掉 `CPU` 资源，并不会释放掉持有的锁，也不会进入到阻塞状态。
+>
+> 也就是说，该线程在调用 `yield` 方法后，仍然处于 `Runnable` 状态，只是没有占用 `CPU` 资源了。
+
+> 注意：由于该线程仍然处于 `Runnable` 状态，所以当调度器（`scheduler`）再次分配 `CPU` 资源时，还可能继续分配给该线程。
+>
+> 也就是说，不能保证在调用了线程的 `yield` 方法后，其他线程的 `run` 方法就能执行起来。
+
+#### 5.5.2 `yield` 和 `sleep` 的区别
+
+1. 调用线程的 `yield` 方法后，线程仍然处于 `Runnable` 状态，所以线程会随时可能再次被调度。
+2. 调用线程的 `sleep` 方法后，线程处于 `Timed Waiting` 状态，所以在线程处于 `Timed Waiting` 状态的过程中，不会再被调度了。
 
 ### 5.6 获取当前执行线程的引用：`Thread.currentThread()` 方法
 
 ### 5.7 `start` 和 `run` 方法
 
+[start/run](#_2-启动线程的正确方式)
+
 ### 5.8 `stop`、`suspend`、`resume` 方法
+
+[stop](#_3-7-1-stop-方法停止线程-弃用)
+
+[suspend/resume](#_3-7-2-suspend-resume-方法停止线程-弃用)
 
 ## 6. 线程的各个属性
 
+### 6.1 线程各属性纵览
+
+![](./images/java-thread/java-thread-32.png)
+
+### 6.2 线程 `Id`
+
+![](./images/java-thread/java-thread-33.png)
+
+线程 `id` 是唯一的，在线程的生命周期中不会改变。
+
+> 注意：在一个线程终止后，后面新创建的线程是可以复用已终止线程的线程 `id` 的。
+>
+> 也就是说，在未终止的所有线程中，线程 `id` 是唯一的。在所有创建出来的线程中（包括终止的），线程 `id` 可能不是唯一的。
+
+线程 `id` 是从 `1` 开始递增的。
+
+在我们自己创建线程之前，`JVM` 已经创建了多个线程，因此，我们自己所创建线程的线程 `id > 1`。
+
+![](./images/java-thread/java-thread-34.png)
+
+### 6.3 线程名
+
+如果我们在创建线程时，没有通过构造函数指定线程名，那么 `Thread` 类内部会指定一个默认的线程名 `Thread-<num>`。
+
+![](./images/java-thread/java-thread-35.png)
+
+### 6.4 守护线程
+
+#### 6.4.1 用户线程&守护线程
+
+线程可以分为两大类：用户线程和守护线程。
+
+守护线程的作用就是给用户线程提供服务的。
+
+当一个进程中没有用户线程时，即使还存在守护线程，那么这个进程也会结束运行。
+> 也就是说，守护线程的运行不会影响 `JVM` 虚拟机进程的关闭。当进程关闭时，其中运行的守护线程也会终止。
+
+在不手动修改的情况下：
+1. 在用户线程中创建的线程默认就是用户线程；
+2. 在守护线程中创建的线程默认就是守护线程。
+
+通常地，所有的守护线程都是由 `JVM` 自行启动的。在运行一个 `Java` 程序时，`JVM` 只会启动一个用户线程（即执行 `main` 函数的那个线程，也就是线程 `main`），而其他被启动的都是守护线程。
+
+只要用户线程启动后未终止，那么 `JVM` 虚拟机进程就不会结束。当用户线程终止后，若进程中只存在守护线程了，那么 `JVM` 虚拟机会无视守护线程，照样结束进程。
+
+#### 6.4.2 设置守护线程（`seteDaemon(true)`）
+
+调用 `Thread.setDaemon(true)` 可以将线程设置为守护线程。
+
+> 注意：**必须在调用 `start()` 方法前**，调用 `setDaemon(true) 将线程设置为守护线程`。
+
+![](./images/java-thread/java-thread-36.png)
+
+#### 6.4.3 常见面试题
+
+##### 6.4.3.1 守护线程和普通线程（用户线程）的区别
+
+守护线程和用户线程（即普通线程）整体上没什么区别，最主要的区别在于：
+1. 当 `JVM` 虚拟机进程中只存在守护线程时，`JVM` 虚拟机进程会结束退出；
+2. 当 `JVM` 虚拟机进程中还存在用户线程时，`JVM` 虚拟机进程不会结束退出。
+
+另外它们的作用也不同：
+1. 用户线程是执行我们的业务代码的；
+2. 守护线程是为用户线程提供服务的。
+
+##### 6.4.3.2 我们是否需要将线程设置为守护线程？
+
+不建议将线程设置为守护线程。
+
+如果设置为守护线程，那么当其他的用户线程全部终止后，`JVM` 虚拟机会退出。此时，被设置成守护线程中的业务逻辑和数据无法全部处理完毕，从而容易导致异常的发生。
+
+### 6.5 线程优先级
+
+#### 6.5.1 优先级的范围
+
+`Java` 为线程定义了 `[1, 10]` 范围内的优先级，默认是 `5`。
+
+![](./images/java-thread/java-thread-37.png)
+
+![](./images/java-thread/java-thread-38.png)
+
+#### 6.5.2 程序设计不建议依赖于优先级
+
+程序设计不应依赖于优先级，因为：
+1. 虽然 `Java` 为线程定义了 `[1, 10]` 范围内的优先级，但是不同操作系统定义的优先级范围是不同的。于是，`JVM` 就会让 `Java` 层的线程优先级与具体操作系统的线程优先级建立映射关系，而这种映射关系对不同的操作系统是不一样的。所以，我们在 `Java` 层指定的线程优先级，在不同的操作系统中会存在较大的区别。
+2. 有的操作系统会提高对 `CPU` 资源占用时间较长的线程的优先级。 
+
 ## 7. 线程的未捕获异常 `UncaughtException` 的处理
 
+### 7.1 通过 `UncaughtExceptionHandler` 处理子线程中的异常
+
+处理子线程中的异常的两种方案：
+1. 手动在每个 `run` 方法里进行 `try-catch`（不推荐）；
+2. 利用 `UncaughtExceptionHandler`（推荐）。
+
+为什么需要 `UncaughtExceptionHandler`？
+1. 主线程可以轻松发现异常，子线程却不行；
+    > 主线程中抛出异常，如果未捕获，那么进程会结束退出。
+    >
+    > 但是，子线程中抛出异常，如果未捕获，那么进程是不会退出的。
+    >
+    > 此时，虽然从日志中能够找到子线程的异常信息，但是当日志较多时，也难以发现。
+
+2. 子线程异常无法用传统方法捕获；
+    > `try-catch` 只能捕获当前线程中发生在 `try-catch` 代码块内的异常。如果 `try-catch` 代码块在线程 `A` 中执行，`try-catch` 代码块内启动了一个子线程，那么子线程的 `run` 方法中抛出的异常是无法被线程 `A` 中的 `try-catch` 捕获到的。
+
+    ![](./images/java-thread/java-thread-39.png)
+
+3. 对于无法直接捕获的异常，可以使用 `UncaughtExceptionHandler` 来统一处理，提高健壮性。
+
+### 7.2 未捕获异常的分发处理策略（`UncaughtExceptionHandler` 的工作原理）
+
+![](./images/java-thread/java-thread-40.png)
+
+```sequence
+participant T as Thread
+Note over TG : ThreadGroup 实现了 UncaughtExceptionHandler 接口
+participant TG as ThreadGroup
+participant UEH as UncaughtExceptionHandler
+
+T ->> T : dispatchUncaughtException(exception)
+activate T
+    alt uncaughtExceptionHandler == null
+        T ->> TG : group.uncaughtException(thread,  exception)
+        activate TG
+            TG ->> T : getDefaultUncaughtExceptionHandler()
+            T -->> TG : return defaultUeh
+            TG ->> UEH : defaultUeh.uncaughtException(thread, exception)
+        deactivate TG
+    else uncaughtExceptionHandler != null
+        Note over T,UEH : Thread 通过 setUncaughtExceptionHandler 指定了特定的 UncaughtExceptionHandler
+        T ->> UEH : uncaughtException(thread, exception)
+    end
+deactivate T
+```
+
+如上图所示：
+1. 当线程中出现未捕获的异常时，`JVM` 会调用 `dispatchUncaughtException` 方法获取一个 `UncaughtExceptionHandler` 实例，调用该实例的 `uncaughtException` 方法来处理未捕获的异常。
+   
+2. 如果出现未捕获异常的线程实例中，没有通过 `setUncaughtExceptionHandler` 方法设置一个该线程实例特有的 `UncaughtExceptionHandler`，那么就将该线程所在的线程组 `group` 作为 `UncaughtExceptionHandler`。
+    > `ThreadGroup` 实现了 `UncaughtExceptionHandler`，重写了 `uncaughtException` 方法。
+
+3. 在 `ThreadGroup` 重写的 `uncaughtException` 方法中，又尝试去调用一个默认的 `UncaughtExceptionHandler` 来处理异常，如果没有设置默认的 `UncaughtExceptionHandler`，那么就仅仅把异常信息打印出来。
+
+> 注意：
+>
+> `Thread.setUncaughtExceptionHandler(ueh)` 是一个非静态成员方法，用来设置一个线程实例特有的 `UncaughtExceptionHandler`。
+>
+> `Thread.setDefaultUncaughtExceptionHandler(defUeh)` 是一个静态成员方法，用来设置一个所有线程实例共有的默认 `UncaughtExceptionHandler`。
+
+### 7.3 `UncaughtExceptionHandler` 的使用示例
+
+![](./images/java-thread/java-thread-41.png)
+
+### 7.4 常见面试问题
+
+#### 7.4.1 如何全局处理异常？为什么要全局处理？不处理行不行？
+
+调用静态方法 `Thread.setDefaultUncaughtExceptionHandler(defUeh)` 可以为所有线程实例设置一个默认的 `UncaughtExceptionHandler`。通过重写这个默认的 `UncaughtExceptionHandler` 的 `uncaughtException` 方法来实现对所有线程中未捕获异常的处理，从而可以统一地将未捕获到的异常保存进日志文件中，方便排查问题。如果不处理这些未捕获的异常，那么当出现问题时，是很难排查的。
+
+#### 7.4.2 `run` 方法是否可以抛出异常？如果抛出异常，线程的状态会怎样？
+
+由于 `run` 方法在定义时并没有在方法签名上声明会抛出异常，所以在重写 `run` 方法时，不能在 `run` 方法中抛出异常，只能通过 `try-catch` 捕获异常。
+
+如果抛出异常，那么这个异常就不会被捕获到，从而使得线程因为这个未捕获的异常而进入终止状态。
+
+#### 7.4.3 线程中如何处理某个未处理异常？
+
+通过设置一个默认的 `UncaughtExceptionHandler` 来处理未捕获的异常。
+
 ## 8. 多线程导致的性能问题（线程引入的开销、上下文切换）
+
+### 8.1 线程安全
+
+#### 8.1.2 什么是线程安全？
+
+《`Java Concurrency In Practice`》 的作者 `Brian Goetz` 对线程安全有一个比较恰当的定义：
+
+```:no-line-numbers
+当多个线程访问一个对象时，
+如果不用考虑这些线程在运行时环境下的调度和交替执行，也不需要进行额外的同步，
+或者在调用方进行任何其他的协调操作，调用这个对象的行为都可以获得正确的结果，
+那么这个对象是线程安全的。
+```
+
+> 线程安全考虑的是对一个**对象**的访问是不是线程安全的。
+
+线程不安全的情况：
+1. `get` 同时 `set`；
+    > 如果多线程中存在可能同时对容器进行 `get` 和 `set` 的操作，那么存在线程不安全的情况。
+2. 额外同步
+    > 如果多线程中使用了 `synchronized` 同步锁，那么说明也存在线程不安全的情况（否则没必要加锁）。
+
+不要为了线程安全而过度设计。
+> 线程安全就是保证同一时间只有一个线程访问共享数据。如果对不会存在多线程同时访问数据的操作也加锁，那么本来可以多线程运行的程序就变成只能单线程运行，降低了运行速度。
+>
+> 并且，线程安全的设计也比较麻烦，如 `CocurrentHashMap` 为了保证线程安全做了很多精细的设计，这种设计不是一下子就能想出来的，需要花费大量的时间成本和人力去实现。
+>
+> 所以，应该权衡清楚哪些操作需要考虑线程安全的问题。对于不存在线程安全问题的操作不要过度设计。
+
+#### 8.1.2 什么情况下会出现线程安全问题，怎么避免？
+
+出现线程安全问题主要分两种情况：
+1. 多线程对共享数据同时进行写操作；
+    > 此时，就可能出现其中一个线程的写操作要么被丢弃，要么写入的数据异常。
+2. 多线程对共享数据同时进行读和写操作。
+    > 即：如果一个线程的读操作要在另一个线程的写操作之后进行，那么由于无法保证线程之间的执行顺序，可能使得读操作的线程先执行，写操作的线程后执行，从而导致读取的数据异常。
+
+##### 8.1.2.1 多线程下的 `i++` 异常情况分析
+
+![](./images/java-thread/java-thread-42.png)
+
+如上图所示：
+
+```:no-line-numbers
+线程 1 在开始执行 i+1，却还没将运算结果赋给变量 i 时，切换到线程 2，
+线程 2 在开始执行 i+1，却还没将运算结果赋给变量 i 时，又切换到线程 1，
+线程 1 继续运算 i+1，得到结果 2 赋给变量 i，然后切换到线程 2，
+线程 2 继续运算 i+1，得到结果 2 赋给变量 i。
+于是，出现变量 i 执行了两次 +1，却没能得到结果 3 的情况。
+```
+
+也就是说，当多个线程同时修改同一个共享变量时，无法保证线程之间的修改能够正常地 “叠加”。有可能出现某个线程的修改被其他线程的修改所 “覆盖” 的情况。
+
+如下代码所示，可以通过 `AtomicInteger` 解决这个问题。
+
+![](./images/java-thread/java-thread-43.png)
+
+##### 8.1.2.2 演示死锁的产生
+
+![](./images/java-thread/java-thread-44.png)
+
+##### 8.1.2.3 对象发布和初始化时的安全问题
+
+###### 对象的发布
+
+对象的发布就是通过调用方法 ，将对象 `return` 出去给外界使用。
+
+###### 对象的逸出（逃逸）及相关场景分析
+
+逸出就是发布出去的对象并不是一个应该被外界访问的对象，或者发布出去的对象还未初始化完成，如：
+
+1. 方法返回一个 `private` 对象（`private` 的本意是不让外部访问）；
+
+    ![](./images/java-thread/java-thread-45.png)
+
+2. 还未完成初始化（构造函数没完全执行完毕）就把对象提供给外界，如：
+   1. 在构造函数中未初始化完毕就 `this` 赋值；
+
+        ![](./images/java-thread/java-thread-46.png)
+
+   2. 隐式逸出（如注册监听事件）；
+
+        ![](./images/java-thread/java-thread-47.png)
+        ![](./images/java-thread/java-thread-48.png)
+   
+   3. 构造函数中运行线程。
+
+        ![](./images/java-thread/java-thread-49.png)
+
+### 8.2 性能问题
+
+![](./images/java-thread/java-thread-50.png)
+
