@@ -15,6 +15,12 @@ actions:
   - text: 个人简历
     link: /resume/resume.md
     type: default 
+  - text: Android
+    link: /android/readme.md
+    type: default 
+  - text: Kotlin
+    link: /kotlin/readme.md
+    type: default 
 footer: |-
   <a href="https://beian.miit.gov.cn/" target="_blank">鄂ICP备2020015769号-1</a> | 主题: <a href="https://vuepress-theme-hope.github.io/v2/" target="_blank">VuePress Theme Hope</a>
 ---

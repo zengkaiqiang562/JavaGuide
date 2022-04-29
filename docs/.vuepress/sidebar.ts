@@ -3,9 +3,22 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
   // 应该把更精确的路径放置在前边
 
-  /* "/android/": [//Android相关的Blog
-
-  ], */
+  "/android/": [//Android相关的Blog
+    {
+      text: "UI",
+      collapsable: true,
+      prefix: "ui/",
+      children: [
+        "RecyclerView",
+        "ConstraintLayout",
+        "CoordinatorLayout",
+        "NestedScrolling",
+        "animation",
+        "view-event",
+        "view-tools",
+      ],
+    },
+  ],
 
   "/resume/": [//个人简历
     {
