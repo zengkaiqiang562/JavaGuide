@@ -331,9 +331,90 @@ public class MyActivity extends AppCompatActivity {
 
 ### 3.1 使用 `Allocation Tracker`
 
-![](./images/android-memory-optimize/04.png)
+首先确保手机开启了开发者模式，并开启了 `USB` 调试。
+
+使用步骤如下：
+1. 运行需要监控的应用程序；
+2. 单击 `AS` 面板下的 `Android` 图标，并选择 `Monitors` 选项；
+3. 单击 `Start Allocation Tracking` 按钮，这时 `Start Allocation Tracking` 按钮变为 `Stop Allocation Tracking`；
+4. 操作应用程序；
+5. 单击 `Stop Allocation Tracking` 按钮，结束快照。这时 `Memory Monitor` 会显示出捕获快照的期间，如下图所示：
+
+    ![](./images/android-memory-optimize/04.png)
+
+6. 过几秒后就会自动打开一个窗口，显示当前生成的 `alloc` 文件的内存数据。
 
 ### 3.2 `alloc` 文件分析
+
+![](./images/android-memory-optimize/05.png)
+
+上图为自动打开的 `alloc` 文件窗口。窗口中的信息如下表所示：
+
+|列|说明|
+|:-|:-|
+|`Method`|负责分配的 `Java` 方法|
+|`Count`|分配的实例总数|
+|`Total Size`|分配内存的总字节数|
+
+以上图中的 `ActivityThread.performLaunchActivity` 方法为例，该方法中的分配情况如下：
+
+```:no-line-numbers
+该方法的内存分配序列号为 2369
+该方法所属的类为 ActivityThread
+在该方法中分配的实例总个数为 300 个
+在该方法中为 300 个实例对象总共分配了 10512 Bytes 大小的内存空间。
+```
+
+上图的列表视图选择为 `Group by Method`，也可以选择 `Group by Allocator`，如下图所示：
+
+![](./images/android-memory-optimize/06.png)
+
+为了更好的解释 `Group by Allocator` 列表视图中的信息，给出上图对应的测试代码：
+
+```java
+/*  MainActivity.java */
+public class MainActivity extends AppCompatActivity {
+    private Button button;
+    protected void onCreate(Bundle savedInstanceState) {
+        ...
+        button = findViewById(R.id.bt_next);
+        button.setOnClickListener(v->{
+            startActivity(new Intent(MainActivity.this, SecondActivity.class));
+        });
+    }
+}
+
+/*  SecondActivity.java */
+public class SecondActivity extends AppCompatActivity {
+    private Button button;
+    protected void onCreate(Bundle savedInstanceState) {
+        ...
+        button = findViewById(R.id.bt_next);
+        button.setOnClickListener(v->{
+            createInnerClass();
+            finish();
+        });
+    }
+
+    private static Object inner;
+
+    void createInnerClass() {
+        inner = new InnerClass();
+    }
+
+    class InnerClass {}
+}
+```
+
+其中 `SecondActivity` 是存在内存泄漏的。生成快照期间，对应用程序的操作是在 `MainActivity` 和 `SecondActivity` 之间跳转了 `3` 次（即点击了 `Button` 共 `6` 次）。结合测试代码和上图所示，分析如下：
+
+```:no-line-numbers
+MainActivity 总共分配了 3 个Intent 实例，它们占用的内存为 192 字节；
+SecondActivity 总共分配了 6 个实例，它们占用的内存为 96 字节。
+    这 6 个实例包括：3 个实现了 OnClickListener 接口的匿名内部类实例（Lambda 表达式）；和 3 个 InnerClass 实例。
+
+注意：一个类中分配了多少个实例，是看在这个类中 new 了多少个对象，跟类中成员变量的个数无关。
+```
 
 ## 4. `Heap Dump`
 
