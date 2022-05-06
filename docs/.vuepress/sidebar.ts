@@ -192,6 +192,19 @@ export const sidebarConfig = defineSidebarConfig({
             "java-jmm", // Java内存模型——底层原理
             "android-handler", // 消息机制
             "tcp-handshake",
+            {
+              text: "JVM",
+              prefix: "jvm/",
+              collapsable: true,
+              children: [
+                "jvm-spec",
+                "classloader",
+                "memory-allocate",
+                "class-exe-engine",
+                "gc",
+                "concurrence",
+              ]
+            }
           ]
         }
       ],

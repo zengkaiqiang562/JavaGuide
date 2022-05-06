@@ -1,5 +1,5 @@
 ---
-title: Java 内存模型（JMM）（DOING）
+title: Java 内存模型（JMM）
 category: 
   - java
 tag:
