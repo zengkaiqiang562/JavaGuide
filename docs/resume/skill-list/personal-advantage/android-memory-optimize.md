@@ -418,15 +418,143 @@ SecondActivity 总共分配了 6 个实例，它们占用的内存为 96 字节�
 
 ## 4. `Heap Dump`
 
+`Heap Dump` 的主要功能就是查看不同的数据类型在内存中的使用情况。从而：
+1. 帮你找到大对象，
+2. 通过数据的变化发现内存泄漏。
+
 ### 4.1 使用 `Heap Dump`
 
+`Heap Dump` 是 `Android Device Monitor` 工具中的一个功能模块。
+
+使用步骤：
+1. 打开 `Android Device Monitor` 工具；
+
+    > 双击 `Sdk/tools/monitor.bat` 打开 `Android Device Monitor` 工具。
+
+2. 在左边 `Devices` 列表中选择要查看的应用程序进程；
+   
+3. 单击 `Update Heap` 按钮（一半是绿色的圆柱体）；
+   
+4. 在右边选择 `Heap` 选项，并单击 `Cause GC` 按钮，就开始显示数据。
+   
+    > 每次单击 `Cause GC` 按钮都会强制应用程序进行垃圾回收，并将清理后的数据显示在 `Heap` 窗口中。
+
+![](./images/android-memory-optimize/07.png)
+
+如上图所示，`Heap Dump` 共有三个区域：
+1. 总览视图（标识 `1` 所示）；
+2. 详情视图（标识 `2` 所示）；
+3. 内存分配柱状图（标识 `3` 所示）。
+
+#### 4.1.1 总览视图
+
+总览视图中可以查看整体的内存情况，列表字段说明如下：
+
+|列|说明|
+|:-|:-|
+|`Heap Size`|堆栈分配给该应用程序的内存大小|
+|`Allocated`|已分配使用的内存大小|
+|`Free`|空闲的内存大小|
+|`% Used`|当前 `Heap` 的使用率（`Allocated/Heap Size`）|
+|`# Objects`|对象的数量|
+
+于是，上图中的总览视图展示的信息是：
+
+```:no-line-numbers
+堆栈分配给当前的应用程序的内存大小为 2.345MB
+已分配的内存为 1.346MB
+空闲的内存为 1MB
+当前 Heap 的使用率为 57.37%
+对象的数量为 24058个
+```
+
+#### 4.1.2 详情视图（可以查看内存碎片、图片内存）
+
+详情视图展示了所有的数据类型的内存情况，列表字段说明如下：
+
+|列|说明|
+|:-|:-|
+|`Type`|数据类型|
+|`Total Size`|总共占用的内存大小|
+|`Smallest`|将该数据类型的对象从小到大排列，排在第一个的对象所占用的内存|
+|`Largest`|将该数据类型的对象从小到大排列，排在最后一个的对象所占用的内存|
+|`Median`|将该数据类型的对象从小到大排列，排在中间的对象所占用的内存|
+|`Average`|该数据类型的对象所占用内存的平均值|
+
+每行中的数据类型说明如下：
+
+|行|说明|
+|:-|:-|
+|`free`|内存碎片|
+|`data object`|对象|
+|`class object`|类|
+|`1-byte array (byte[], boolean[])`|`1` 字节的数组对象|
+|`2-byte array (short[], char[])`|`2` 字节的数组对象|
+|`4-byte array (object[], int[], float[])`|`4` 字节的数组对象|
+|`8-byte array (long[], double[])`|`8` 字节的数组对象|
+|`non-Java object`|非 `Java` 对象|
+
+详情视图中的 `free` 这一行的信息，与总览视图中的 `free` 的含义不同。详情视图中的 `free` 表示内存碎片。
+
+> 当新创建一个对象时，如果碎片内存能容下该对象，则复用碎片内存，否则就会从 `free` 空间（总览视图中的 `free`）重新划分内存给这个新对象。
+>
+> **详情视图中的 `free` 是判断内存碎片化程度的一个重要指标**
+
+另外，`1-byte array` 这一行的信息也很重要，因为**图片是以 `byte[]` 的形式存储在内存中的，如果 `1-byte array` 这行的数据过大，则需要检查图片的内存管理了**。
+
 ### 4.2 检测内存泄漏
+
+`Heap Dump` 也可以检测内存泄漏。步骤如下：
+
+1. 在 `Android Device Monitor` 工具的左边 `Devices` 列表中选择要查看的应用程序进程；
+
+2. 单击 `Update Heap` 按钮（一半是绿色的圆柱体）；
+
+3. 在右边选择 `Heap` 选项，并单击 `Cause GC` 按钮，开始显示数据。如下图所示：
+
+    ![](./images/android-memory-optimize/08.png)
+
+    > 此时 `data object` 的 `Total Size` 为 `270.266KB`。
+
+4. 接下来操作应用程序，应用程序中的内存泄漏代码如 [`3.2 alloc` 文件分析](#_3-2-alloc-文件分析) 中的代码所示。反复地在 `MainActivity` 和 `SecondActivity` 之间跳转 `10` 次（单击 `Button` 共 `20` 次），数据显示如下图：
+
+    ![](./images/android-memory-optimize/09-1.png)
+
+    > 此时 `data object` 的 `Total Size` 变为了 `768.172KB`。
+
+5. 此时，单击 `Cause GC` 按钮，数据显示如下图：
+
+    ![](./images/android-memory-optimize/09-2.png)
+
+    > 此时 `data object` 的 `Total Size` 变为了 `444.516KB`。
+
+6. 再单击一次 `Cause GC` 按钮，数据显示如下图：
+
+    ![](./images/android-memory-optimize/09-3.png)
+
+    > 此时 `data object` 的 `Total Size` 变为了 `323.312KB`。
+
+综上，经过两次 `Cause GC` 操作后，`data object` 的 `Total Size` 从 `768.172KB` 变为了 `323.312KB`，这是一个比较大的变化，说明如果不进行 `Cause GC` 操作，那么就会有 `768.172 - 323.312 = 462.86KB` 的内存无法被回收，也就是说可能发生了内存泄漏（泄漏了 `462.86KB` 的内存）。
+
+> `Cause GC` 操作表示 **强制** 应用程序进行垃圾回收，也就是说被强制回收的内存就可能是泄漏了的内存（因为没有泄漏的垃圾内存不需要点击 `Cause GC` 按钮就回收掉了）。
 
 ## 5. 内存分析工具 `MAT`
 
 ### 5.1 生成 `hprof` 文件
 
+#### 5.1.1 `DDMS` 生成 `hprof` 文件
+
+#### 5.1.2 `Memory Monitor` 生成 `hprof` 文件
+
 ### 5.2 `MAT` 分析 `hprof` 文件
+
+#### 5.2.1 `Dominator Tree`
+
+#### 5.2.2 `Histogram`
+
+#### 5.2.3 `OQL (Object Query Language)`
+
+#### 5.2.4 对比 `hprof` 文件
 
 ## 6. `LeakCanary`
 
