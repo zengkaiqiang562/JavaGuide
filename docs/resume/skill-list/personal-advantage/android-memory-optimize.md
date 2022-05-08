@@ -1,5 +1,5 @@
 ---
-title: 内存优化（DOING）
+title: 内存优化
 category: android
 tag:
   - android
@@ -538,27 +538,512 @@ SecondActivity 总共分配了 6 个实例，它们占用的内存为 96 字节�
 
 > `Cause GC` 操作表示 **强制** 应用程序进行垃圾回收，也就是说被强制回收的内存就可能是泄漏了的内存（因为没有泄漏的垃圾内存不需要点击 `Cause GC` 按钮就回收掉了）。
 
-## 5. 内存分析工具 `MAT`
+## 5. 内存分析工具 `MAT`（用来分析 `hprof` 文件，即堆存储文件）
 
-### 5.1 生成 `hprof` 文件
+在进行内存分析时，可以通过 `Memory Monitor` 和 `Heap Dump` 观察内存的使用情况；通过 `Allocation Tracker` 跟踪内存分配的情况。通过这些工具也可以找到疑似发生内存泄漏的位置。
 
-#### 5.1.1 `DDMS` 生成 `hprof` 文件
+但是，如果想要深入地进行分析并确定内存泄漏，就要分析疑似发生内存泄漏时所生成的**堆存储文件（`hprof` 文件）**。
 
-#### 5.1.2 `Memory Monitor` 生成 `hprof` 文件
+> 堆存储文件可以使用 `DDMS` 或者 `Memory Monitor` 来生成。所生成的堆存储文件的格式为 `hprof`。
 
-### 5.2 `MAT` 分析 `hprof` 文件
+**`MAT` 就是用来分析堆存储文件（`hprof` 文件）的。**
 
-#### 5.2.1 `Dominator Tree`
+> `MAT` 全称为 `Memory Analysis Tool`（内存分析工具）。是对内存进行详细分析的工具。
+> 
+> `MAT` 是 `Eclipse` 的插件。如果使用 `Android Studio` 进行开发，则需要单独下载 `MAT`。
+> 
+> 下载地址为 `http://eclipse.org/mat`。
+> 
+> 以下讲解的 `MAT` 版本为 `1.6.1`。
 
-#### 5.2.2 `Histogram`
+### 5.1 准备一段待分析的内存泄漏的代码
 
-#### 5.2.3 `OQL (Object Query Language)`
+```java
+public class MainActivity extends AppCompatActivity {
+    protected void onCreate(Bundle savedInstanceState) {
+        ...
+        LeakThread leakThread = new LeakThread();
+        leakThread.start();
+    }
 
-#### 5.2.4 对比 `hprof` 文件
+    class LeakThread extends Thread {
+        public void run() {
+            try {
+                Thread.sleep(60*60*1000);
+            } catch (Exception e) {...}
+        }
+    }
+}
+```
+
+> 如上代码所示：非静态内存类 `LeakThread` 持有外部类 `MainActivity` 的引用，且 `LeakThread` 中做了耗时操作，导致 `MainActivity` 无法被释放，从而产生内存泄漏。
+
+### 5.2 生成 `hprof` 文件
+
+生成 `hprof` 文件有两种方式：
+
+1. 通过 `DDMS` 生成 `hprof` 文件；
+
+    > `DDMS` 是 `Android Device Monitor` 工具中的一个功能模块。（双击 `Sdk/tools/monitor.bat` 打开 `Android Device Monitor` 工具）
+
+2. 通过 `Memory Monitor` 生成 `hprof` 文件。
+
+    > `Memory Monitor` 是 `Android Studio` 中的一个功能模块。（现已被 `Memory Profiler` 取代）
+
+#### 5.2.1 `DDMS` 生成 `hprof` 文件
+
+步骤如下：
+1. 在 `Android Device Monitor` 中打开 `DDMS`；
+   
+2. 在 `Devices` 中选择要分析的应用程序进行，单击 `Update Heap` 按钮（一半是绿色的圆柱体）开始进行追踪。
+   
+3. 进行可能发生内存泄漏的操作（即在 [泄漏代码](#_5-1-准备一段待分析的内存泄漏的代码) 中的 `MainActivity` 中不断地切换横竖屏）。
+
+    > 默认情况下切换横竖屏会导致 `Activity` 的销毁重建，除非在配置文件中对 `configChanges` 属性进行了专门配置。
+
+4. 单击 `Dump HPROP File` 按钮结束追踪，生成并保存 `hprof` 文件。如下图所示：
+
+    ![](./images/android-memory-optimize/10.png)
+
+##### 转换为标准的 `hprof` 文件（使用 `hprof-conv` 进行转换）
+
+`DDMS` 生成的 `hprof` 文件并不是标准的，还需要将它转换为标准的 `hprof` 文件，这样才能被 `MAT` 识别。
+
+可以使用 `SDK` 自带的 `hprof-conv` 命令工具（在 `sdk/plat-form-tools` 目录中）进行转换：
+
+```:no-line-numbers
+进入所在目录，执行：`hprof-conv D:\before.hropf D:\after.hprof` 即可。
+其中：
+D:\before.hprof 表示转换前的 hprof 文件路径（即 DDMS 生成的 hprof 文件的所在路径）
+D:\after.hprof 表示转换后的 hprof 文件的保存路径（即标准的 hprof 文件的保存路径）
+```
+
+#### 5.2.2 `Memory Monitor` 生成 `hprof` 文件
+
+步骤如下：
+1. 在 `Android Studio` 的 `Android Monitor` 中选择要分析的应用程序进程。
+
+    > `Android Studio 3.0` 及更高版本中的 `Android Profiler` 取代了 `Android Monitor` 工具。
+
+2. 进行可能发生内存泄漏的操作（即在 [泄漏代码](#_5-1-准备一段待分析的内存泄漏的代码) 中的 `MainActivity` 中不断地切换横竖屏）。
+
+    > 默认情况下切换横竖屏会导致 `Activity` 的销毁重建，除非在配置文件中对 `configChanges` 属性进行了专门配置。
+
+3. 单击 `Dump Java Heap` 按钮，生成 `hprof` 文件，如下图所示：
+
+    ![](./images/android-memory-optimize/11.png)
+
+##### 转换为标准的 `hprof` 文件（直接在 `Android Studio` 中转换）
+
+`Memory Monitor` 生成的 `hprof` 文件也不是标准的，在 `Android Studio` 中提供了便捷的转换方式：
+
+```:no-line-numbers
+Memory Monitor 生成的 hropf 文件都会显示在 AS 左侧的 Captures 标签中，
+在 Captures 标签中选择要转换的 hprof 文件，单击鼠标右键，
+在 弹出的右键菜单中选择 Export to standard.hropf 选项，即可导出标准的 hprof 文件。
+```
+
+如下图所示：
+
+![](./images/android-memory-optimize/12.png)
+
+### 5.3 `MAT` 分析 `hprof` 文件
+
+步骤：
+
+1. 用 `MAT` 打开标准的 `hprof` 文件；
+
+2. 选择 `Leak Suspects Report` 选项，此时 `MAT` 就会生成报告，报告界面中分为两个标签页：
+
+    1. `Leak Suspects`（内存泄漏猜想）标签页；
+
+        > `Leak Suspects` 标签页中给出了 `MAT` 认为可能出现内存泄漏问题的地方，如下图所示，给出了 [泄漏代码](#_5-1-准备一段待分析的内存泄漏的代码) 中可能出现内存泄漏的 `3` 个猜想（`Problem Suspect`）。
+        > 
+        > 通过单击每个内存泄漏猜想的 `Details`，可以看到更深入的分析情况。
+        >
+        > 如果内存泄漏不是特别明显，通过 `Leak Suspects` 标签页中的内容也很难发现内存泄漏的位置。
+
+        ![](./images/android-memory-optimize/13.png)
+
+    2. `Overview` 标签页。
+
+        > 打开 `Overview` 标签页，首先看到的是一个饼状图，它主要用来显示内存的消耗。
+        > 
+        > 饼状图中的彩色区域代表被分配的内存，灰色区域代表空闲内存。
+        >
+        > 单击每个彩色区域可以看到这块区域的详细信息。 
+
+        ![](./images/android-memory-optimize/14.png)
+
+在 `Overview` 标签页中，`Actions` 栏目下列出了 `MAT` 提供的 `4` 种 `Action`。其中分析内存泄漏最常用的就是 `Histogram` 和 `Dominator Tree`。
+
+可以通过单击 `Actions` 中给出的链接打开 `Histogram` 和 `Dominator Tree`。
+
+也可以通过在 `MAT` 工具栏中单击相应的选项打开 `Histogram` 和 `Dominator Tree`。`MAT` 工具栏如下图所示：
+
+![](./images/android-memory-optimize/15.png)
+
+> `MAT` 工具栏中，左边第二个选项是 `Histogram`，第三个选项是 `Dominator Tree`，第四个选项是 `OQL`。
+
+#### 5.3.1 `Dominator Tree`（支配树）
+
+`Dominator Tree` 译为支配树，用来分析对象的引用关系。界面如下图所示：
+
+![](./images/android-memory-optimize/16.png)
+
+其中：
+
+```:no-line-numbers
+Shallow Heap：表示对象自身占用的内存大小，不包括它引用的对象。
+              如果是数组类型的对象，它的大小由数组元素的类型和数组长度决定。
+              如果是非数组类型的对象，它的大小由其成员变量的数量和类型决定。
+
+Retained Heap：表示一个对象的 Retained Set 集合中包含的所有对象的总内存大小。
+               换句话说，Retained Heap 就是当前对象被 GC 后，从 Heap 上能释放出的总内存大小。
+```
+
+##### 5.3.1.1 `Retained Heap` & `Retained Set` 
+
+从上面对 `Retained Heap` 的解释可以知道，`Retained Heap` 的大小其实就是一个对象的 `Retained Set` 集合中的所有对象的总内存大小。那么一个对象 `Retained Set` 中包含哪些对象呢？答：
+
+```:no-line-numbers
+一个对象的 Retained Set 集合中包含：
+    1. 这个对象本身，
+    2. 这个对象所持有的对象（更确切地说是能够被这个对象直接支配的对象），
+    3. 被持有的对象的 Retained Set 集合。
+```
+
+一个对象的 `Retained Set` 集合中的所有对象就是这个对象的支配树上的所有对象。也就是说，**`Retained Set` 就是支配树。**
+
+> 从对 `Retained Heap` 解释可知，当一个对象被 `GC` 后，该对象的支配树上的所有对象都会被 `GC`。
+
+##### 5.3.1.2 `GC Roots` & `引用树`（引用链） & 支配树（`Retained Set`）
+
+`GC Roots` 和引用链，以及支配树（`Retained Set`）的关系如下图所示：
+
+![](./images/android-memory-optimize/17.png)
+
+> 可以看出：
+> 
+> `E` 的支配树（`Retained Set`）为：`E`、`G`。
+> 
+> `C` 的支配树（`Retained Set`）为：`C` 、`D`、`E`、`F`、`G`、`H`。
+
+思考：为什么 `H` 不在 `E` 的支配树上？
+
+回答这个问题之前，先对支配关系定义如下：
+
+```:no-line-numbers
+在引用树（引用链）中，如果一条到对象 Y 的路径必然会经过对象 X，那么称： 对象 X 支配对象 Y。
+
+特别地，如果在所有支配 Y 的对象中，对象 X 距离对象 Y 最近，那么称：对象 X 直接支配对象 Y。
+```
+
+`MAT` 所定义的支配树就是从引用树转换过来的，如下图所示：
+
+![](./images/android-memory-optimize/18.png)
+
+> 支配树反映的就是对象之间的支配关系。
+> 
+> **支配树中的父节点对象不 GC，则子节点对象也无法 `GC`。**
+
+现在回答 “为什么 `H` 不在 `E` 的支配树上？” 这个问题：
+
+```:no-line-numbers
+要想到达 H，除了选择 C->E->G 这条路径外，还可以选择 C->D->F 这条路径，
+也就是说，到达 H 不一定要经过 E（同理，到达 H 不一定要经过 E、G、D、F），
+根据支配关系的定义可知，E 没有支配 H，所以 H 不在 E 的支配树上（同理，H 不在 E、G、D、F 的支配树上）。
+
+而到达 H 必须经过 C，所以 C 支配 H，H 在 C 的支配树上。
+并且从引用树中还可以发现，在支配 H 的所有对象中（只有 C 支配 H），C 距离 H 最近，所以 C 直接支配 H。
+```
+
+##### 5.3.1.3 内存泄漏分析举例
+
+在 `Dominator Tree` 窗口的顶部 `Regex` 中可以输入过滤条件（支持正则表达式）。
+
+> 如果是查找 `Activity` 内存泄漏，可以在 `Regex` 中输入 `Activity` 的名称。
+
+以 [泄漏代码](#_5-1-准备一段待分析的内存泄漏的代码) 为例，这里在 `Regex` 中输入 `MainActivity`，`Dominator Tree` 窗口中的信息如下图所示：
+
+![](./images/android-memory-optimize/19.png)
+
+如上图，在 `Dominator Tree` 中列出了很多的 `MainActivity` 实例。而 `MainActivity` 是不该有这么多实例的，除非 `MainActivity` 销毁后没有 `GC` 掉，因此可以断定 `MainActivity` 发生了内存泄漏。
+
+接下里，为了找出 `MainActivity` 发生内存泄漏的原因，可以通过 `Dominator Tree` 查看 `MainActivity` 的 `GC` 引用链。步骤如下：
+
+1. 右键列表中的某个 `MainActivity` 项，在右键菜单中选择 `Path To GC Roots` 选项（表示从选中的 `MainActivity` 对象到 `GC Roots` 的路径）；
+
+2. 选中 `Path To GC Roots` 选项后，根据引用类型会有多种子选项。比如 `with all references` 就是包含所有的引用。这里我们选择 `exclude all phantom/weak/soft etc. references`，该选项排除了虚引用、弱引用、软引用（这些引用一般是可以被回收的）。
+
+    ![](./images/android-memory-optimize/20.png)
+
+此时，`MAT` 就会给出选中的 `MainActivity` 对象的 `GC` 引用链，如下图所示：
+
+![](./images/android-memory-optimize/21.png)
+
+如上图，`com.xxx.MainActivity$LeakThread` 引用了 `com.xxx.MainActivity`，且是通过 `LeakThread` 中的 `this$0` 属性来引用的 `MainActivity`。
+
+> `this$0` 的含义就是内部类自动保留的一个指向所在外部类的引用。
+
+也就是说，通过 `MainActivity` 的 `GC` 引用链，可以发现 `MainActivity` 被它的内部类 `LeakThread` 引用了。
+
+在 [内存泄漏场景](#_1-2-2-多线程相关的匿名内部类-非静态内部类) 中我们分析知道，内存类会持有外部类的引用，当内部类中做了耗时操作时，就可能引发外部类的内存泄漏。从 [泄漏代码](#_5-1-准备一段待分析的内存泄漏的代码) 中，我们可以看到 `LeakThread` 确实做了耗时操作，从而导致了 `MainActivity` 的内存泄漏。
+
+> 在通过 `Dominator Tree` 分析内存泄漏时，`Dominator Tree` 只是为我们提供了查看堆内存中的对象以及对象的 `GC` 引用链的途径，如何根据这些对象及其 `GC` 引用链找到内存泄漏的原因，还得结合具体的代码做具体分析。
+
+#### 5.3.2 `Histogram`
+
+`Dominator Tree` 是从对象实例的角度进行分析；而 `Histogram` 则是从类的角度进行分析。
+
+> `Dominator Tree` 注重对象的引用关系的分析；`Histogram` 注重对象的数量的分析。
+
+`Histogram` 的窗口界面如下图所示：
+
+![](./images/android-memory-optimize/22.png)
+
+其中：
+
+```:no-line-numbers
+Class Name：表示类名
+Objects：表示 Class Name 对应的实例的个数
+Shallow Heap：表示对象自身占用的内存大小，不包括它引用的对象。（同 Dominator Tree 中的一样）
+Retained Heap：表示一个对象的 Retained Set 集合中包含的所有对象的总内存大小。（同 Dominator Tree 中的一样）
+```
+
+##### 5.3.2.1 内存泄漏分析举例
+
+步骤：
+
+1. 在 `Histogram` 窗口顶部的 `Regex` 中输入过滤条件，同 `Dominator Tree` 中的例子一样，这里输入 `MainActivity`，如下图所示：
+
+    ![](./images/android-memory-optimize/23.png)
+
+    > 如上图，`MainActivity` 和 `LeakThread` 的实例各为 `11` 个，从而可以断定发生了内存泄漏。
+    >
+    > 接下来查看 `GC` 引用链，分析内存泄漏的原因。
+
+2. 右键列表中的 `MainActivity` 项，在弹出的右键菜单中选择 `Merge Shortest Paths to GC Roots`，再选中 `exclue all phantom/weak/soft etc. references`，结果如下图所示：
+
+    ![](./images/android-memory-optimize/24.png)
+
+    > `Dominator Tree` 中选中 `Path To GC Roots`，是用来分析单个对象的。
+    >
+    > 而 `Histogram` 是从类的角度分析的，所以在 `Histogram` 中无法通过 `Path To GC Roots` 查询 `GC` 引用链。
+    >
+    > 在 `Histogram` 中可以使用 `Merge Shortest Paths to GC Roots` 来查询从 `GC Roots` 到一个或一组对象的公共路径。
+
+通过 `Histogram` 对 [泄漏代码](#_5-1-准备一段待分析的内存泄漏的代码) 进行内存分析，得到的结论同 `Dominator Tree` 中分析的一样：
+
+```:no-line-numbers
+内部类 LeakThread 引用了外部类 MainActivity，且内部类 LeakThread 中做了耗时操作，
+导致外部类 MainActivity 无法被 GC，从而引发 MainActivity 的内存泄漏。
+```
+
+#### 5.3.3 `OQL (Object Query Language)`
+
+`OQL` 用来查询当前内存中满足指定条件的所有对象。类似于 `SQL` 语句的查询语言。
+
+`OQL` 的基本格式如下：
+
+```:no-line-numbers
+SELECT * FROM [INSTANCEOF] <class_name> [WHREE <filter-expression>]
+```
+
+当输入 `select * from instanceof android.app.Activity`，然后按下 `F5` 键（或单击工具栏中的红色叹号）时，会将当前内存中的所有 `Activity` 都显示出来，如下图所示：
+
+![](./images/android-memory-optimize/25.png)
+
+如果想查找具体的类，可以直接输入具体类的完整名称：
+
+```:no-line-numbers
+select * from com.xxx.MainActivity
+```
+
+在 `OQL` 窗口下的查询结果列表中，右键某个 `MainActivity` 实例，可以像 `Dominator Tree` 中那样查看其 `GC` 引用链，从而分析内存泄漏的原因。
+
+> `OQL` 语句的更多用法参考官方文档：http://help.eclipse.org/luna/index.jsp?topic=/org.eclipse.mat.ui.help/reference/oqlsyntax.html
+
+#### 5.3.4 对比 `hprof` 文件
+
+对于像 [泄漏代码](#_5-1-准备一段待分析的内存泄漏的代码) 这样的比较简单的内存泄漏场景，通过上面介绍的方法就可以找到内存泄漏的原因。
+
+但是，对于复杂情况中的内存泄漏，就需要通过对比 `hprof` 文件分析其原因了。对比步骤如下：
+
+1. 操作应用，生成第一个 `hprof` 文件；
+
+2. 接着再操作一段时间，生成第二个 `hprof` 文件；
+
+3. 用 `MAT` 打开这两个 `hprof` 文件转换后的标准 `hprof` 文件；
+
+4. 将两个 `hprof` 文件的 `Histogram`（或 `Dominator Tree`） 添加到 `Compare Basket` 中，如下图所示：
+
+    ![](./images/android-memory-optimize/26.png)
+
+5. 在 `Compare Basket` 中单击红色叹号按钮生成 `Compared Tables`，`Compared Tables` 如下图所示：
+
+    ![](./images/android-memory-optimize/27.png)
+
+6. 在 `Compared Tables` 窗口下的顶部 `Regex` 中输入 `MainActivity` 进行筛选，如下图所示：
+
+    ![](./images/android-memory-optimize/28.png)
+
+    > 可以看到，`MainActivity` 的实例增加了 `6` 个。但 `MainActivity` 的实例是不应该增加的，这说明发生了内存泄漏。
+    >
+    > 此时，可以像在 `Histogram` 中那样，右键列表中的 `MainActivity` 项查看其 `GC` 引用链，从而分析内存泄漏的原因。
+
+除了可以通过 `Compare Basket` 对比两个 `hprof` 文件的 `Histogram` 外，还可以直接在某个 `hprof` 文件的 `Histogram` 窗口下，通过工具栏中的对比按钮选择其他 `hprof` 文件进行对比，如下图所示：
+
+![](./images/android-memory-optimize/29.png)
+
+> 此对比方式生成的结果和 `Compared Tables` 中的类似。
+
+同样地，在生成的结果窗口的顶部 `Regex` 中输入 `MainActivity` 进行筛选，如下图所示：
+
+![](./images/android-memory-optimize/30.png)
+
+同样地，可以看到，`MainActivity` 的实例增加了 `6` 个。但 `MainActivity` 的实例是不应该增加的，这说明发生了内存泄漏。
 
 ## 6. `LeakCanary`
 
-### 6.1 使用 `LeakCanary`
+使用 `MAT` 分析内存问题，有一些难度，且效率也不高，这是因为对于一个内存泄漏的问题，可能要进行多次的排查和对比。
 
-### 6.2 `LeakCanary` 应用举例
+为了能够迅速地发现内存泄漏，`Square` 公司基于 `MAT` 开源了 `LeakCanary`。
+
+> `LeakCanary` 的 `GitHub` 地址为：`https://github.com/square/leakcanary`
+
+### 6.1 `LeakCanary` 的基本用法
+
+> 参考 `https://square.github.io/leakcanary/upgrading-to-leakcanary-2.0/`
+
+首先，添加依赖：
+
+```:no-line-numbers
+dependencies {
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.2'
+    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.2'
+}
+
+```
+
+接下来在 `Application` 中加入如下代码：
+
+```java
+public class MyApplication extends Application {
+    public void onCreate() {
+        ...
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            /*
+                LeakCanary.isInAnalyzerProcess(this) 返回 true，
+                表示当前进程是 LeakCanary 自己创建出来的，用来进行堆内存分析的。
+                不能在 LeakCanary 自己创建出来的进程中执行 App 的初始化操作，所以直接 return。
+            */
+            return;
+        }
+
+        /*
+            执行到这里，说明当前是 App 的主进程，
+            在 App 的主进程中，需要初始化 LeakCanary
+        */
+        LeakCanary.install(this);
+    }
+}
+```
+
+经过上面的配置后，就可以使用 `LeakCanary` 检测 `Activity` 中的内存泄漏了。
+
+如果想使用 `LeakCanary` 检测其他类的内存泄漏，则还需用到 `RefWatcher`。具体在下面的示例中进行介绍。
+
+### 6.2 `LeakCanary` 应用举例（使用 `RefWatcher` 监控任意类）
+
+使用 `LeakCanary` 提供的 `RefWatcher` 检测其他类的内存泄漏，首先需要在上面的 `MyApplication` 中额外配置下：
+
+```
+public class MyApplication extends Application {
+
+    private RefWatcher refWatcher;
+
+    public void onCreate() {
+        ...
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            refWatcher = RefWatcher.DISABLED;
+            return;
+        }
+        
+        refWatcher = LeakCanary.install(this);
+    }
+
+    public static RefWatcher getRefWatcher(Context context) {
+        MyApplication myApplication = (MyApplication) context.getApplicationContext();
+        return myApplication.refWatcher;
+    }
+}
+```
+
+接下来，再需要检测内存泄漏的类中使用 `RefWatcher` 进行监控。
+
+```java
+public class MainActivity extends AppCompatActivity {
+    protected void onCreate(Bundle savedInstanceState) {
+        ...
+        LeakThread leakThread = new LeakThread();
+        leakThread.start();
+    }
+
+    class LeakThread extends Thread {
+        public void run() {
+            try {
+                Thread.sleep(60*60*1000);
+            } catch (Exception e) {...}
+        }
+    }
+
+    protected void onDestroy() {
+        ...
+        RefWatcher refWatcher = MyApplication.getRefWatcher(this);
+        // watch 方法的参数传入要监控的可能发生内存泄漏的对象。
+        refWatcher.watch(this);
+    }
+}
+```
+
+> 在 `MyApplication` 中调用 `LeakCanary.install` 方法时，默认会启动一个 `ActivityRefWatcher`，用来监控 `Activity` 执行 `onDestroy` 方法之后是否会发生内存泄漏。
+> 
+> 所以，这里的 `MainActivity.onDestroy` 方法中完全没必要手动地添加 `RefWatcher.watch` 方法进行监控。
+> 
+> 这里仅仅只是举例说明如何监控任意类的内存泄漏问题，如对于监控 `Fragment` 类的内存泄漏，可以将 `RefWatcher.watch` 添加到 `Fragment.onDestroy` 中。
+
+最后，运行应用程序，在 `MainActivity` 界面中不断地切换横竖屏（此时会产生内存泄漏）。于是，会闪出一个提示框，提示 "`Dumping memory app will freeze.Brrrr.`"。
+
+再稍等片刻，内存泄漏信息就会通过 `Notification` 展示处理，如三星 `S8` 手机的通知栏所示：
+
+![](./images/android-memory-optimize/31.png)
+
+> 在 `Notification` 中提示 `MainActivity` 发生了内存泄漏，泄漏的内存为 `787B`。
+
+点击 `Notification` 就可以进入内存泄漏详情页。如下图所示：
+
+> 也可以通过 `LeakCanary` 提供的 `Leaks` 应用程序中的列表界面，进入内存泄漏详情页。
+
+![](./images/android-memory-optimize/32.png)
+
+> 点击上图中的加号可以查看具体类所在的包名称。
+
+内存泄漏详情页中的内容就是一个引用链，即：
+
+```:no-line-numbers
+内部类 MainActivity$LeakThread 通过 com.xxx.MainActivity$LeakThread.this$0 引用了外部类 com.xxx.MainActivity，
+
+从而导致了外部类 com.xxx.MainActivity 无法被 GC，产生内存泄漏。
+
+其中，this$0 的含义就是内部类自动保留的一个指向所在外部类的引用。
+```
+
+在内存泄漏详情页中，还可以将 `heap dump`（即 `hprof` 文件）和 `info` 信息分享出去，如下图所示：
+
+![](./images/android-memory-optimize/33.png)
+
+> 分享出去的 `hprof` 文件并不是标准的 `hprof` 文件，不能直接被 `MAT` 识别，需要通过 [`hprof-conv` 命令工具](#转换为标准的-hprof-文件-使用-hprof-conv-进行转换) 进行转换。
+
+最后说一下 [泄漏代码](#_5-1-准备一段待分析的内存泄漏的代码) 中的解决办法就是将 `LeakThread` 改为静态内部类。 
 
