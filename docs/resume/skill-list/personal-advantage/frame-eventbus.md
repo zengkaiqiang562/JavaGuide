@@ -19,7 +19,62 @@ tag:
 
 ![](./images/frame-eventbus/01.png)
 
+如上图，`EventBus` 中的三要素为：
+
+1. `Event`：事件。
+
+    ```:no-line-numbers
+    任意类型的对象都可以作为事件。
+    ```
+
+2. `Subscriber`：事件订阅者。
+
+    ```:no-line-numbers
+    订阅（register）/ 取消订阅（unregister）事件，以及事件的处理方法所在的类称为事件订阅者。
+
+    注意：
+        在 EventBus 3.0 之前，事件的处理方法的方法名只能是：
+        onEvent/onEventMainThread/onEventBackgroundThread/onEventAsync 
+        这 4 种，分别代表 4 种不同的线程模型。
+
+        在 EventBus 3.0 之后，事件的处理方法的方法名可以是任意的，
+        但需要通过注解 @Subscribe 进行修饰，
+        并且通过该注解指定线程模型（默认为 POSTING）。
+    ```
+
+3. `Publisher`：事件发布者。
+
+    ```:no-line-numbers
+    调用 EventBus 对象的 post(Object) 方法发布事件时所在的类称为事件发布者。
+
+    其中 post 方法传入的参数 Object 表示任意类型的事件对象，
+    根据所发布的事件对象的类型，会自动调用事件订阅者中的形参类型相匹配的事件处理方法。
+
+    注意：
+        事件发布者可以在任意线程中调用 post(Object) 方法来发布事件。
+    ```
+
 ### 1.2  `EventBus` 中的 `4` 种线程模型（`ThreadMode`）
+
+#### 1.2.1 `POSTING`（默认）
+
+发布事件时，`post(Object)` 方法在哪个线程中调用，该事件的处理方法就在哪个线程中执行。
+
+> `POSTING` 线程模型会阻塞 `EventBus` 中其他事件的传递，因此，尽量不要在事件的处理方法中做耗时操作。
+
+#### 1.2.2 `MAIN`
+
+发布事件时，无论 `post(Object)` 方法在哪个线程中调用，该事件的处理方法都会在主线程中执行。
+
+#### 1.2.3 `BACKGROUND`
+
+发布事件时：
+1. 如果 `post(Object)` 方法在主线程中调用，那么该事件的处理方法就会在新创建的子线程中执行。
+2. 如果 `post(Object)` 方法在子线程中调用，那么该事件的处理方法就会在同一个子线程中执行。
+
+#### 1.2.4 `ASYNC`
+
+发布事件时，无论 `post(Object)` 方法在哪个线程中调用，该事件的处理方法都会在新创建的子线程中执行。
 
 ## 2. `EventBus` 的基本用法
 
