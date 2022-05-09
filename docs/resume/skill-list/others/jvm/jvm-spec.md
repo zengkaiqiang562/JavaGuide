@@ -281,7 +281,7 @@ tag:
 ```
 <index> <opcode> [<operand1> [<operand2> ...]] [<comment>]
 其中：
-<index> 是指令操作码在数组中的下标，该数组以字节形式来存储当前分发的 `Java` 虚拟机代码；
+<index> 是指令操作码在 code[] 数组中的索引，code[] 数组以字节形式来存储当前分发的 `Java` 虚拟机代码；
         也可以是相对于方法起始处的字节偏移量
 <opcode> 是指令的操作码
 <operand> 是操作数
@@ -603,9 +603,180 @@ info[]：不同属性的 info[] 不同，参考各个属性的具体格式。
 
 #### 8.10.3 `Code` 属性
 
+`Code` 属性附加方法的附加属性出现在 `method_info` 结构中。
+
+`Code` 属性中包含方法（如成员方法、实例初始化方法、类或接口初始化方法）的 `Java` 虚拟机指令，及相关的辅助信息。
+
+> 对于抽象方法（`abstract` 修饰的方法）、本地方法（`native` 修饰的方法），方法对应的 `method_info` 结构中不能有 `Code` 属性。
+> 
+> 除 `native`、`abstract` 方法之外的其他方法的 `method_info` 中则必须有，且只能有一个 `Code` 属性。
+
 ##### 8.10.3.1 `Code` 属性的格式
 
-##### 8.10.3.2 `Code` 属性在 `class` 文件中的解析举例
+```:no-line-numbers
+Code_attribute {
+    u2             attribute_name_index;
+    u4             attribute_length;
+    u2             max_stack;
+    u2             max_locals;
+    u4             code_length;
+    u1             code[code_length];
+    u2             exception_table_length;
+
+    {
+        u2 start_pc;
+        u2 end_pc;
+        u2 handler_pc;
+        u2 catch_type;
+    } exception_table[exception_table_length];
+
+    u2             attributes_count;
+    attribute_info attributes[attributes_count];
+}
+
+其中：
+attribute_name_index：是对常量池表的一个有效索引，该索引指向的常量池项的类型为 CONSTANT_Utf8_info，固定为属性名 `Code`。
+attribute_length：表示从 max_stack 到 attribute_info_attributes[] 所占的字节大小。即当前 Code 属性在 class 文件中的剩余长度。
+max_stack：表示当前方法在调用时，其栈帧中的操作数栈的最大深度。
+max_locals：表示当前方法在调用时，其栈帧中的局部变量表内，有多少个局部变量（包括用于传递参数的局部变量）。
+code_length：表示 code[] 数组所占的字节大小。（code_length 的值必须大于 0 ，即 code[] 数组不能为空）
+code[]：用于保存实现当前方法的 `Java` 虚拟机代码。
+exception_table_length：表示 exception_table[] 数组中的元素个数。
+
+exception_table[]：该数组中的一个元素代表 code[] 数组中的一个异常处理器。
+exception_table[] 数组中的每个元素都包含如下结构：
+    start_pc 和 end_pc：当前元素代表的异常处理器在 code[] 中的有效范围是 [start_pc, end_pc]。
+                        start_pc 的值表示对 code[] 中某一指令操作码的有效索引；
+                        end_pc 的值要么是对 code[] 中某一指令操作码的有效索引，要么等于 code_length；
+                        start_pc 必须小于 end_pc。
+                        当程序计数器在范围 [start_pc, end_pc] 内时，当前元素表示的异常处理器就将生效。
+    handler_pc：当前元素代表的异常处理器的起点，handler_pc 的值表示对 code[] 中某一指令操作码的有效索引。
+    catch_type：若值不为 0，
+                    则表示对常量池表的一个有效索引，该索引指向的常量池项的类型为 CONSTANT_Class_info，
+                    表示当前元素代表的异常处理器需要捕捉的异常类型。
+                若值为 0，
+                    则表示当任意异常抛出时，都会调用当前元素代表的异常处理器。
+                    这可用于实现 finally 语句。
+
+attributes_count：表示 attributes[] 数组中的元素个数。
+attributes[]：表示与 Code 属性相关联的其他附加属性的集合。
+              该数组（属性表）中的每个元素都必须是 attribute_info 类型的。
+```
+
+与 `Code` 属性相关联的附加属性（即 `attributes[]` 属性表中的属性类型）可以是：
+
+1. `LineNumberTable`
+2. `LocalVariableTable`
+3. `LocalVariableTypeTable`
+4. `StackMapTable`
+5. `RuntimeVisibleTypeAnnotations` 和 `RuntimeInvisisbleTypeAnnotations`
+
+##### 8.10.3.2  `LineNumberTable`
+
+```:no-line-numbers
+该属性用于确定 Java 源码与 code[] 中的 `Java` 虚拟机代码之间的对应关系。
+LineNumberTable 属性中保存了一个 line_number_table[] 数组，该数组元素的结构为：
+    {
+        u2 start_pc;
+        u2 line_number;
+    }
+通过数组元素可以表明：
+    Java 源文件中行号为 line_number 处的源码，会在 code[] 数组中索引 start_pc 处的指令中发生变化。
+```
+
+##### 8.10.3.3  `LocalVariableTable`
+
+```:no-line-numbers
+在方法调用时，通过该属性来确定某个局部变量的值。
+LocalVariableTable 属性中保存了一个 local_variable_table[] 数组。一个数组元素表示一个局部变量。
+该数组元素的结构为：
+    {
+        u2 start_pc;
+        u2 length;
+        u2 name_index;
+        u2 descriptor_index;
+        u2 index;
+    }
+    其中：
+    start_pc 和 length：start_pc 必须是对 code[] 中某一指令操作码的有效索引；
+                        start_pc + length 要么是对 code[] 中某一指令操作码的有效索引，
+                                要么是刚超过 code[] 数组末尾的首个索引值。
+                        当程序执行到 code[] 数组的 [start_pc, start_pc+length] 范围内时，
+                        该局部变量是有效的（即该局部变量必定有值存在）。
+    name_index：是对常量池表的一个有效索引，该索引指向的常量池项的类型为 CONSTANT_Utf8_info，
+                表示该局部变量名。
+    descriptor_index：是对常量池表的一个有效索引，该索引指向的常量池项的类型为 CONSTANT_Utf8_info，
+                      表示该局部变量的字段描述符（即局部变量的类型）。
+    index：表示在方法调用时，该局部变量在栈帧的局部变量表中的索引。
+            如果栈帧的局部变量表中，index 索引处的局部变量是 long 或 double 类型，则占用 index 和 index+1 两个位置。
+```
+
+##### 8.10.3.4  `LocalVariableTypeTable`
+
+```:no-line-numbers
+当局部变量的类型中包含泛型（如 T 或 List<T> 类型的局部变量），或泛型的具体类型（如 List<String> 类型的局部变量）时，
+这种类型的局部变量不仅会出现在 LocalVariableTable 属性中，还会出现在 LocalVariableTypeTable 属性中。
+
+LocalVariableTypeTable 属性中保存了一个 local_variable_type_table[] 数组。一个数组元素表示一个局部变量。
+该数组元素的结构为：
+    {
+        u2 start_pc;
+        u2 length;
+        u2 name_index;
+        u2 signature_index;
+        u2 index;
+    }
+
+与 LocalVariableTable 属性中的 local_variable_table[] 数组元素的唯一区别在于：
+    local_variable_table[] 数组元素中使用 descriptor_index 指定的字段描述符来表示局部变量的类型；
+    local_variable_type_table[] 数组元素中使用 signature_index 指定的字段签名来表示局部变量的类型；
+```
+
+> 注意：[字段描述符](#字段描述符) 和 字段签名 是存在区别的。
+>
+> 字段签名参考 《`Java` 虚拟机规范 `Java SE 8` 版》 中第 `4.7.9` 节内容（`Signature` 属性）
+
+##### 8.10.3.5  `StackMapTable`
+
+```:no-line-numbers
+该属性用在虚拟机的类型检查验证阶段。
+一个方法只能有 0 个或 1 个 StackMapTable 属性。
+StackMapTable 属性中保存了一个 stack_map_frame[] 数组，其中 stack_map_frame 表示栈映射帧。
+栈映射帧 stack_map_frame 指定了 code[] 中某一指令对应的局部变量和操作数栈的类型。
+通过 StackMapTable 属性中保存的栈映射帧集合（stack_map_frame[]），可以提高 JVM 在类型检查的验证阶段的效率。
+```
+
+##### 8.10.3.6  `RuntimeVisibleTypeAnnotations` 和 `RuntimeInvisisbleTypeAnnotations`
+
+`RuntimeVisibleTypeAnnotations` 属性中保存了运行时可见的注解集合
+
+`RuntimeVisibleTypeAnnotations` 属性中保存了运行时不可见的注解集合
+
+##### 8.10.3.7  栈帧
+
+![](./images/jvm-spec/47.png)
+
+##### 8.10.3.8  局部变量表（`local variable` 又称本地变量表）
+
+![](./images/jvm-spec/46.png)
+
+##### 8.10.3.9 `Code` 属性在 `class` 文件中的解析举例（`Slot` 可复用）
+
+![](./images/jvm-spec/48.png)
+
+**注意：方法调用时，栈帧中的局部变量表中的局部变量所占的内存空间是可以复用的。**
+
+也就是说，`LocalVariableTable` 属性中保存的局部变量在局部变量表中的索引 `index` 可能跟其他局部变量的索引相同。如下图所示：
+
+![](./images/jvm-spec/49.png)
+
+```:no-line-numbers
+上图中，
+locals=2，即局部变量在局部变量表中总共占 2 slot 单位的内存空间。
+根据 LocalVariableTable 属性中的内容可知，局部变量表中保存了 3 个局部变量，
+其中两个局部变量的索引是相同的（即局部变量 test 和 e 的索引相同，都为 1），
+也就是说，局部变量 test 和 e 共用了 1 slot 单位的内存空间。
+```
 
 ## 9. `ASM` 开发
 
