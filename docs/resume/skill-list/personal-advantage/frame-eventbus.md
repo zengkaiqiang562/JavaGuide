@@ -107,16 +107,131 @@ implementation 'org.greenrobot:eventbus:3.3.1'
 
 ### 2.3 自定义事件类
 
+```java
+public class CustomEvent {
+    private String msg;
+    public CustomEvent(String msg) {
+        this.msg = msg;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+}
+```
+
 ### 2.4 订阅（`register`）和取消订阅（`unregister`）事件
 
-### 2.5 事件发布者发送事件
+```java
+public class MyActivity extend AppCompatActivity {
+    protected void onCreate(Bundle savedInstanceState) {
+        ...
+        /*
+            订阅事件，EventBus.register 方法传入作为事件订阅者的实例对象。
+            这里将 MyActivity 作为事件订阅者。
+        */
+        EventBus.getDefault().register(this);
+    }
 
-### 2.6 事件订阅者处理事件
+    protected void onDestroy() {
+        ...
+        /*
+            取消订阅事件，EventBus.unregister 方法传入将要取消订阅的事件订阅者对象。
+        */
+        EventBus.getDefault().unregister(this);
+    }
+}
+```
+
+### 2.5 事件订阅者处理事件
+
+```java
+public class MyActivity extends AppCompatActivity {
+    protected void onCreate(Bundle savedInstanceState) { ... }
+
+    protected void onDestroy() { ... }
+
+    /*
+        1. 被注解 @Subscribe 修饰的方法才能作为事件的处理方法；
+        2. 声明注解 @Subscribe 的同时，还可以通过该注解来指定处理事件时的线程模型。
+            这里将线程模型指定为 MAIN，表示不管在哪里发布事件 CustomEvent，该事件的当前处理方法 foo 都在主线程中执行。
+        3. 事件的处理方法的方法名可以是任意的；
+    */
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void foo(CustomEvent event) {
+        Log.d("zkq", "msg : " + event.getMsg());
+        // TODO 处理接收到的 event 事件
+    }
+}
+```
+
+> 注意：事件的处理方法 `foo` 定义在作为事件订阅者的类中。
+> 
+> 即：在 `Event.register(subscriber)` 传入的事件订阅者对象所属的类中定义事件的处理方法。
+
+### 2.6 事件发布者发送事件
+
+```java
+public class SecondActivity extends AppCompatActivity {
+    protected void onCreate(Bundle savedInstanceState) { 
+        ...
+        findViewById(R.id.btn).setOnClickListener(v -> {
+            // 创建待发布的事件对象 event
+            CustomEvent event = new CustomEvent("Hello World");
+
+            /*
+                调用 EventBus.post 方法发布作为事件的 event 对象。
+                调用 EventBus.post 方法的类 SecondActivity 称为事件发布者。
+            */ 
+            EventBus.getDefault().post(event);
+
+            finish();
+        });  
+    }
+}
+```
+
+> 注意：如果在执行 `EventBus.register(subscriber)` 方法之前（即在事件订阅者还没有订阅事件之前）就调用了 `EventBus.post(event)` 方法发布事件，那么事件订阅者 `subscriber` 中的事件处理方法 `foo` 是无法接收到事件 `event` 的，即方法 `foo` 不会执行。
 
 ## 3. `EventBus` 的黏性事件
 
-### 3.1 发送黏性事件
+上面讲解的是普通事件的处理方法和发布方式。
 
-### 3.2 处理黏性事件
+上面已经说明了，对于普通事件：
+
+```:no-line-numbers
+如果在事件订阅者还没有订阅事件之前就发布了普通事件，那么普通事件的处理方法是不会执行的。
+```
+
+而黏性事件与普通事件的区别就在于：
+
+```:no-line-numbers
+如果在事件订阅者还没有订阅事件之前就发布了黏性事件，那么黏性事件的处理方法还是会执行的。
+```
+
+> 也就是说，对于黏性事件，即使早就已经发布出去了，后订阅（`register`）的事件订阅者对象也能接收到，并执行对应的事件处理方法。
+
+在使用方面，黏性事件和普通事件的订阅（`register`）和取消订阅（`unregister`），以及事件类型都是统一的，区别在于:
+1. 事件处理方法上的 `@Subscribe` 注解声明：
+
+    ```:no-line-numbers
+    普通事件的处理方法：
+        @Subscribe(threadMode = ThreadMode.MAIN) // 省略了 sticky = false
+        public void foo(CustomEvent event) {...}
+
+    黏性事件的处理方法：
+        @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+        public void foo(CustomEvent event) {...}
+    ```
+
+2. 发布事件的方法调用：
+
+    ```:no-line-numbers
+    普通事件的发布：
+        EventBus.getDefault().post(event);
+    
+    黏性事件的处理方法：
+        EventBus.getDefault().postSticky(event);
+    ```
 
 ## 4. `EventBus` 源码解析
