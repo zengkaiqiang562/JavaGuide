@@ -788,10 +788,45 @@ locals=2，即局部变量在局部变量表中总共占 2 slot 单位的内存�
 
 简单的说，`ASM` 可以读取并解析 `class` 文件的内容，并提供接口对 `class` 文件的内容进行访问和修改。
 
+目前许多框架如 `CGLib`、`Hibernate`、`Spring` 都直接或间接地使用 `ASM` 操作字节码。
+
+> 使用 `ASM` 需要导入依赖包：`asm-7.3.1.jar` 和 `asm-util-7.3.1.jar`。
 
 ### 9.1 编程模型和核心 `API`
 
+`ASM` 提供了两种编程模型：
+
+1. `Core API`：
+
+    ```:no-line-numbers
+    提供了基于事件形式的编程模型。
+    该模型不需要一次性地将整个类的结构读取到内存中。
+    因此这种方式更快，需要的内存更少。
+    但这种编程方式难度较大。
+    ```
+
+2. `Tree API`：
+
+    ```:no-line-numbers
+    提供了基于树形的编程模型。
+    该模型需要一次性地将整个类的结构读取到内存中。
+    因此这种方式需要的内存更多。
+    但这种编程方式较为简单。
+    ```
+
 ### 9.2 `ClassVisitor` 开发
+
+`ClassVisitor` 是 `Core API` 编程模型中提供的接口，用于对字节码进行操作。
+
+> `ClassVisitor` 接口中的每个方法对应了 `class`  文件中的每一项。
+
+`ASM` 提供了三个基于 `ClassVisitor` 接口的实现类来完成 `class` 文件的生成和转换。
+
+1. `ClassReader`：用于解析一个类的 `class` 文件。
+2. `ClassAdapter`：实现会变化的功能。
+3. `ClassWriter`：用来输出变化后的字节码。
+
+> `ASM` 给我们提供了 `ASMifier` 工具来帮助开发，可使用 `ASMifier` 工具生成 `ASM` 结构来对比。
 
 ### 9.3 `MethodVisitor` 开发
 
