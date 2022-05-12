@@ -184,3 +184,9 @@ svg .loopText, svg .loopText>tspan {
     font-size: 12px!important;
     fill: red!important;
 }
+
+:root {
+    @media (prefers-reduced-motion: no-preference) {
+        scroll-behavior: auto;
+    }
+}
