@@ -1,5 +1,5 @@
 ---
-title: 认识 JVM 规范（JVM 概述、字节码指令集、Class文件解析、ASM）（DOING）
+title: 认识 JVM 规范（JVM 概述、字节码指令集、Class文件解析、ASM）
 category: 
   - java
 tag:
@@ -97,13 +97,15 @@ tag:
 
 ![](./images/jvm-spec/20.png)
 
-### 4.4 运行时数据区（TODO）
+### 4.4 运行时数据区
 
-在后面的内存分配和字节码执行引擎中再讲解
+参考 《内存分配》 中的 [运行时数据区](/resume/skill-list/others/jvm/memory-allocate.html#_1-2-运行时数据区-即内存区域-又称-jvm-内存结构)
 
-### 4.5 栈帧（TODO）
+### 4.5 栈帧
 
-在后面的内存分配和字节码执行引擎中再讲解
+参考本文章中的 [栈帧](#_8-10-3-7-栈帧)
+
+参考 《内存分配》 中的 [`Java` 栈](/resume/skill-list/others/jvm/memory-allocate.html#_1-2-2-java-栈-又称-java-虚拟机栈-或虚拟机栈)
 
 ### 4.6 特殊方法
 
@@ -119,9 +121,9 @@ tag:
 
 参考 《`Java` 虚拟机规范 `Java SE 8` 版》 中第 `2.10` 节内容
 
-### 4.9 虚拟机的启动、加载、链接和初始化（TODO）
+### 4.9 虚拟机的启动、加载、链接和初始化
 
-后面再讲解
+参考 [《类加载、连接和初始化》](/resume/skill-list/others/jvm/classloader.html)
 
 ## 5. 字节码指令集
 

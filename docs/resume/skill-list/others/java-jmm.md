@@ -45,6 +45,10 @@ tag:
 ![](./images/java-jmm/03.png)
 
 
+> 参考 《内存分配》 中的 [对象的内存布局](/resume/skill-list/others/jvm/memory-allocate.html#_2-3-对象的内存布局-对象头、实例数据、对齐填充)
+> 
+> 参考 《内存分配》 中的 [对象的访问方式](/resume/skill-list/others/jvm/memory-allocate.html#_2-4-对象的访问方式-使用句柄、使用指针)
+
 ## 3. `Java` 内存模型（`JMM`）
 
 `JMM` 即 `Java Memory Model`
