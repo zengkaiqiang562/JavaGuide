@@ -99,13 +99,13 @@ tag:
 
 ### 4.4 运行时数据区
 
-参考 《内存分配》 中的 [运行时数据区](/resume/skill-list/others/jvm/memory-allocate.html#_1-2-运行时数据区-即内存区域-又称-jvm-内存结构)
+参考 《内存分配》 中的 [运行时数据区](/resume/skill-list/others/jvm/memory-allocate.html#_1-1-运行时数据区-即内存区域-又称-jvm-内存结构)
 
 ### 4.5 栈帧
 
 参考本文章中的 [栈帧](#_8-10-3-7-栈帧)
 
-参考 《内存分配》 中的 [`Java` 栈](/resume/skill-list/others/jvm/memory-allocate.html#_1-2-2-java-栈-又称-java-虚拟机栈-或虚拟机栈)
+参考 《内存分配》 中的 [`Java` 栈](/resume/skill-list/others/jvm/memory-allocate.html#_1-1-2-java-栈-又称-java-虚拟机栈-或虚拟机栈)
 
 ### 4.6 特殊方法
 
