@@ -1,5 +1,5 @@
 ---
-title: 内存分配（DOING）
+title: 内存分配
 category: 
   - java
 tag:
@@ -251,32 +251,206 @@ tag:
 ### 3.1 `Trace` 跟踪参数
 
 #### 3.1.1 `-Xlog:gc`（打印 `GC` 日志的简要信息）
+
 #### 3.1.2 `-Xlog:gc*`（打印 `GC` 日志的详细信息）
-#### 3.1.3 `-Xlog:gc:garbage-collection.log`（输出 `GC` 日志信息到指定文件）
+
+#### 3.1.3 `-Xlog:gc:<filename>`（输出 `GC` 日志信息到指定文件）
+
+```:no-line-numbers
+如 -Xlog:gc:garbage-collection.log，其中 garbage-collection.log 是保存 GC 日志的文件。
+
+文件名前面还可以加路径，路径目录必须事先创建好。
+```
+
 #### 3.1.4 `-Xlog:gc+heap=debug`（打印 `GC` 日志信息和堆信息）
 
 #### 3.1.5 `GC` 日志信息的格式
 
+不同垃圾收集器的 `GC` 日志格式可能不同。`GC` 日志信息中主要包含以下内容：
+
+1. `GC` 发生的时间，也就是 `JVM` 从启动以来经过的秒数。
+
+2. 日志级别信息，和日志类型标记。
+
+3. `GC` 识别号。
+
+4. `GC` 类型，和 `GC` 的原因说明。
+
+5. 容量：`GC` 前容量 `-> GC` 后容量（该区域总容量）。
+
+6. `GC` 持续时间，单位：秒。
+
+    ```:no-line-numbers
+    有的收集器会有更详细的描述，比如：
+    1. user：表示应用程序消耗的时间；
+    2. sys：表示系统内核消耗的时间；
+    3. real：表示操作从开始到结束的时间。
+    ```
+
+举例如下：
+
+![](./images/memory-allocate/06.png)
+
 ### 3.2 `Java` 堆的参数
 
-#### 3.2.1 `Xms`（初始堆大小）
-#### 3.2.2 `Xmx`（最大堆大小）
-#### 3.2.3 `Xmn`（新生代大小）
+#### 3.2.1 `-Xms<size>`（初始堆大小）
+
+```:no-line-numbers
+设置堆的最小空间大小为 size，同时也将堆的初始空间大小设置为 size。
+
+size 必须是 1024 的倍数，且 size 必须大于 1MB。如：
+    -Xms6291456
+    -Xms6144k
+    -Xms6m
+    以上三种方式只是 size 的单位不同，结果都是将 size 设置为 6m。
+
+默认为物理内存的 1/64。
+
+如果不想将堆的最小空间大小和初始空间大小设置成一样，可以使用：
+1. -XX:MinHeadpSize 单独设置最小空间大小；
+2. -XX:InitialHeapSize 单独设置初始空间大小。
+```
+
+#### 3.2.2 `-Xmx<size>`（最大堆大小）
+
+```:no-line-numbers
+默认为物理内存的 `1/4`。
+
+-Xmx 等价于 -XX:MaxHeapSize
+
+建议将 -Xms 和 -Xmx 设置成一样大小，即：初始堆大小 = 最大堆大小。这样，每次 GC 后就不需要再去调整堆大小了。
+```
+
+使用示例如下：
+
+![](./images/memory-allocate/07.png)
+
+#### 3.2.3 `-Xmn<size>`（新生代大小）
+
+```:no-line-numbers
+默认为整个堆的 3/8。
+
+因为新创建的对象一般都是存放在新生代中的，所以：
+1. 如果新生代的内存太小，能够存放的对象就少，就会导致频繁的 GC；
+2. 如果新生代的内存太大，就会存放过多的对象，从而导致一次 GC 的耗时较长。
+
+-Xmn 同时设置了新生代的初始空间大小和最大空间大小。也可以使用 -XX:NewSize 和 -XX:MaxNewSize 分别单独设置。
+```
+
 #### 3.2.4 `-XX:NewRatio`（老年代与新生代的比例）
+
+```:no-line-numbers
+-XX:NewRatio 是设置新生代和老年代的占比关系。而 -Xmn 是设置新生代的固定内存大小。
+
+也就是说，对于 -XX:NewRatio， 新生代的内存大小取多少，是虚拟机根据比例来算的。
+
+默认值为 -XX:NewRatio=2，表示 老年代 : 新生代 = 2 : 1，即
+    老年代占堆内存的 2/3
+    新生代占堆内存的 1/3
+
+注意：如果 -Xms = -Xmx，且设置了 -Xmn，那么不用再设置 -XX:NewRatio。
+```
+
 #### 3.2.5 `-XX:SurvivorRatio`（`Eden` 区和 `Survivor` 区的比例）
+
+```:no-line-numbers
+当 -XX:SurvivorRatio = 8 时，则 eden : from : to = 8 : 1 : 1，即：
+    eden 区占新生代内存的 8/10；
+    from space 占新生代内存的 1/10；
+    to space 占新生代内存的 1/10。
+```
+
 #### 3.2.6 `-XX:+HeapDumpOnOutOfMemoryError`（导出 `OOM` 时的堆信息）
+
+```:no-line-numbers
+导出 OOM 时的堆信息就是导出一个堆存储文件（hprof）文件。
+
+如果不通过参数 -XX:+HeapDumpPath 指定导出的 hprof 文件的路径，
+则默认在程序运行时所在的当前目录下生成 hrof 文件。
+```
+
 #### 3.2.7 `-XX:+HeapDumpPath`（`OOM` 时堆信息的导出文件路径）
+
+```:no-line-numbers
+如果不指定导出路径，默认为 `Java` 程序运行时所在的当前目录。
+```
+
 #### 3.2.8 `-XX:OnOutOfMemoryError`（在 `OOM` 时，执行一个脚本）
+
+#### 3.2.9 示例：`GC` 前后对象在堆内存中的分布变化
+
+![](./images/memory-allocate/08.png)
+
+#### 3.2.10 示例：分配的新生代内存不能超过最大堆内存的一半
+
+当 `-Xmn` 设置的新生代内存超过了 `-Xmx` 设置的最大堆内存的一半时，实际给新生代分配的内存可能比 `-Xmn` 设置的小。
+
+![](./images/memory-allocate/09.png)
+
+#### 3.2.11 示例：导出堆存储文件并使用 `MAT` 进行内存分析
+
+![](./images/memory-allocate/09.png)
+
+![](./images/memory-allocate/10.png)
+
+![](./images/memory-allocate/11.png)
+
+![](./images/memory-allocate/12.png)
+
+![](./images/memory-allocate/13.png)
+
+![](./images/memory-allocate/14.png)
+
+#### 3.2.12 示例：输出 `GC` 日志到指定文件
+
+![](./images/memory-allocate/15.png)
+
+#### 3.2.13 示例：`-XX:NewRatio` 设置老年代与新生代的比例
+
+![](./images/memory-allocate/16.png)
+
+#### 3.2.14 示例：`-XX:SurvivorRatio` 设置 `Eden` 区和 `Survivor` 区的比例
+
+![](./images/memory-allocate/17.png)
+
+#### 3.2.15 示例：分析内存溢出（`OOM`）时 `GC` 日志信息
+
+![](./images/memory-allocate/18.png)
 
 ### 3.3 `Java` 栈的参数
 
 #### 3.3.1 `-Xss`（栈的大小）
 
+```:no-line-numbers
+通常只有几百 K，决定了函数调用的深度。
+
+栈是由帧组成的，函数调用开始时创建帧，函数调用结束后销毁帧。
+当函数嵌套调用时，就会同时有多个帧存在，嵌套层级越深，帧越多，
+因此说 -Xss 所设置的栈大小，决定了一个栈中能同时存放下多少个帧，即确定了函数调用的嵌套深度。
+```
+
+#### 3.3.2 示例：通过递归函数模拟 `StackOverflowError`（栈溢出异常）
+
+![](./images/memory-allocate/19.png)
+
 ### 3.4 元空间的参数
 
 #### 3.4.1 `-XX:MetaspaceSize`（初始空间大小）
+
 #### 3.4.2 `-XX:MaxMetaspaceSize`（最大空间大小）
+
+```:no-line-numbers
+默认是没有限制的
+```
+
 #### 3.4.3 `-XX:MaxMetaspaceFreeRatio`（`GC` 后的最大剩余百分比）
+
+```:no-line-numbers
+在 GC 之后，最小的 Metaspace 剩余空间容量的百分比。
+```
+
 #### 3.4.4 `-XX:MinMetaspaceFreeRatio`（`GC` 后的最小剩余百分比）
 
-## 4. 使用 `MAT` 进行内存分析
+```:no-line-numbers
+在 GC 之后，最大的 Metaspace 剩余空间容量的百分比。
+```
