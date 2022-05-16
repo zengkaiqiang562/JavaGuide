@@ -107,6 +107,8 @@ tag:
 
 参考 《内存分配》 中的 [`Java` 栈](/resume/skill-list/others/jvm/memory-allocate.html#_1-1-2-java-栈-又称-java-虚拟机栈-或虚拟机栈)
 
+参考 《字节码执行引擎》 中的 [栈帧](/resume/skill-list/others/jvm/class-exe-engine.html#_2-栈帧)
+
 ### 4.6 特殊方法
 
 参考 《`Java` 虚拟机规范 `Java SE 8` 版》 中第 `2.9` 节内容
@@ -763,6 +765,8 @@ StackMapTable 属性中保存了一个 stack_map_frame[] 数组，其中 stack_m
 ![](./images/jvm-spec/46.png)
 
 ##### 8.10.3.9 `Code` 属性在 `class` 文件中的解析举例（`Slot` 可复用）
+
+> 参考 《字节码执行引擎》 中的 [局部变量表](/resume/skill-list/others/jvm/class-exe-engine.html#_3-局部变量表)
 
 ![](./images/jvm-spec/48.png)
 

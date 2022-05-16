@@ -63,6 +63,8 @@ tag:
     > 局部变量表中的槽位（`slot`）是可以复用的。
     > 
     > 参考 [`Code` 属性在 `class` 文件中的解析举例](/resume/skill-list/others/jvm/jvm-spec.html#_8-10-3-9-code-属性在-class-文件中的解析举例-slot-可复用)。
+    >
+    > 参考 《字节码执行引擎》 中的 [局部变量表](/resume/skill-list/others/jvm/class-exe-engine.html#_3-局部变量表)
 
 `Java` 栈的优缺点：
 
