@@ -514,7 +514,62 @@ static Observable<Long> rangeLong(long start, long count)
 
 #### 7.2.1 `map()`
 
+```java:no-line-numbers
+<R> Observable<R> map(Function<? super T, ? extends R> mapper)
+```
+
+```:no-line-numbers
+map 是一个非静态方法，返回一个 ObservableMap<T, R> 类型的被观察者。
+接口 Function<T, R> 提供一个 "R apply(T)" 方法，用于将类型 T 转换为类型 R。
+当使用了操作符 map 的被观察者 Observable<T> 发射数据项 T 时，
+会先被一个中间观察者（MapObserver）接收到，并通过 Function 的 apply 方法将传入的数据项 T 转换成数据项 R，
+然后再将转换后的数据项 R 发射给目标观察者。
+
+简单地说，操作符 map 可以将发射的数据项 T 转换成其它类型的数据项 R，观察者接收到的就是转换后的数据项 R。
+```
+
+```java:no-line-numbers
+// example
+Observable.just(1, 2, 3)
+    .map(x -> x * x)
+    .subscribe(System.out::println);
+
+// prints:
+// 1
+// 4
+// 9
+```
+
 #### 7.2.2 `flatMap()`
+
+```java:no-line-numbers
+
+```
+
+```:no-line-numbers
+
+```
+
+```java:no-line-numbers
+// example
+Observable.just("A", "B", "C")
+    .flatMap(a -> {
+        return Observable.intervalRange(1, 3, 0, 1, TimeUnit.SECONDS) // 从 1 开始发射 3 个数。延迟 0s，间隔 1s
+                .map(b -> '(' + a + ", " + b + ')');
+    })
+    .blockingSubscribe(System.out::println);
+
+// prints (not necessarily in this order):
+// (A, 1)
+// (C, 1)
+// (B, 1)
+// (A, 2)
+// (C, 2)
+// (B, 2)
+// (A, 3)
+// (C, 3)
+// (B, 3)
+```
 
 #### 7.2.3 `concatMap()`
 
