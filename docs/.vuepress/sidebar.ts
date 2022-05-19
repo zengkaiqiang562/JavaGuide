@@ -191,9 +191,9 @@ export const sidebarConfig = defineSidebarConfig({
             "android-Anim", // 帧动画，补间动画，属性动画各自的概念，特点，使用场景。什么是插值器，什么是估值器
             "java-thread", // 线程
             "java-threadpool", // 线程池
-            "java-jmm", // Java内存模型——底层原理
             "android-asynctask", // AsyncTask
             "android-handler", // 消息机制
+            "java-jmm", // Java内存模型——底层原理
             "tcp-handshake",
             {
               text: "JVM",
