@@ -193,8 +193,8 @@ export const sidebarConfig = defineSidebarConfig({
             "java-threadpool", // 线程池
             "android-asynctask", // AsyncTask
             "android-handler", // 消息机制
-            "java-jmm", // Java内存模型——底层原理
             "tcp-handshake",
+            "java-jmm", // Java内存模型——底层原理
             {
               text: "JVM",
               prefix: "jvm/",
