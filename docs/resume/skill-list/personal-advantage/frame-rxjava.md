@@ -543,11 +543,15 @@ Observable.just(1, 2, 3)
 #### 7.2.2 `flatMap()`
 
 ```java:no-line-numbers
-
+<R> Observable<R> flatMap(Function<? super T, ? extends ObservableSource<? extends R>> mapper)
 ```
 
 ```:no-line-numbers
-
+flatMap 和 map 的作用类似，都是将 T 类型的数据项转换成 R 类型的数据项，再发射给观察者。
+区别是：
+    1. map 直接通过 Function.apply 方法返回转换后的 R 类型的数据项；
+    2. flatmap 的 Function.apply 方法则返回一个作为中介的被观察者 Observable<R>，
+        由中介被观察者 Observable<R> 生成 R 类型的数据项，再发射给目标观察者。
 ```
 
 ```java:no-line-numbers
@@ -572,6 +576,25 @@ Observable.just("A", "B", "C")
 ```
 
 #### 7.2.3 `concatMap()`
+
+```java:no-line-numbers
+<R> Observable<R> concatMap(Function<? super T, ? extends ObservableSource<? extends R>> mapper)
+```
+
+```:no-line-numbers
+concatMap() 和 flatMap() 基本上是一样的，只不过 concatMap() 转发出来的事件是有序的，而 flatMap() 是无序的。
+```
+
+```java:no-line-numbers
+Observable.range(0, 5)
+    .concatMap(i -> {
+        long delay = Math.round(Math.random() * 2);
+        return Observable.timer(delay, TimeUnit.SECONDS).map(n -> i); // 尽管延迟时间随机，但总能保证依次打印 01234
+    })
+    .blockingSubscribe(System.out::print);
+
+// prints 01234
+```
 
 #### 7.2.4 `buffer()`
 
