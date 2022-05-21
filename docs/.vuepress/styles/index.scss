@@ -56,39 +56,39 @@ node_modules\vuepress-theme-hope\lib\client\module\sidebar\styles\
 
 // 左侧目录列表的字体大小的基准
 .sidebar .sidebar-links { 
-    font-size: 16px;
+    font-size: 16px!important;
 }
 
 // 一级目录 （相对于原始的字体大小）
 .sidebar .sidebar-links .sidebar-link {
-    font-size: 1em;
+    font-size: 1em!important;
 }
 .sidebar .sidebar-links .sidebar-group .sidebar-heading {
-    font-size: 1em;
+    font-size: 1em!important;
 }
 
 // 二级目录 （相对于原始的字体大小）
 .sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-link {
-    font-size: 0.95em;
+    font-size: 0.95em!important;
 }
 .sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-heading {
-    font-size: 0.95em;
+    font-size: 0.95em!important;
 }
 
 // 三级目录 （相对于原始的字体大小）
 .sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-link {
-    font-size: 0.90em;
+    font-size: 0.90em!important;
 }
 .sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-heading {
-    font-size: 0.90em;
+    font-size: 0.90em!important;
 }
 
 // 四级目录 （相对于原始的字体大小）
 .sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-link {
-    font-size: 0.85em;
+    font-size: 0.85em!important;
 }
 .sidebar .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-links .sidebar-group .sidebar-heading {
-    font-size: 0.85em;
+    font-size: 0.85em!important;
 }
 
 
