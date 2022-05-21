@@ -3,7 +3,31 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
   // 应该把更精确的路径放置在前边
 
-  "/android/": [//Android相关的Blog
+  "/kotlin/": [ // Kotlin 相关的 Blog
+    "1-env-setup",
+    "2-built-in-type",
+    "3-class",
+    "4-expression",
+    "5-advanced-function",
+    "6-advanced-class",
+    "7-genericity",
+    "8-reflection",
+    "9-annotation",
+    "10-coroutine",
+  ],
+
+  "/android/": [// Android 相关的 Blog
+    {
+      text: "动画",
+      collapsable: true,
+      prefix: "anim/",
+      children: [
+        "view-anim",
+        "prop-anim",
+        "pathmeasure",
+        "svg",
+      ],
+    },
     {
       text: "UI",
       collapsable: true,
@@ -13,9 +37,25 @@ export const sidebarConfig = defineSidebarConfig({
         "ConstraintLayout",
         "CoordinatorLayout",
         "NestedScrolling",
-        "animation",
         "view-event",
         "view-tools",
+      ],
+    },
+    {
+      text: "Jetpack",
+      collapsable: true,
+      prefix: "jetpack/",
+      children: [
+        "jetpack-overview",
+        "lifecycle",
+        "navigation",
+        "viewmodel",
+        "livedata",
+        "room",
+        "workmanager",
+        "databinding",
+        "paging",
+        "mvvm",
       ],
     },
   ],
