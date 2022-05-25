@@ -586,6 +586,7 @@ concatMap() 和 flatMap() 基本上是一样的，只不过 concatMap() 转发�
 ```
 
 ```java:no-line-numbers
+// example
 Observable.range(0, 5)
     .concatMap(i -> {
         long delay = Math.round(Math.random() * 2);
@@ -598,11 +599,93 @@ Observable.range(0, 5)
 
 #### 7.2.4 `buffer()`
 
+```java:no-line-numbers
+Observable<List<T>> buffer(int count)
+```
+
+```no-line-numbers
+将源被观察者 Observable<T> 发射的数据项 T 缓冲到 List<T> 集合中，当 List<T> 集合中缓冲了 count 个数据项 T 时，
+再将 List<T> 集合作为数据项发射给目标观察者 Observer<List<T>>。
+```
+
+```java:no-line-numbers
+// example
+Observable.range(0, 10)
+    .buffer(4)
+    .subscribe((List<Integer> buffer) -> System.out.println(buffer));
+
+// prints:
+// [0, 1, 2, 3]
+// [4, 5, 6, 7]
+// [8, 9]
+```
+
 #### 7.2.5 `groupBy()`
+
+```java:no-line-numbers
+<K> Observable<GroupedObservable<K, T>> groupBy(
+            Function<? super T, ? extends K> keySelector)
+
+<K, V> Observable<GroupedObservable<K, V>> groupBy(
+            Function<? super T, ? extends K> keySelector,
+            Function<? super T, ? extends V> valueSelector)
+```
+
+```no-line-numbers
+将发送的数据进行分组，每个分组都会返回一个被观察者，具体就是：
+
+将源被观察者 Observable<T> 发射的数据项 T 转换成数据项 GroupedObservable<K, V>，即将一个被观察者作为数据项发射出去。
+这个作为数据项的被观察者 GroupedObservable<K, V> 用来对源数据项 T 进行分组，其中：
+1. 通过 "K keySetlector.apply(T)" 方法，确定根据数据项 T 进行分组时所采用的组键为 K 类型的返回值
+2. 通过 "V valueSelector.apply(T)" 方法，确定根据数据项 T 进行分组时所保存的组元素为 V 类型的返回值
+```
+
+```java:no-line-numbers
+// example
+Observable<String> animals = Observable.just(
+    "Tiger", "Elephant", "Cat", "Chameleon", "Frog", "Fish", "Turtle", "Flamingo");
+
+// 以发射的字符串数据的首字母为组键，字符串的大写为组元素
+// 即 groupBy 将数据项 String 转换成了数据项 GroupedObservable<Char, String>
+animals.groupBy(animal -> animal.charAt(0), String::toUpperCase) 
+    // concatMapSingle(Observable::toList) 将数据项 GroupedObservable<Char, String> 转换成了数据项 Single<List<String>>
+    .concatMapSingle(Observable::toList) 
+    .subscribe(System.out::println); // 分别打印每组中的组元素集合 List<String>
+
+// prints:
+// [TIGER, TURTLE]
+// [ELEPHANT]
+// [CAT, CHAMELEON]
+// [FROG, FISH, FLAMINGO]
+```
 
 #### 7.2.6 `scan()`
 
+```java:no-line-numbers
+
+```
+
+```:no-line-numbers
+
+```
+
+```java:no-line-numbers
+
+```
+
 #### 7.2.7 `window()`
+
+```java:no-line-numbers
+
+```
+
+```:no-line-numbers
+
+```
+
+```java:no-line-numbers
+
+```
 
 ### 7.3 组合操作符
 
