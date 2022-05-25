@@ -5,3 +5,5 @@ category:
 tag:
   - kotlin
 ---
+
+参考 `https://kotlinlang.org/docs/coroutines-guide.html`
