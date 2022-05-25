@@ -3,6 +3,11 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
   // 应该把更精确的路径放置在前边
 
+  "/db/": [ // 数据库 相关的 Blog
+    "sql",
+    "mysql",
+  ],
+
   "/kotlin/": [ // Kotlin 相关的 Blog
     "1-env-setup",
     "2-built-in-type",
@@ -17,6 +22,18 @@ export const sidebarConfig = defineSidebarConfig({
   ],
 
   "/android/": [// Android 相关的 Blog
+    {
+      text: "基础",
+      collapsable: true,
+      prefix: "basic/",
+      children: [
+        "activity",
+        "service",
+        "broadcast",
+        "contentprovider",
+        "serialize",
+      ],
+    },
     {
       text: "动画",
       collapsable: true,
@@ -56,6 +73,25 @@ export const sidebarConfig = defineSidebarConfig({
         "databinding",
         "paging",
         "mvvm",
+      ],
+    },
+    {
+      text: "NDK",
+      collapsable: true,
+      prefix: "ndk/",
+      children: [
+        "jni",
+        "cmake",
+        "androidmk",
+      ],
+    },
+    {
+      text: "IPC",
+      collapsable: true,
+      prefix: "ipc/",
+      children: [
+        "binder",
+        "aidl",
       ],
     },
   ],
