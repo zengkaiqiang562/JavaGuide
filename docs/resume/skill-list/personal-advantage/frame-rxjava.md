@@ -120,7 +120,7 @@ reactivex.io 给的定义是：
 
 ### 3.5 `RxJava` 的依赖库
 
-```:no-line-numbers
+```groovy:no-line-numbers
 implementation 'io.reactivex.rxjava2:rxjava:2.1.14'
 implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
 ```
@@ -151,7 +151,7 @@ implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
 
     ![](./images/frame-rxjava/01-2.png)![](./images/frame-rxjava/01-1.png)
 
-    ```:no-line-numbers
+    ```java:no-line-numbers
     对应的发射器为 ObservableEmitter，对应的观察者为 Observer
 
     数据和事件的发射及处理遵循如下规则：
@@ -173,7 +173,7 @@ implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
 
     ![](./images/frame-rxjava/02-2.png)![](./images/frame-rxjava/02-1.png)
 
-    ```:no-line-numbers
+    ```java:no-line-numbers
     对应的发射器为 MaybeEmitter，对应的观察者为 MaybeObserver
 
     数据和事件的发射及处理遵循如下规则：
@@ -196,7 +196,7 @@ implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
 
     ![](./images/frame-rxjava/03-2.png)![](./images/frame-rxjava/03-1.png)
 
-    ```:no-line-numbers
+    ```java:no-line-numbers
      对应的发射器为 SingleEmitter，对应的观察者为 SingleObserver
 
     数据和事件的发射及处理遵循如下规则：
@@ -218,7 +218,7 @@ implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
 
     ![](./images/frame-rxjava/04-2.png)![](./images/frame-rxjava/04-1.png)
 
-    ```:no-line-numbers
+    ```java:no-line-numbers
     对应的发射器为 CompletableEmitter，对应的观察者为 CompletableObserver
 
     数据和事件的发射及处理遵循如下规则：
@@ -238,7 +238,7 @@ implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
 
     ![](./images/frame-rxjava/05-2.png)![](./images/frame-rxjava/05-1.png)
 
-    ```:no-line-numbers
+    ```java:no-line-numbers
     对应的发射器为 FlowableEmitter，对应的观察者为 FlowableSubscriber
 
     数据和事件的发射及处理遵循如下规则：
@@ -272,7 +272,7 @@ implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
 
 背压的定义：
 
-```:no-line-numbers
+```java:no-line-numbers
 当上下游在不同的线程中，通过 Observable 发射，处理，响应数据流时，
 如果上游发射数据的速度快于下游接收处理数据的速度，这样对于那些没来得及处理的数据就会造成积压，
 这些数据既不会丢失，也不会被垃圾回收机制回收，而是存放在一个异步缓存池中，
@@ -310,7 +310,7 @@ public static <T> Observable<T> create(ObservableOnSubscribe<T> source) {
 }
 ```
 
-```:no-line-numbers
+```java:no-line-numbers
 创建一个被观察者对象
 
 参数 ObservableOnSubscribe 接口提供 void subscribe(ObservableEmitter<T> emitter) 方法，用于将被观察者和发射器绑定起来。
@@ -329,7 +329,7 @@ ObservableCreate 是抽象类 Observable 的具体子类，重写了 void subscr
 
 ![](./images/frame-rxjava/06.png)
 
-```:no-line-numbers
+```java:no-line-numbers
 创建一个被观察者对象，同时可传入待发射的数据项 T。
 
 如上图所示，重载了 10 个 just 操作符方法，即：待发射的数据项 T 不能超过 10 个。
@@ -344,7 +344,7 @@ ObservableCreate 是抽象类 Observable 的具体子类，重写了 void subscr
     static <T> Observable<T> fromArray(T... items)
     ```
 
-    ```:no-line-numbers
+    ```java:no-line-numbers
     创建一个被观察者对象，同时可传入待发射的数据项。
 
     没有限制待发射的数据项。
@@ -359,7 +359,7 @@ ObservableCreate 是抽象类 Observable 的具体子类，重写了 void subscr
     static <T> Observable<T> fromCallable(Callable<? extends T> supplier)
     ```
 
-    ```:no-line-numbers
+    ```java:no-line-numbers
     将参数 Callable 的 call() 方法的返回值作为数据项发射给观察者
     ```
 
@@ -388,7 +388,7 @@ ObservableCreate 是抽象类 Observable 的具体子类，重写了 void subscr
     static <T> Observable<T> fromIterable(Iterable<? extends T> source)
     ```
 
-    ```:no-line-numbers
+    ```java:no-line-numbers
     将参数 source 集合中的元素 T 作为数据项发射给观察者。
     ```
 
@@ -399,7 +399,7 @@ ObservableCreate 是抽象类 Observable 的具体子类，重写了 void subscr
 static <T> Observable<T> defer(Callable<? extends ObservableSource<? extends T>> supplier)
 ```
 
-```:no-line-numbers
+```java:no-line-numbers
 静态方法 defer 返回的被观察者并不是用来发射数据项和事件序列的。
 真正发射数据项和事件序列的被观察者是通过参数 Callable 的泛型指定的。
 defer 方法的作用就是：
@@ -415,7 +415,7 @@ static Observable<Long> timer(long delay, TimeUnit unit)
 static Observable<Long> timer(long delay, TimeUnit unit, Scheduler scheduler)
 ```
 
-```:no-line-numbers
+```java:no-line-numbers
 在指定时间 delay 后，发射一个 Long 类型的固定数据项 0L 给观察者。
 ```
 
@@ -432,7 +432,7 @@ static Observable<Long> interval(long period, TimeUnit unit)
 static Observable<Long> interval(long period, TimeUnit unit, Scheduler scheduler) 
 ```
 
-```:no-line-numbers
+```java:no-line-numbers
 延迟 initialDelay 时间后，开始发射数据项给观察者。之后，每间隔 period 时间都会发射一个数据项给观察者。
 开始时，先发射一个 Long 类型的数据项 0L，之后每次发射的数据项都 +1
 ```
@@ -445,7 +445,7 @@ static Observable<Long> intervalRange(long start, long count, long initialDelay,
 static Observable<Long> intervalRange(long start, long count, long initialDelay, long period, TimeUnit unit, Scheduler scheduler)
 ```
 
-```:no-line-numbers
+```java:no-line-numbers
 延迟 initialDelay 时间后，开始发射数据项给观察者。之后，每间隔 period 时间都会发射一个数据项给观察者。
 开始时，先发射一个 Long 类型的数据项 start，之后每次发射的数据项都 +1，一共发射 count 个数据项。
 ```
@@ -469,7 +469,7 @@ static Observable<Integer> range(final int start, final int count)
 static Observable<Long> rangeLong(long start, long count)
 ```
 
-```:no-line-numbers
+```java:no-line-numbers
 作用与 range() 一样，只是数据项的类型为 Long。
 ```
 
@@ -494,7 +494,7 @@ static Observable<Long> rangeLong(long start, long count)
     static <T> Observable<T> error(final Throwable exception)
     ```
 
-    ```:no-line-numbers
+    ```java:no-line-numbers
     不发射数据项，只发射一个 onError 事件给观察者
     ```
 
@@ -505,7 +505,7 @@ static Observable<Long> rangeLong(long start, long count)
     static <T> Observable<T> never() 
     ```
 
-    ```:no-line-numbers
+    ```java:no-line-numbers
     既不发射数据项，也不发射任何事件。
     只会触发观察者的 onSubscribe(Disposable d) 方法。
     ```
@@ -518,7 +518,7 @@ static Observable<Long> rangeLong(long start, long count)
 <R> Observable<R> map(Function<? super T, ? extends R> mapper)
 ```
 
-```:no-line-numbers
+```java:no-line-numbers
 map 是一个非静态方法，返回一个 ObservableMap<T, R> 类型的被观察者。
 接口 Function<T, R> 提供一个 "R apply(T)" 方法，用于将类型 T 转换为类型 R。
 当使用了操作符 map 的被观察者 Observable<T> 发射数据项 T 时，
@@ -546,7 +546,7 @@ Observable.just(1, 2, 3)
 <R> Observable<R> flatMap(Function<? super T, ? extends ObservableSource<? extends R>> mapper)
 ```
 
-```:no-line-numbers
+```java:no-line-numbers
 flatMap 和 map 的作用类似，都是将 T 类型的数据项转换成 R 类型的数据项，再发射给观察者。
 区别是：
     1. map 直接通过 Function.apply 方法返回转换后的 R 类型的数据项；
@@ -581,7 +581,7 @@ Observable.just("A", "B", "C")
 <R> Observable<R> concatMap(Function<? super T, ? extends ObservableSource<? extends R>> mapper)
 ```
 
-```:no-line-numbers
+```java:no-line-numbers
 concatMap() 和 flatMap() 基本上是一样的，只不过 concatMap() 转发出来的事件是有序的，而 flatMap() 是无序的。
 ```
 
@@ -603,7 +603,7 @@ Observable.range(0, 5)
 Observable<List<T>> buffer(int count)
 ```
 
-```no-line-numbers
+```java:no-line-numbers
 将源被观察者 Observable<T> 发射的数据项 T 缓冲到 List<T> 集合中，当 List<T> 集合中缓冲了 count 个数据项 T 时，
 再将 List<T> 集合作为数据项发射给目标观察者 Observer<List<T>>。
 ```
@@ -631,13 +631,14 @@ Observable.range(0, 10)
             Function<? super T, ? extends V> valueSelector)
 ```
 
-```no-line-numbers
+```java:no-line-numbers
 将发送的数据进行分组，每个分组都会返回一个被观察者，具体就是：
 
 将源被观察者 Observable<T> 发射的数据项 T 转换成数据项 GroupedObservable<K, V>，即将一个被观察者作为数据项发射出去。
 这个作为数据项的被观察者 GroupedObservable<K, V> 用来对源数据项 T 进行分组，其中：
 1. 通过 "K keySetlector.apply(T)" 方法，确定根据数据项 T 进行分组时所采用的组键为 K 类型的返回值
 2. 通过 "V valueSelector.apply(T)" 方法，确定根据数据项 T 进行分组时所保存的组元素为 V 类型的返回值
+同一组中的所有组元素使用同一个 GroupedObservable<K, V> 发射
 ```
 
 ```java:no-line-numbers
@@ -662,24 +663,75 @@ animals.groupBy(animal -> animal.charAt(0), String::toUpperCase)
 #### 7.2.6 `scan()`
 
 ```java:no-line-numbers
-
-```
-
-```:no-line-numbers
-
+<R> Observable<R> scan(final R initialValue, BiFunction<R, ? super T, R> accumulator)
 ```
 
 ```java:no-line-numbers
+BiFunction<T1, T2, R> 函数接口的作用就是提供 "R apply(T1 t1, T2 t2)" 方法，将 T1 和 T2 转换成 R
 
+scan 操作符的作用就是通过 BiFunction<R, T, R> 提供的 apply 方法，
+将源被观察者 Observable<T> 发射的 T 类型的数据项和 R 类型的初始值 initialValue，
+转换成一个 R 类型的返回值发射给目标观察者 Observer<R>。
+具体的流程是：
+1. 先把 R 类型的初始值 initialValue 发射给 Observer<R>
+2. 接着把 R 类型的初始值 initialValue 和 T 类型的数据项经过 apply 方法转换后的 R 类型的返回值发射给 Observer<R>
+3. 之后每次发射的 T 类型的数据项都会和上一次发射的 R 类型的返回值再经过 apply 方法进行转换，
+   然后再将转换后的 R 类型的返回值发射给 Observer<R>
+
+简单地说，scan 操作符的作用就是将源数据以一定的逻辑聚合起来，将聚合得到新数据发射出去
+```
+
+```java:no-line-numbers
+Observable.just(5, 3, 8, 1, 7)
+    .scan(0, (partialSum, x) -> partialSum + x)
+    .subscribe(System.out::println);
+
+// prints:
+// 0
+// 5
+// 8
+// 16
+// 17
+// 24
 ```
 
 #### 7.2.7 `window()`
 
 ```java:no-line-numbers
-
+Observable<Observable<T>> window(long count, long skip)
 ```
 
-```:no-line-numbers
+```java:no-line-numbers
+将源被观察者 Observable<T> 发射的数据项 T 转换成数据项 Observable<T>，即将一个被观察者作为数据项发射出去。
+这个作为数据项的被观察者 Observable<T> 用来对源数据项 T 进行分组，其中：
+1. 每连续发射的 count 个数据项 T 分为同一组，
+2. 从第二次分组开始，每次分组时都相对于上一次分组时的起始位置跳过 skip 个数据项 T
+同一组中的所有数据项 T 使用同一个 Observable<T> 发射。
+（用于发射一组数据项 T 的 Observable<T> 就称为 window）
+```
+
+```java:no-line-numbers
+Observable.range(1, 10)
+    // Create windows containing at most 2 items, and skip 3 items before starting a new window.
+    .window(2, 3)
+    .flatMapSingle(window -> {
+        return window.map(String::valueOf)
+                .reduce(new StringJoiner(", ", "[", "]"), StringJoiner::add);
+    })
+    .subscribe(System.out::println);
+
+// prints:
+// [1, 2]
+// [4, 5]
+// [7, 8]
+// [10]
+```
+
+### 7.3 组合操作符
+
+#### 7.3.1 `concat()`
+
+```java:no-line-numbers
 
 ```
 
@@ -687,9 +739,9 @@ animals.groupBy(animal -> animal.charAt(0), String::toUpperCase)
 
 ```
 
-### 7.3 组合操作符
+```java:no-line-numbers
 
-#### 7.3.1 `concat()`
+```
 
 #### 7.3.2 `concatArray()`
 
