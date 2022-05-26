@@ -3,6 +3,16 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
   // 应该把更精确的路径放置在前边
 
+  "/algorithm/": [ // 算法题 相关的 Blog
+    "algorithms",
+  ],
+
+  "/data-structure/": [ // 数据结构 相关的 Blog
+    "dynamic-array",
+    "linked-list",
+    "binary-tree",
+  ],
+
   "/db/": [ // 数据库 相关的 Blog
     "sql",
     "mysql",
