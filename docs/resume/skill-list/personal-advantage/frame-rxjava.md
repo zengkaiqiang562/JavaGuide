@@ -289,6 +289,8 @@ implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
 
 ## 7. 操作符
 
+> 参考 https://github.com/ReactiveX/RxJava/wiki
+
 对于 `Rx` 来说，`Observable` 和 `Observer` 仅仅是个开始，它们本身不过是标准观察者模式的一些轻量级扩展，目的是为了更好的处理事件序列。
 
 `Rx` 真正强大的地方在于它的操作符，操作符让你可以变换、组合、操纵和处理 `Observable` 发射的数据。
@@ -729,37 +731,229 @@ Observable.range(1, 10)
 
 ### 7.3 组合操作符
 
-#### 7.3.1 `concat()`
+#### 7.3.1 `concatWith()`/`concat()`/`concatArray()`
 
 ```java:no-line-numbers
+Observable<T> concatWith(ObservableSource<? extends T> other) // concat(this, other)
 
+static <T> Observable<T> concat(
+            ObservableSource<? extends T> source1, 
+            ObservableSource<? extends T> source2) // concatArray(source1, source2)
+
+static <T> Observable<T> concat(
+            ObservableSource<? extends T> source1, 
+            ObservableSource<? extends T> source2,
+            ObservableSource<? extends T> source3) // concatArray(source1, source2, source3)
+
+static <T> Observable<T> concat(
+            ObservableSource<? extends T> source1, 
+            ObservableSource<? extends T> source2,
+            ObservableSource<? extends T> source3,
+            ObservableSource<? extends T> source4) // concatArray(source1, source2, source3, source4)
+
+static <T> Observable<T> concatArray(ObservableSource<? extends T>... sources) 
 ```
 
 ```java:no-line-numbers
+concatWith(other) 通过调用静态方法 concat(s1, s2) 实现
+concat(s1, s2)/concat(s1, s2, s3)/concat(s1, s2, s3, s4) 通过调用静态方法 concatArray(sources) 实现
 
+concatArray 可以将多个被观察者 Observable<T> 组合在一起，然后按照被观察者在参数列表中的组合顺序发射数据项。
+即前一个被观察者中的数据项没全部发射完成之前，不会发射后一个被观察者中的数据项。
+注意：concat() 最多只可以发送 4 个事件。
 ```
 
 ```java:no-line-numbers
+// example
+Observable.just(1, 2, 3)
+    .concatWith(Observable.just(4, 5, 6))
+    .subscribe(item -> System.out.println(item));
 
+// prints 1, 2, 3, 4, 5, 6
 ```
 
-#### 7.3.2 `concatArray()`
+#### 7.3.2 `mergeWith()`/`merge()`/`mergeArray()`
 
-#### 7.3.3 `merge()`
+```java:no-line-numbers
+Observable<T> mergeWith(ObservableSource<? extends T> other) // merge(this, other)
 
-#### 7.3.4 `concatArrayDelayError()/mergeArrayDelayError()`
+static <T> Observable<T> merge(
+            ObservableSource<? extends T> source1, 
+            ObservableSource<? extends T> source2)
 
-#### 7.3.5 `zip()`
+static <T> Observable<T> merge(
+            ObservableSource<? extends T> source1, 
+            ObservableSource<? extends T> source2, 
+            ObservableSource<? extends T> source3)   
 
-#### 7.3.6 `combineLatest()/combineLatestDelayError()`
+static <T> Observable<T> merge(
+            ObservableSource<? extends T> source1, 
+            ObservableSource<? extends T> source2,
+            ObservableSource<? extends T> source3, 
+            ObservableSource<? extends T> source4)
+            
+static <T> Observable<T> mergeArray(ObservableSource<? extends T>... sources)
+```
 
-#### 7.3.7 `reduce()`
+```java:no-line-numbers
+merge 和 concat 的作用基本一样，都是将多个被观察者进行合并。
+区别是：merge 并行发射数据项，concat 串行发射数据项。
+即 merge 不保证参数列表前面的被观察者的数据项全部发射完后，再发射后面的被观察者中的数据项。
+```
 
-#### 7.3.8 `collect()`
+```java:no-line-numbers
+// example
+Observable.just(1, 2, 3)
+    .mergeWith(Observable.just(4, 5, 6))
+    .subscribe(item -> System.out.println(item));
+```
 
-#### 7.3.9 `startWith()/startWithArray()`
+#### 7.3.3 `concatArrayDelayError()`/`mergeArrayDelayError()`
 
-#### 7.3.10 `count()`
+```java:no-line-numbers
+static <T> Observable<T> concatArrayDelayError(ObservableSource<? extends T>... sources)
+
+static <T> Observable<T> mergeArrayDelayError(ObservableSource<? extends T>... sources)
+```
+
+```java:no-line-numbers
+对于 concatArray（串行）或 mergeArray（并行），
+在合并的多个被观察者中，如果其中有一个被观察者发射了一个 onError 事件，那么就会停止发射数据项，
+如果想让 onError 事件延迟到所有被观察者都发射完数据项后再执行，
+就可以使用 concatArrayDelayError（串行） 或 mergeArrayDelayError（并行）
+```
+
+```java:no-line-numbers
+// example
+Observable<String> observable1 = Observable.error(new IllegalArgumentException(""));
+Observable<String> observable2 = Observable.just(4, 5, 6);
+Observable.mergeDelayError(observable1, observable2)
+        .subscribe(item -> System.out.println(item));
+
+// emits 4, 5, 6 and then the IllegalArgumentException
+```
+
+#### 7.3.4 `zip()`
+
+```java:no-line-numbers
+<U, R> Observable<R> zipWith(
+            ObservableSource<? extends U> other,
+            BiFunction<? super T, ? super U, ? extends R> zipper) // zip(this, other, zipper)
+
+static <T1, T2, R> Observable<R> zip(
+            ObservableSource<? extends T1> source1, 
+            ObservableSource<? extends T2> source2,
+            BiFunction<? super T1, ? super T2, ? extends R> zipper) 
+
+static <T1, T2, T3, R> Observable<R> zip(
+            ObservableSource<? extends T1> source1, 
+            ObservableSource<? extends T2> source2, 
+            ObservableSource<? extends T3> source3,
+            Function3<? super T1, ? super T2, ? super T3, ? extends R> zipper)
+
+static <T1, T2, T3, T4, T5, T6, T7, T8, T9, R> Observable<R> zip(
+            ObservableSource<? extends T1> source1, 
+            ObservableSource<? extends T2> source2, 
+            ..., 
+            ObservableSource<? extends T9> source9,
+            Function9<? super T1, ? super T2, ..., ? super T9, ? extends R> zipper)
+```
+
+```java:no-line-numbers
+将多个被观察者各自发射的数据项通过 Function<N> 函数接口提供的 apply 方法转换成一个新的数据项发射出去。
+如果每个被观察者各自发射的数据项数量不同，则转换的新数据项数量以最少数量为准。即每次转换时，各个被观察者都需要提供有效的数据项。
+
+根据源码实现进行理解：
+1. 准备一个数组（数组大小 = 被观察者的个数）
+2. 再为每个被观察者准备一个队列容器
+3. 每个被观察者发射的数据项都先存入到队列中，然后判断：
+    如果数组中已经放了一个该被观察者发射的数据项，那么先不做处理；
+    如果还没放，那么从队列中取出一个数据项放入到数组中。
+4. 直到每个被观察者都放了一个数据项到数组中，再将数组中的所有数据项作为 apply 方法的参数，转换出一个新的数据项。
+5. 将转换后的新数据项发射给观察者 Observer<R> 。
+6. 清空数组。
+如上，按照 3、4、5、6 的步骤处理数据项。
+（如果每个被观察者各自发射的数据项数量不同，那么当数量最少的那个被观察者把数据项都发射完后，容器就无法填满了。
+此时，就不会转换出新的数据项，观察者 Observer<R> 也就不会再接收到数据了。）
+```
+
+```java:no-line-numbers
+// example
+Observable<String> firstNames = Observable.just("James", "Jean-Luc", "Benjamin");
+Observable<String> lastNames = Observable.just("Kirk", "Picard", "Sisko");
+firstNames.zipWith(lastNames, (first, last) -> first + " " + last)
+    .subscribe(item -> System.out.println(item));
+
+// prints James Kirk, Jean-Luc Picard, Benjamin Sisko
+```
+
+#### 7.3.5 `combineLatest()`
+
+```java:no-line-numbers
+static <T1, T2, R> Observable<R> combineLatest(
+            ObservableSource<? extends T1> source1, 
+            ObservableSource<? extends T2> source2,
+            BiFunction<? super T1, ? super T2, ? extends R> combiner)
+
+static <T1, T2, T3, R> Observable<R> combineLatest(
+            ObservableSource<? extends T1> source1, 
+            ObservableSource<? extends T2> source2,
+            ObservableSource<? extends T3> source3,
+            Function3<? super T1, ? super T2, ? super T3, ? extends R> combiner) 
+
+static <T1, T2, T3, T4, T5, T6, T7, T8, T9, R> Observable<R> combineLatest(
+            ObservableSource<? extends T1> source1, 
+            ObservableSource<? extends T2> source2,
+            ...,
+            ObservableSource<? extends T9> source9,
+            Function9<? super T1, ? super T2, ..., ? super T9, ? extends R> combiner)
+```
+
+```java:no-line-numbers
+combineLatest() 的作用与 zip() 类似。
+都是将多个被观察者各自发射的数据项通过 Function<N> 函数接口提供的 apply 方法转换成一个新的数据项发射出去。
+但是 combineLatest() 中参与转换的各个数据项与发射的时间线有关：
+    当 combineLatest() 中所有的被观察者都发射了事件之后，
+    只要其中有一个被观察者再发射数据项，这个数据项就会和其它的被观察者最后发射的数据项一起进行转换。
+
+根据源码实现进行理解：
+1. 准备一个数组（数组大小 = 被观察者的个数）
+2. 每个被观察者发射的数据项直接放入到数组中对应的位置，如果已放入了之前发射的数据项，覆盖掉即可。
+3. 直到每个被观察者都放了一个数据项到数组中，再将数组中的所有数据项作为 apply 方法的参数，转换出一个新的数据项。
+4. 将转换后的新数据项发射给观察者 Observer<R> 。
+5. 不清空数组，每个被观察者新发射的数据项都覆盖掉数组中之前的数据项。即数组中保存有每个被观察者最后发射的数据项。
+从第 5 点开始，只要有被观察者发射了数据项，更新了数组，都会将数组中的所有数据项作为 apply 方法的参数，
+转换出一个新的数据项，然后发射给观察者 Observer<R> 。
+```
+
+```java:no-line-numbers
+// example
+Observable<Long> newsRefreshes = Observable.interval(100, TimeUnit.MILLISECONDS);
+Observable<Long> weatherRefreshes = Observable.interval(50, TimeUnit.MILLISECONDS);
+Observable.combineLatest(newsRefreshes, weatherRefreshes,
+    (newsRefreshTimes, weatherRefreshTimes) ->
+        "Refreshed news " + newsRefreshTimes + " times and weather " + weatherRefreshTimes)
+    .subscribe(item -> System.out.println(item));
+
+// prints:          // 第 50 s 时，weatherRefreshes 发射 0，但 newsRefreshes 还没发射过数据，无法进行转换
+// Refreshed news 0 times and weather 0  // 第 100 s 时，newsRefreshes 发射 0
+// Refreshed news 0 times and weather 1  // 第 100 s 时，weatherRefreshes 发射 1
+// Refreshed news 0 times and weather 2  // 第 150 s 时，weatherRefreshes 发射 2
+// Refreshed news 1 times and weather 2  // 第 200 s 时，newsRefreshes 发射 1
+// Refreshed news 1 times and weather 3  // 第 200 s 时，weatherRefreshes 发射 3
+// Refreshed news 1 times and weather 4  // 第 250 s 时，weatherRefreshes 发射 4
+// Refreshed news 2 times and weather 4  // 第 300 s 时，newsRefreshes 发射 2
+// Refreshed news 2 times and weather 5  // 第 300 s 时，weatherRefreshes 发射 5
+// ...
+```
+
+#### 7.3.6 `reduce()`
+
+#### 7.3.7 `collect()`
+
+#### 7.3.8 `startWith()`/`startWithArray()`
+
+#### 7.3.9 `count()`
 
 ### 7.4 功能操作符
 
@@ -772,7 +966,7 @@ Observable.range(1, 10)
 #### 7.4.7 `doOnSubscribe()`
 #### 7.4.8 `doOnDispose()`
 #### 7.4.9 `doOnLifecycle()`
-#### 7.4.10 `doOnTerminate()/doAfterTerminate()`
+#### 7.4.10 `doOnTerminate()`/`doAfterTerminate()`
 #### 7.4.11 `doFinally()`
 #### 7.4.12 `onErrorReturn()`
 #### 7.4.13 `onErrorResumeNext()`
@@ -794,8 +988,8 @@ Observable.range(1, 10)
 #### 7.5.5 `distinctUntilChanged()`
 #### 7.5.6 `take()`
 #### 7.5.7 `debounce()`
-#### 7.5.8 `firstElement()/lastElement()`
-#### 7.5.9 `elementAt()/elementAtOrError()`
+#### 7.5.8 `firstElement()`/`lastElement()`
+#### 7.5.9 `elementAt()`/`elementAtOrError()`
 
 ### 7.6 条件操作符
 
