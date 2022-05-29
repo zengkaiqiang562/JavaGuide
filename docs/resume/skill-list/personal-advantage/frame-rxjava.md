@@ -949,34 +949,459 @@ Observable.combineLatest(newsRefreshes, weatherRefreshes,
 
 #### 7.3.6 `reduce()`
 
+```java:no-line-numbers
+Maybe<T> reduce(BiFunction<T, T, T> reducer)
+
+<R> Single<R> reduce(R seed, BiFunction<R, ? super T, R> reducer)
+```
+
+```java:no-line-numbers
+与 scan() 的作用类似，都是将发射的数据项以一定逻辑聚合起来。
+区别在于：
+1. scan() 每发射一次数据项，聚合一次，再将每次聚合后的新数据项发射给观察者；
+2. reduce() 每发射一次数据项，聚合一次，待所有数据项都聚合完后，将最终聚合后的新数据项发射给观察者。
+
+在聚合时传入的参数是当前发射的数据项和上一次聚合的结果值。首次聚合时需要注意：
+1. 对于 reduce(reducer)，发射第 2 个数据项时，才开始和之前发射的第 1 个数据项进行首次聚合。
+2. 对于 reduce(seed, reducer)，发射第 1 个数据项时，和种子数据 seed 进行首次聚合。
+```
+
+```java:no-line-numbers
+// example
+Observable.range(1, 5)
+    .reduce((product, x) -> product * x)
+    .subscribe(System.out::println);
+
+// prints 120  // 1*2*3*4*5 = 120
+```
+
 #### 7.3.7 `collect()`
+
+```java:no-line-numbers
+<U> Single<U> collect(
+            Callable<? extends U> initialValueSupplier, 
+            BiConsumer<? super U, ? super T> collector) 
+```
+
+```java:no-line-numbers
+将数据收集到数据结构当中，具体的就是：
+1. 通过 initialValueSupplier.call() 方法返回一个 U 类型的数据结构；
+2. 通过 collector.apply(U, T) 方法将数据项 T 保存到数据结构 U 中；
+3. 最后将数据结构 U 作为数据项发射给观察者 SingleObserver<U>
+```
+
+```java:no-line-numbers
+// example
+Observable.just("Kirk", "Spock", "Chekov", "Sulu")
+        .collect(() -> new StringJoiner(" \uD83D\uDD96 "), StringJoiner::add)
+        .map(StringJoiner::toString)
+        .subscribe(System.out::println);
+
+// prints Kirk 🖖 Spock 🖖 Chekov 🖖 Sulu
+```
 
 #### 7.3.8 `startWith()`/`startWithArray()`
 
+```java:no-line-numbers
+Observable<T> startWith(T item)
+
+Observable<T> startWithArray(T... items)
+```
+
+```java:no-line-numbers
+在发射数据项之前插入数据项：
+1. startWith() 插入一个数据项；
+2. startWithArray() 插入多个数据项。
+插入的数据项先发射出去。
+```
+
+```java:no-line-numbers
+// example
+Observable<String> names = Observable.just("Spock", "McCoy");
+names.startWith("Kirk").subscribe(item -> System.out.println(item));
+
+// prints Kirk, Spock, McCoy
+```
+
 #### 7.3.9 `count()`
+
+```java:no-line-numbers
+Single<Long> count()
+```
+
+```java:no-line-numbers
+对被观察者发射的数据项的个数进行统计，并将统计后的总个数发射给观察者 SingleObserver<Long>。
+```
+
+```java:no-line-numbers
+// example
+Observable.just(1, 2, 3).count().subscribe(System.out::println);
+
+// prints 3
+```
 
 ### 7.4 功能操作符
 
 #### 7.4.1 `delay()`
+
+```java:no-line-numbers
+Observable<T> delay(long delay, TimeUnit unit)
+```
+
+```java:no-line-numbers
+被观察者每次发射的数据项都会延迟 delay 时间后才被观察者接收到。
+```
+
 #### 7.4.2 `doOnEach()`
+
+```java:no-line-numbers
+Observable<T> doOnEach(final Consumer<? super Notification<T>> onNotification)
+
+Observable<T> doOnEach(final Observer<? super T> observer)
+```
+
+```java:no-line-numbers
+在观察者每次接收到数据项或事件之前，都会回调参数对象提供的某个方法。
+
+对于 doOnEach(Consumer)：
+1. 在观察者每次接收到数据项 T 之前，都会回调 Consumer.accept(Notification) 方法，参数 Notification 中封装了数据项 T
+2. 在观察者接收到 onError 事件之前，回调 Consumer.accept(Notification) 方法，参数 Notification 中封装了异常对象
+3. 在观察者接收到 onComplete 事件之前，回调 Consumer.accept(Notification) 方法
+
+对于 doOnEach(Observer)：
+1. 在观察者每次接收到数据项 T 之前，都会回调 Observer.onNext(T) 方法
+2. 在观察者接收到 onError 事件之前，回调 Observer.onError(Throwable) 方法
+3. 在观察者接收到 onComplete 事件之前，回调 Observer.onComplete() 方法
+```
+
 #### 7.4.3 `doOnNext()`
+
+```java:no-line-numbers
+Observable<T> doOnNext(Consumer<? super T> onNext)
+```
+
+```java:no-line-numbers
+在观察者每次接收到数据项 T 之前，都会回调 Consumer.accept(T) 方法
+```
+
 #### 7.4.4 `doAfterNext()`
+
+```java:no-line-numbers
+Observable<T> doAfterNext(Consumer<? super T> onAfterNext)
+```
+
+```java:no-line-numbers
+在观察者每次接收到数据项 T 之后，都会回调 Consumer.accept(T) 方法
+```
+
 #### 7.4.5 `doOnComplete()`
+
+```java:no-line-numbers
+ Observable<T> doOnComplete(Action onComplete)
+```
+
+```java:no-line-numbers
+在观察者接收到 onComplete 事件之前，回调 Action.run() 方法
+```
+
 #### 7.4.6 `doOnError()`
+
+```java:no-line-numbers
+Observable<T> doOnError(Consumer<? super Throwable> onError)
+```
+
+```java:no-line-numbers
+在观察者接收到 onError 事件之前，回调 Consumer.accept(Throwable) 方法
+```
+
 #### 7.4.7 `doOnSubscribe()`
+
+```java:no-line-numbers
+Observable<T> doOnSubscribe(Consumer<? super Disposable> onSubscribe) 
+```
+
+```java:no-line-numbers
+在观察者接收到 onSubscribe 事件之前，回调 Consumer.accept(Disposable) 方法
+```
+
 #### 7.4.8 `doOnDispose()`
+
+```java:no-line-numbers
+Observable<T> doOnDispose(Action onDispose)
+```
+
+```java:no-line-numbers
+被观察者会把一个 Disposable 对象通过回调方法 Observer.onSubscribe(Disposable) 传给观察者。
+在调用这个 Disposable 对象的 dispose() 方法之前，会回调 Action.run() 方法。
+```
+
 #### 7.4.9 `doOnLifecycle()`
+
+```java:no-line-numbers
+Observable<T> doOnLifecycle(
+            final Consumer<? super Disposable> onSubscribe, 
+            final Action onDispose)
+```
+
+```java:no-line-numbers
+doOnSubscribe(onSubscribe) 是通过调用 doOnLifecycle(onSubscribe, Functions.EMPTY_ACTION) 实现的；
+doOnDispose(onDispose) 是通过调用 doOnLifecycle(Functions.emptyConsumer(), onDispose) 实现的。
+
+也就是说，当需要同时用到操作符 doOnSubscribe 和 doOnDispose 的情况下，可以使用操作符 doOnLifecycle
+```
+
 #### 7.4.10 `doOnTerminate()`/`doAfterTerminate()`
+
+```java:no-line-numbers
+Observable<T> doOnTerminate(final Action onTerminate)
+
+Observable<T> doAfterTerminate(Action onFinally)
+```
+
+```java:no-line-numbers
+doOnTerminate(Action) 是在观察者接收到 onError 或 onComplete 事件之前，回调 Action.run() 方法
+doAfterTerminate(Action) 是在观察者接收到 onError 或 onComplete 事件之后，回调 Action.run() 方法
+```
+
 #### 7.4.11 `doFinally()`
+
+```java:no-line-numbers
+Observable<T> doFinally(Action onFinally)
+```
+
+```java:no-line-numbers
+在观察者接收到 onError 或 onComplete 事件之后，或者是在调用了 Disposable 对象的 dispose() 方法之后，回调 Action.run() 方法
+```
+
 #### 7.4.12 `onErrorReturn()`
+
+```java:no-line-numbers
+Observable<T> onErrorReturn(Function<? super Throwable, ? extends T> valueSupplier)
+```
+
+```java:no-line-numbers
+当被观察者发射了 onError 事件时，调用 valueSupplier 提供的 "T apply(Throwable) throws Exception" 方法：
+    1. 如果 apply 方法返回了一个非空的数据项 T，则把该数据项 T 发射给观察者，然后再发射 onComplete 事件。
+    2. 如果 apply 方法返回的数据项 T 为 null，则把 apply 方法接收的异常封装在 NullPointerException 异常中，
+       然后重新发射 onError 事件，将 NullPointerException 异常传给观察者。
+    3. 如果 apply 方法中抛出了一个异常，则把 apply 方法抛出的异常和 apply 方法接收的异常，
+       封装到 CompositeException 异常中，然后重新发射 onError 事件，将 CompositeException 异常传给观察者。
+```
+
+```java:no-line-numbers
+// example
+Single.just("2A")
+    .map(v -> Integer.parseInt(v, 10)) // 将字符串 "2A" 按十进制解析
+    .onErrorReturn(error -> {
+        if (error instanceof NumberFormatException) return 0; // "2A" 按十进制解析会报 NumberFormatException
+        else throw new IllegalArgumentException();
+    })
+    .subscribe( // subscribe(Consumer<? super T> onNext, Consumer<? super Throwable> onError) 
+        System.out::println,
+        error -> System.err.println("onError should not be printed!"));
+
+// prints 0
+```
+
 #### 7.4.13 `onErrorResumeNext()`
+
+```java:no-line-numbers
+Observable<T> onErrorResumeNext(final ObservableSource<? extends T> next) // onErrorResumeNext(Functions.justFunction(next))
+
+Observable<T> onErrorResumeNext(Function<? super Throwable, ? extends ObservableSource<? extends T>> resumeFunction)
+```
+
+```java:no-line-numbers
+对于 onErrorResumeNext(resumeFunction) 方法：
+当被观察者发射了 onError 事件时，会调用 resumeFunction 提供的 apply 方法返回一个新的被观察者，
+接着发射这个新的被观察者中的数据项和事件，而不会再把源被观察者的 onError 事件发射给观察者。
+
+对于 onErrorResumeNext(next) 方法：
+新的被观察者直接通过参数 next 传进来，而不是通过 Function.apply 方法返回。
+```
+
+```java:no-line-numbers
+// example
+/*
+    <T, S> Observable<T> generate(Callable<S> initialState, BiFunction<S, Emitter<T>, S> generator)
+    其中，initialState.call() 方法返回的 S 作为第一次调用 generator.apply(S, Emitter) 方法时的参数 S，
+    apply 方法返回的 S 作为下一次调用 apply 方法时的参数 S
+    generate 操作符会不断地调用 apply 方法，在 apply 方法中通过 Emitter 发射数据项和事件
+*/
+Observable<Integer> numbers = Observable.generate(() -> 1, (state, emitter) -> {
+    emitter.onNext(state);
+
+    return state + 1;
+});
+
+numbers.scan(Math::multiplyExact) // multiplyExact(x, y) 的返回值是 x*y
+    .onErrorResumeNext(Observable.empty())
+    .subscribe(
+        System.out::println,
+        error -> System.err.println("onError should not be printed!"));
+
+// prints:
+// 1
+// 2
+// 6
+// 24
+// 120
+// 720
+// 5040
+// 40320
+// 362880
+// 3628800
+// 39916800
+// 479001600
+```
+
 #### 7.4.14 `onExceptionResumeNext()`
+
+```java:no-line-numbers
+Observable<T> onExceptionResumeNext(final ObservableSource<? extends T> next)
+```
+
+```java:no-line-numbers
+与 onErrorResumeNext(next) 作用类似，区别是：
+1. 对于 onErrorResumeNext(next) 当被观察者发射 onError 事件时，不管传递的异常是 Error 还是 Exception，
+   都会取代 onError 事件，转而发射新的被观察者 next 中的数据项和事件。
+2. 对于 onExceptionResumeNext(next) 当被观察者发射 onError 事件时，只有当传递的异常是 Exception 时，
+   才会取代 onError 事件，转而发射新的被观察者 next 中的数据项和事件。
+
+（Error 和 Exception 是 Throwable 的两个平级的子类）
+```
+
+```java:no-line-numbers
+// example
+Observable<String> exception = Observable.<String>error(IOException::new)
+    .onExceptionResumeNext(Observable.just("This value will be used to recover from the IOException"));
+
+Observable<String> error = Observable.<String>error(Error::new)
+    .onExceptionResumeNext(Observable.just("This value will not be used"));
+
+Observable.concat(exception, error)
+    .subscribe(
+        message -> System.out.println("onNext: " + message),
+        err -> System.err.println("onError: " + err));
+
+// prints:
+// onNext: This value will be used to recover from the IOException
+// onError: java.lang.Error
+```
+
 #### 7.4.15 `retry()`
-#### 7.4.16 `retryUnit()`
+
+```java:no-line-numbers
+Observable<T> retry() // retry(Long.MAX_VALUE, Functions.alwaysTrue())
+
+Observable<T> retry(long times) // retry(times, Functions.alwaysTrue())
+
+Observable<T> retry(Predicate<? super Throwable> predicate) // retry(Long.MAX_VALUE, predicate)
+
+Observable<T> retry(long times, Predicate<? super Throwable> predicate)
+
+Observable<T> retry(BiPredicate<? super Integer, ? super Throwable> predicate)
+```
+
+```java:no-line-numbers
+当被观察者发射了 onError 事件时：
+1. 对于 retry(times, predicate)，
+   若 predicate.test(Throwable) 返回 true，则重头开始发射数据项，反复尝试 times 次。
+   且每次尝试重头发射数据项之前，都会先判断 predicate.test(Throwable) 是否返回 true。
+   若 predicate.test(Throwable) 返回 false，则继续将 onError 事件发射给观察者。
+
+2. 对于 retry(bipredicate)，
+   若 bipredicate.test(Integer, Throwable) 返回 true，则重头开始发射数据项，
+   若 bipredicate.test(Integer, Throwable) 返回 false，则继续将 onError 事件发射给观察者。
+   参数 Integer 表示反复尝试的次数，第一次调用 test 方法时参数 Integer 传入 1，之后每次调用时 +1
+```
+
+```java:no-line-numbers
+// example
+Observable<Long> source = Observable.interval(0, 1, TimeUnit.SECONDS)
+    .flatMap(x -> { // 当发射的数据项 x >= 2 时，发射 onError 事件
+        if (x >= 2) return Observable.error(new IOException("Something went wrong!"));
+        else return Observable.just(x);
+    });
+
+source.retry((retryCount, error) -> retryCount < 3) // retryCount < 3 表示发射 onError 事件后，尝试重发 2 次
+    .blockingSubscribe(
+        x -> System.out.println("onNext: " + x),
+        error -> System.err.println("onError: " + error.getMessage()));
+
+// prints:
+// onNext: 0
+// onNext: 1
+// onNext: 0 // 第 1 次重发
+// onNext: 1 // 第 1 次重发
+// onNext: 0 // 第 2 次重发
+// onNext: 1 // 第 2 次重发
+// onError: Something went wrong! // 第 3 次调用 bipredicate.test(retryCount, error) 时返回 false
+```
+
+#### 7.4.16 `retryUntil()`
+
+```java:no-line-numbers
+Observable<T> retryUntil(final BooleanSupplier stop) 
+```
+
+```java:no-line-numbers
+retryUntil(BooleanSupplier) 是通过调用 retry(times, predicate) 方法实现的，其中：
+1. times = Long.MAX_VALUE
+2. predicate.test(Throwable) 的返回值 = !BooleanSupplier.getAsBoolean()
+也就是说：
+1. 若 stop 返回 false，即不停止重发，此时 predicate.test 方法返回 true，即重头开始发射数据项，不限制尝试次数。
+   且每次尝试重头发射数据项之前，都会先判断 stop 是否返回 false。
+2. 若 stop 返回 true，即停止重发，此时 predicate.test 方法返回 false，则继续将 onError 事件发射给观察者。
+```
+
+```java:no-line-numbers
+// example
+LongAdder errorCounter = new LongAdder();
+Observable<Long> source = Observable.interval(0, 1, TimeUnit.SECONDS)
+    .flatMap(x -> {
+        if (x >= 2) return Observable.error(new IOException("Something went wrong!"));
+        else return Observable.just(x);
+    })
+    .doOnError((error) -> errorCounter.increment());
+
+source.retryUntil(() -> errorCounter.intValue() >= 3)
+    .blockingSubscribe(
+        x -> System.out.println("onNext: " + x),
+        error -> System.err.println("onError: " + error.getMessage()));
+
+// prints:
+// onNext: 0
+// onNext: 1
+// onNext: 0
+// onNext: 1
+// onNext: 0
+// onNext: 1
+// onError: Something went wrong!
+```
+
 #### 7.4.17 `retryWhen()`
+
+```java:no-line-numbers
+Observable<T> retryWhen(final Function<? super Observable<Throwable>, ? extends ObservableSource<?>> handler)
+```
+
+```java:no-line-numbers
+当被观察者接收到异常或者错误事件时会回调该方法，这个方法会返回一个新的被观察者。
+如果返回的被观察者发送 Error 事件则之前的被观察者不会继续发送事件，
+如果发送正常事件则之前的被观察者会继续不断重试发送事件
+```
+
+```java:no-line-numbers
+
+```
+
 #### 7.4.18 `repeat()`
+
 #### 7.4.19 `repeatWhen()`
+
 #### 7.4.20 `subscribeOn()`
+
 #### 7.4.21 `observeOn()`
 
 ### 7.5 过滤操作符
