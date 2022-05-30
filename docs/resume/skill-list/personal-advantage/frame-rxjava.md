@@ -1387,33 +1387,154 @@ Observable<T> retryWhen(final Function<? super Observable<Throwable>, ? extends 
 ```
 
 ```java:no-line-numbers
-当被观察者接收到异常或者错误事件时会回调该方法，这个方法会返回一个新的被观察者。
-如果返回的被观察者发送 Error 事件则之前的被观察者不会继续发送事件，
-如果发送正常事件则之前的被观察者会继续不断重试发送事件
+当源被观察者 Observable<T> 发射了 onError 事件时，
+会将传递的 Throwable 作为数据项由被观察者 Observable<Throwable> 发射出去，
+参数 Function 提供 apply 方法，根据传入的被观察者 Observable<Throwable> 返回另一个被观察者 Observable<?>，
+Observable<Throwable> 发射数据项时，就会触发 Observable<?> 发射数据项或事件。
+
+被观察者 Observable<?> 的作用只是用来判断是否让源被观察者 Observable<T> 重头发射数据项：
+1. 当 Observable<?> 发射数据项时，则源被观察者 Observable<T> 重头发射数据项。
+2. 当 Observable<?> 发射 onError 事件时，则将该 onError 事件发射给目标观察者。
+3. 当 Observable<?> 发射 onComplete 事件时，则将该 onComplete 事件发射给目标观察者。
+
+注意：
+Observable<?> 发射数据项的作用只是用来触发源被观察者 Observable<T> 重头发射数据项。
+而不会把 Observable<?> 发射的数据项传给目标观察者。
+```
+
+```java:no-line-numbers
+// example
+Observable<Long> source = Observable.interval(0, 1, TimeUnit.SECONDS)
+    .flatMap(x -> {
+        if (x >= 2) return Observable.error(new IOException("Something went wrong!"));
+        else return Observable.just(x);
+    });
+
+source.retryWhen(errors -> {
+    return errors.map(error -> 1)
+
+    // Count the number of errors.
+    .scan(Math::addExact) // Math.addExact(x, y) 的返回值是 x+y
+
+    .doOnNext(errorCount -> System.out.println("No. of errors: " + errorCount))
+
+    // Limit the maximum number of retries.
+    /*
+        当 takeWhile(Predicate<T>) 中的 Predicate.test(t)
+            1. 返回 false 时，结束发射数据项，并发射一个 onComplete 事件给观察者
+            2. 返回 true 时，继续发射数据项。
+    */
+    .takeWhile(errorCount -> errorCount < 3) 
+
+    // Signal resubscribe event after some delay.
+    .flatMapSingle(errorCount -> Single.timer(errorCount, TimeUnit.SECONDS));
+}).blockingSubscribe(
+    x -> System.out.println("onNext: " + x), // onNext
+    Throwable::printStackTrace, // onError
+    () -> System.out.println("onComplete")); // onComplete
+
+// prints:
+// onNext: 0
+// onNext: 1
+// No. of errors: 1
+// onNext: 0
+// onNext: 1
+// No. of errors: 2
+// onNext: 0
+// onNext: 1
+// No. of errors: 3
+// onComplete
+```
+
+#### 7.4.18 `repeat()`
+
+```java:no-line-numbers
+Observable<T> repeat() // repeat(Long.MAX_VALUE)
+
+Observable<T> repeat(long times)
+```
+
+```java:no-line-numbers
+当被观察者中所有的数据项发射完毕后，会再将所有的数据项重头再发射一遍，
+重发 times 次之后才会发射 onCompelte 事件给观察者。
+```
+
+#### 7.4.19 `repeatWhen()`
+
+```java:no-line-numbers
+Observable<T> repeatWhen(final Function<? super Observable<Object>, ? extends ObservableSource<?>> handler)
+```
+
+```java:no-line-numbers
+当源被观察者 Observable<T> 发射了 onComplete 事件时，
+会先生成一个信号数据项由被观察者 Observable<Object> 发射出去，
+参数 Function 提供 apply 方法，根据传入的被观察者 Observable<Object> 返回另一个被观察者 Observable<?>，
+Observable<Object> 发射数据项时，就会触发 Observable<?> 发射数据项或事件。
+
+被观察者 Observable<?> 的作用只是用来判断是否让源被观察者 Observable<T> 重头发射数据项：
+1. 当 Observable<?> 发射数据项时，则源被观察者 Observable<T> 重头发射数据项。
+2. 当 Observable<?> 发射 onError 事件时，则将该 onError 事件发射给目标观察者。
+3. 当 Observable<?> 发射 onComplete 事件时，则将该 onComplete 事件发射给目标观察者。
+
+注意：
+Observable<?> 发射数据项的作用只是用来触发源被观察者 Observable<T> 重头发射数据项。
+而不会把 Observable<?> 发射的数据项传给目标观察者。
+```
+
+#### 7.4.20 `subscribeOn()`
+
+```java:no-line-numbers
+Observable<T> subscribeOn(Scheduler scheduler)
+```
+
+```java:no-line-numbers
+指定被观察者的线程。即：发射数据项和事件所在的线程。
+
+需要注意的是：如果多次调用此方法，只有第一次有效。
+```
+
+#### 7.4.21 `observeOn()`
+
+```java:no-line-numbers
+Observable<T> observeOn(Scheduler scheduler)
+```
+
+```java:no-line-numbers
+指定观察者的线程。即：接收数据项和事件所在的线程。
+
+每指定一次就会生效一次。
+
+注意：（待验证）
+调用 subscribeOn() 指定被观察者的线程后，如果没有调用 observeOn() 指定观察者的线程，
+那么被观察者在哪个线程，观察者也就在哪个线程。
+```
+
+### 7.5 过滤操作符
+
+#### 7.5.1 `filter()`
+
+```java:no-line-numbers
+
 ```
 
 ```java:no-line-numbers
 
 ```
 
-#### 7.4.18 `repeat()`
-
-#### 7.4.19 `repeatWhen()`
-
-#### 7.4.20 `subscribeOn()`
-
-#### 7.4.21 `observeOn()`
-
-### 7.5 过滤操作符
-
-#### 7.5.1 `filter()`
 #### 7.5.2 `ofType()`
+
 #### 7.5.3 `skip()`
+
 #### 7.5.4 `distinct()`
+
 #### 7.5.5 `distinctUntilChanged()`
+
 #### 7.5.6 `take()`
+
 #### 7.5.7 `debounce()`
+
 #### 7.5.8 `firstElement()`/`lastElement()`
+
 #### 7.5.9 `elementAt()`/`elementAtOrError()`
 
 ### 7.6 条件操作符
