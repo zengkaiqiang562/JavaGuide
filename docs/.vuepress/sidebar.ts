@@ -104,6 +104,15 @@ export const sidebarConfig = defineSidebarConfig({
         "aidl",
       ],
     },
+    {
+      text: "蓝牙开发",
+      collapsable: true,
+      prefix: "bluetooth/",
+      children: [
+        "classic-bluetooth",
+        "ble",
+      ],
+    },
   ],
 
   "/resume/": [//个人简历
