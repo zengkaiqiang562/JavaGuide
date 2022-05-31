@@ -1514,28 +1514,343 @@ Observable<T> observeOn(Scheduler scheduler)
 #### 7.5.1 `filter()`
 
 ```java:no-line-numbers
-
+Observable<T> filter(Predicate<? super T> predicate)
 ```
 
 ```java:no-line-numbers
+将被观察者发射的数据项 T 先传给 Predicate.test(T) 方法，
+若 test 方法返回 true，则将数据项 T 发射给观察者，否则就过滤掉不发射给观察者。
+```
 
+```java:no-line-numbers
+// example
+Observable.just(1, 2, 3, 4, 5, 6)
+        .filter(x -> x % 2 == 0)
+        .subscribe(System.out::println);
+
+// prints:
+// 2
+// 4
+// 6
 ```
 
 #### 7.5.2 `ofType()`
 
+```java:no-line-numbers
+<U> Observable<U> ofType(final Class<U> clazz) // filter(Functions.isInstanceOf(clazz)).cast(clazz)
+```
+
+```java:no-line-numbers
+当被观察者发射的数据项 T 是 U 类型或 U 的子类类型时，将数据项 T 强转为 U 类型，然后再发射给观察者 Observer<U>。
+如果数据项 T 不是 U 类型或 U 的子类类型，那么就过滤掉不发射。
+
+操作符 ofType 内部使用到了 filter 操作符和 cast 操作符，其中：
+1. filter 操作符用于判断数据项 T 是否为  U 类型或 U 的子类类型；
+2. cast 操作符用于将 filter 操作符过滤后的数据项 T 强转为 U 类型。
+```
+
+```java:no-line-numbers
+// example
+Observable<Number> numbers = Observable.just(1, 4.0, 3, 2.71, 2f, 7);
+Observable<Integer> integers = numbers.ofType(Integer.class);
+
+integers.subscribe((Integer x) -> System.out.println(x));
+
+// prints:
+// 1
+// 3
+// 7
+```
+
 #### 7.5.3 `skip()`
+
+```java:no-line-numbers
+Observable<T> skip(long count)
+```
+
+```java:no-line-numbers
+将被观察者发射的前 count 个数据项过滤掉，不发射给观察者。
+即：跳过前 count 个数据项，从第 count+1 个数据项开始，才将数据项发射给观察者。
+```
+
+```java:no-line-numbers
+// example
+Observable<Integer> source = Observable.just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+source.skip(4)
+    .subscribe(System.out::println);
+
+// prints:
+// 5
+// 6
+// 7
+// 8
+// 9
+// 10
+```
 
 #### 7.5.4 `distinct()`
 
+```java:no-line-numbers
+Observable<T> distinct() // distinct(Functions.identity(), Functions.createHashSet())
+
+<K> Observable<T> distinct(Function<? super T, K> keySelector) // distinct(keySelector, Functions.createHashSet());
+
+<K> Observable<T> distinct(
+            Function<? super T, K> keySelector, 
+            Callable<? extends Collection<? super K>> collectionSupplier)
+```
+
+```java:no-line-numbers
+对于 distinct(keySelector, collectionSupplier) 方法：
+1. keySelector 提供 "K apply(T)" 方法，用于将被观察者发射的数据项 T 转换成元素 K。
+2. collectionSupplier 提供 "Collection<K> call()" 方法，用于返回一个存放元素 K 的容器 Collection<K>。
+如果被观察者发射的数据项 T 所转换成的元素 K 能够保存到容器 Collection<K> 中，那么就将这个数据项 T 发射给观察者。
+（容器 Collection<K> 会在被观察者发射 onError 或 onComplete 事件时清空）
+
+对于 distinct() 方法：
+1. keySelector 不会对数据项 T 进行转换，即元素 K 还是数据项 T。
+2. collectionSupplier 的 call() 方法返回的容器是 HashSet<T>。
+因此，如果被观察者发射的数据项 T 能够保存到 HashSet<T> 容器中，那么就将该数据项 T 发射给观察者。
+而 HashSet<T> 容器的特点是不能保存相同的元素。
+也就是说：对于后发射的数据项，如果与先发射的数据项相同，那么就过滤掉，不发射给观察者。
+简单地说：distinct() 方法用于过滤掉重复的数据项。
+```
+
+```java:no-line-numbers
+// example
+Observable.just(2, 3, 4, 4, 2, 1)
+        .distinct()
+        .subscribe(System.out::println);
+
+// prints:
+// 2
+// 3
+// 4
+// 1
+```
+
 #### 7.5.5 `distinctUntilChanged()`
+
+```java:no-line-numbers
+Observable<T> distinctUntilChanged() // distinctUntilChanged(Functions.identity())
+
+<K> Observable<T> distinctUntilChanged(Function<? super T, K> keySelector)
+
+Observable<T> distinctUntilChanged(BiPredicate<? super T, ? super T> comparer)
+```
+
+```java:no-line-numbers
+对于 distinctUntilChanged(keySelector) 方法：
+1. keySelector 提供 "K apply(T)" 方法，用于将被观察者发射的数据项 T 转换成元素 K。
+如果两个前后相邻发射的数据项 t1、t2 各自转换后的元素 k1、k2 相同，那么就将后发射的数据项 t2 过滤掉，不发射给观察者。
+
+对于 distinctUntilChanged() 方法：
+1. keySelector 不会对数据项 T 进行转换，即元素 K 还是数据项 T。
+如果两个前后相邻发射的数据项 t1、t2 相同，那么就将后发射的数据项 t2 过滤掉，不发射给观察者。
+
+对于 distinctUntilChanged(comparer) 方法：
+1. comparer 提供 "boolean test(T t1, T t2)" 方法，用于判断 T 类型的两个参数 t1、t2 是否相同。
+通过 comparer 提供的 test 方法判断两个前后相邻发射数据项 t1、t2 是否相同，
+若 test 方法返回 true，则相同，此时过滤掉后发射的数据项 t2，不发射给观察者。
+若 test 方法返回 false，则不相同，此时将 t1、t2 都发射给观察者。
+
+简单地说：三个重载的 distinctUntilChanged 方法都是用于过滤掉连续重复的数据项。（只是判断数据项是否重复的条件不同）
+```
+
+```java:no-line-numbers
+// example
+Observable.just(1, 1, 2, 1, 2, 3, 3, 4)
+        .distinctUntilChanged()
+        .subscribe(System.out::println);
+
+// prints:
+// 1
+// 2
+// 1
+// 2
+// 3
+// 4
+```
 
 #### 7.5.6 `take()`
 
+```java:no-line-numbers
+Observable<T> take(long count)
+```
+
+```java:no-line-numbers
+只将被观察者中的前 count 个数据项发射给观察者。对于后面的所有数据项都过滤掉，不发射给观察者。
+（与 skip(count) 相反）
+```
+
+```java:no-line-numbers
+// example 
+Observable<Integer> source = Observable.just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+source.take(4)
+    .subscribe(System.out::println);
+
+// prints:
+// 1
+// 2
+// 3
+// 4
+```
+
 #### 7.5.7 `debounce()`
+
+```java:no-line-numbers
+Observable<T> debounce(long timeout, TimeUnit unit)
+```
+
+```java:no-line-numbers
+如果前后相邻的两个数据项发射的时间间隔小于设定的时间间隔 timeout ，那么前面的数据项就不会发射给观察者。
+
+也就是说，一个数据项是否发射给观察者，要看后面相邻的那个数据项的发射时间。
+
+注意：最后一个的数据项一定会发射给观察者。
+```
+
+```java:no-line-numbers
+// example
+
+// Diagram:
+// -A--------------B----C-D-------------------E-|---->
+//  a---------1s
+//                 b---------1s
+//                      c---------1s
+//                        d---------1s
+//                                            e-|---->
+// -----------A---------------------D-----------E-|-->
+
+Observable<String> source = Observable.create(emitter -> {
+    emitter.onNext("A");
+
+    Thread.sleep(1_500);
+    emitter.onNext("B");
+
+    Thread.sleep(500);
+    emitter.onNext("C");
+
+    Thread.sleep(250);
+    emitter.onNext("D");
+
+    Thread.sleep(2_000);
+    emitter.onNext("E");
+    emitter.onComplete();
+});
+
+source.subscribeOn(Schedulers.io())
+        .debounce(1, TimeUnit.SECONDS)
+        .blockingSubscribe(
+                item -> System.out.println("onNext: " + item),
+                Throwable::printStackTrace,
+                () -> System.out.println("onComplete"));
+
+// prints:
+// onNext: A
+// onNext: D
+// onNext: E
+// onComplete
+```
 
 #### 7.5.8 `firstElement()`/`lastElement()`
 
+1. `firstElement()`：
+
+    ```java:no-line-numbers
+    Maybe<T> firstElement()
+    ```
+
+    ```java:no-line-numbers
+    只将被观察者中的第一个数据项发射给观察者。
+    ```
+
+    ```java:no-line-numbers
+    // example 
+    Observable<String> source = Observable.just("A", "B", "C");
+    Maybe<String> first = source.firstElement();
+
+    first.subscribe(System.out::println);
+
+    // prints A
+    ```
+
+2. `lastElement()`：
+
+    ```java:no-line-numbers
+    Maybe<T> lastElement()
+    ```
+
+    ```java:no-line-numbers
+    只将被观察者中的最后一个数据项发射给观察者。
+    ```
+    
+    ```java:no-line-numbers
+    // example 
+    Observable<String> source = Observable.just("A", "B", "C");
+    Maybe<String> last = source.lastElement();
+
+    last.subscribe(System.out::println);
+
+    // prints C
+    ```
+
 #### 7.5.9 `elementAt()`/`elementAtOrError()`
+
+1. `elementAt()`：
+
+    ```java:no-line-numbers
+    Maybe<T> elementAt(long index)
+    ```
+
+    ```java:no-line-numbers
+    只将被观察者的数据项序列中索引 index 处的数据项发射给观察者。
+    如果索引 index 越界，那么发射一个 onComplete 事件给观察者，而不会发射 onError 事件给观察者。
+
+    注意：Maybe 类型的被观察者要么发射 onSuccess(T) 数据项；要么发射 onComplete 事件；要么发射 onError 事件。
+    ```
+    
+    ```java:no-line-numbers
+    // example
+    Observable<Long> source = Observable.<Long, Long>generate(() -> 1L, (state, emitter) -> {
+        emitter.onNext(state);
+
+        return state + 1L;
+    }).scan((product, x) -> product * x); // 1*2=2, 2*3=6, 6*4=24, 24*5=120, 120*6=720, ...
+
+    Maybe<Long> element = source.elementAt(5);
+    element.subscribe(System.out::println);
+
+    // prints 720
+    ```
+
+2. `elementAtOrError()`：
+
+    ```java:no-line-numbers
+    Single<T> elementAtOrError(long index)
+    ```
+
+    ```java:no-line-numbers
+    只将被观察者的数据项序列中索引 index 处的数据项发射给观察者。
+    如果索引 index 越界，那么发射一个 onError 事件给观察者。
+
+    注意：Single 类型的被观察者要么发射 onSuccess(T) 数据项；要么发射 onError 事件。
+    ```
+
+    ```java:no-line-numbers
+    // example
+    Observable<String> source = Observable.just("Kirk", "Spock", "Chekov", "Sulu");
+    Single<String> element = source.elementAtOrError(4);
+
+    element.subscribe(
+        name -> System.out.println("onSuccess will not be printed!"),
+        error -> System.out.println("onError: " + error));
+
+    // prints:
+    // onError: java.util.NoSuchElementException
+    ```
 
 ### 7.6 条件操作符
 
