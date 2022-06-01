@@ -1855,15 +1855,224 @@ source.subscribeOn(Schedulers.io())
 ### 7.6 条件操作符
 
 #### 7.6.1 `all()`
+
+```java:no-line-numbers
+Single<Boolean> all(Predicate<? super T> predicate)
+```
+
+```java:no-line-numbers
+将被观察者发射的数据项 T 都传给 predicate.test(T) 方法，
+若对于每个数据项 T 使得 test 方法都返回 true，则将布尔值 true 发射给观察者。
+若只要有一个数据项 T 使得 test 方法返回 false，则将布尔值 false 发射给观察者。
+
+简单地说：all() 方法用于判断数据项序列是否全部满足某个条件。
+```
+
+```java:no-line-numbers
+// example
+Flowable.range(0,10).doOnNext(next -> System.out.println(next)).all(integer -> integer<10).
+    blockingSubscribe(success->System.out.println("Success: "+success));
+```
+
 #### 7.6.2 `takeWhile()`
-#### 7.6.3 `skipWhile()`
-#### 7.6.4 `takeUntil()`
+
+```java:no-line-numbers
+Observable<T> takeWhile(Predicate<? super T> predicate)
+```
+
+```java:no-line-numbers
+将被观察者发射的数据项 T 传给 predicate.test(T) 方法，
+若对于数据项 T 使得 test 方法返回 true，则将该数据项 T 发射给观察者。
+若当某个发射的数据项 T 使得 test 方法返回 false 时，
+则将该数据项以及后面的所有数据项都丢弃掉，不发射给观察者了，而是发射一个 onComplete 事件给观察者。
+```
+
+```java:no-line-numbers
+// example 
+Observable.range(1, 10).takeWhile(value -> value <= 5)
+           .subscribe(next -> System.out.printf("next: %s\n", next), // onNext
+                   throwable -> System.out.printf("error: %s", throwable), //onError
+                   () -> System.out.println("Completed") //onComplete
+           );
+```
+
+#### 7.6.3 `takeUntil()`
+
+```java:no-line-numbers
+Observable<T> takeUntil(Predicate<? super T> stopPredicate)
+```
+
+```java:no-line-numbers
+先将被观察者发射的数据项 T 直接发射给观察者，
+然后再将该数据项 T 传给 stopPredicate.test(T) 方法，
+若对于数据项 T 使得 test 方法返回 true，则停止发射后面的所有数据项，而是发射一个 onComplete 事件给观察者。
+若对于数据项 T 使得 test 方法返回 false，则继续发射后面的数据项。
+```
+
+```java:no-line-numbers
+// example
+Observable.range(1, 10).takeUntil(value -> value >= 5)
+    .subscribe(next -> System.out.printf("next: %s\n", next), // onNext
+        throwable -> System.out.printf("error: %s", throwable), //onError
+        () -> System.out.println("Completed") //onComplete
+    );
+```
+
+#### 7.6.4 `skipWhile()`
+
+```java:no-line-numbers
+Observable<T> skipWhile(Predicate<? super T> predicate)
+```
+
+```java:no-line-numbers
+将被观察者发射的数据项 T 传给 predicate.test(T) 方法，
+若对于数据项 T 使得 test 方法返回 true，则将该数据项 T 丢弃掉，不发射给观察者。
+若对于数据项 T 使得 test 方法返回 false，则将该数据项 T 发射给观察者。
+```
+
+```java:no-line-numbers
+// example
+Observable.range(1, 10).skipWhile(next -> next < 5)
+    .subscribe(next -> System.out.printf("next: %s\n", next), // onNext
+        throwable -> System.out.printf("error: %s", throwable), //onError
+        () -> System.out.println("Completed") //onComplete
+    );
+```
+
 #### 7.6.5 `skilUntil()`
+
+```java:no-line-numbers
+<U> Observable<T> skipUntil(ObservableSource<U> other)
+```
+
+```java:no-line-numbers
+当参数被观察者 other 没有发射数据项之前，源被观察者 Observable<T> 发射的数据项都被丢弃掉，不会发射给观察者。
+直到参数被观察者 other 发射了数据项之后，源被观察者 Observable<T> 发射的数据项才会发射给观察者。
+
+注意：目标观察者不会接收到参数被观察者 other 发射的数据项。参数被观察者 other 发射数据项的目的仅仅是作为触发信号。
+```
+
+```java:no-line-numbers
+// example
+Observable observable1 = Observable.range(1, 10).doOnNext(next -> Thread.sleep(1000));
+        
+observable1.skipUntil(Observable.timer(3, TimeUnit.SECONDS))
+    .subscribe(next -> System.out.printf("next: %s\n", next), // onNext
+        throwable -> System.out.printf("error: %s", throwable), //onError
+        () -> System.out.println("Completed") //onComplete
+    );
+```
+
 #### 7.6.6 `sequenceEqual()`
+
+```java:no-line-numbers
+static <T> Single<Boolean> sequenceEqual(
+            ObservableSource<? extends T> source1, 
+            ObservableSource<? extends T> source2) // sequenceEqual(source1, source2, ObjectHelper.equalsPredicate(), bufferSize);
+
+static <T> Single<Boolean> sequenceEqual(
+            ObservableSource<? extends T> source1, 
+            ObservableSource<? extends T> source2,
+            BiPredicate<? super T, ? super T> isEqual)
+```
+
+```java:no-line-numbers
+通过 BiPredicate.test(T t1, T t2) 方法判断被观察者 source1 和 source2 的数据项序列是否相同，
+若相同，则发射一个数据项 true 给观察者；
+若不相同，则发射一个数据项 false 给观察者。
+
+其中 test 方法的参数 t1 传入被观察者 source1 中的数据项；
+其中 test 方法的参数 t2 传入被观察者 source2 中的数据项；
+
+ObjectHelper.equalsPredicate() 方法返回的 BiPredicate 实例用于比较 t1 和 t2 是否为同一个对象。
+```
+
+```java:no-line-numbers
+// example
+Flowable<Integer> flowable1 = Flowable.range(1,3).doOnNext(next-> System.out.print("flowable1: "+next + " "));
+
+Flowable<Integer> flowable2 = Flowable.range(1,3).doOnNext(next-> System.out.println("flowable2: "+next));
+
+Flowable.sequenceEqual(Flowable.fromPublisher(flowable1),Flowable.fromPublisher(flowable2))
+    .blockingSubscribe(sequenceEqual->System.out.println("sequenceEqual: "+sequenceEqual));
+```
+
 #### 7.6.7 `contains()`
+
+```java:no-line-numbers
+Single<Boolean> contains(final Object element)
+```
+
+```java:no-line-numbers
+判断被观察者 Observable<T> 的数据项序列中是否存在数据项 element，
+若存在，则发射一个布尔数据项 true 给观察者；
+若不存在，则发射一个布尔数据项 false 给观察者。
+```
+
+```java:no-line-numbers
+// example
+Flowable.range(1,10).doOnNext(next->System.out.println(next))
+    .contains(4).blockingSubscribe(contains->System.out.println("contains: "+contains));
+```
+
 #### 7.6.8 `isEmpty()`
+
+```java:no-line-numbers
+Single<Boolean> isEmpty()
+```
+
+```java:no-line-numbers
+判断被观察者 Observable<T> 的数据项序列是否为空，
+若为空，则发射一个布尔数据项 true 给观察者；
+若不为空，则发射一个布尔数据项 false 给观察者。
+```
+
+```java:no-line-numbers
+// example
+Flowable.empty().isEmpty().subscribe(isEmpty -> System.out.printf("isEmpty: %s", isEmpty));
+```
+
 #### 7.6.9 `amb()`
+
+```java:no-line-numbers
+static <T> Observable<T> amb(Iterable<? extends ObservableSource<? extends T>> sources)
+```
+
+```java:no-line-numbers
+将保存了多个被观察者 Observable<T> 的集合传给参数 sources，
+对于集合 sources 中的某个被观察者，如果最先发射了第一个数据项，那么集合中的其他被观察者都会被丢弃掉。
+于是，只将最先发射第一个数据项的被观察者中的数据项序列发射给观察者。
+```
+
+```java:no-line-numbers
+// example
+Observable source1 = Observable.range(1, 5);
+Observable source2 = Observable.range(6, 5);
+Observable.amb(new ArrayList(Arrays.asList(source1, source2)))
+    .subscribe(next -> System.out.printf("next: %s\n", next), // onNext
+        throwable -> System.out.printf("error: %s\n", throwable), //onError
+        () -> System.out.println("Completed") //onComplete
+    );
+```
+
 #### 7.6.10 `defaultIfEmpty()`
+
+```java:no-line-numbers
+Observable<T> defaultIfEmpty(T defaultItem)
+```
+
+```java:no-line-numbers
+如果源被观察者在发射 onComplete 事件之前没有发射过任何数据项给观察者，
+那么就会先将参数 defaultItem 表示的默认数据项发射给观察者，然后再发射 onComplete 事件给观察者。
+```
+
+```java:no-line-numbers
+// example
+ Observable.empty().defaultIfEmpty(1).blockingSubscribe(next -> System.out.printf("next: %s\n", next), // onNext
+                throwable -> System.out.printf("error: %s", throwable), //onError
+                () -> System.out.println("Completed") //onComplete
+        );
+```
 
 ## 8. 调度器
 
