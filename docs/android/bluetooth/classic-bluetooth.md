@@ -188,11 +188,11 @@ private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
 };
 ```
 
-#### 2.5.3 让设备处于可被发现的状态
+#### 2.5.3 让设备处于可被发现的状态 & `ScanMode`
 
 如果设备 `A` 在调用了 `startDiscovery()` 方法后开始扫描附近的设备时未发现任何设备，但实际上附加确实有一个设备 `B` 存在，那么设备 `B` 很可能处于不可发现的状态。
 
-因此在扫描附近的设备 `B` 之前，需要先在设备 `B` 上进行配置，让设备 `B` 自身处于可被发现的状态：
+因此在扫描附近的设备 `B` 之前，需要先在设备 `B` 上进行设置，让设备 `B` 自身处于可被发现的状态：
 
 ```java:no-line-numbers
 /* BluetoothChatFragment */
@@ -204,8 +204,17 @@ private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
     即让设备 B 处于可被发现的状态。
 */
 private void ensureDiscoverable() {
+    /*
+        SCAN_MODE 分三类：
+        1. SCAN_MODE_NONE：当前设备既不会被远程设备发现；又不能和远程设备连接。
+        2. SCAN_MODE_CONNECTABLE：当前设备不会被远程设备发现；但能和远程设备连接。（适用于当前设备已配对的情况）
+        3. SCAN_MODE_CONNECTABLE_DISCOVERABLE：当前设备既会被远程设备发现；又能和远程设备连接。
+    */
     if (mBluetoothAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
         Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        /*
+            设置设备在 300s 的时间内是可被发现的（默认是 120s，设置的值不能超过 300s）。
+        */
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
         startActivity(discoverableIntent);
     }
