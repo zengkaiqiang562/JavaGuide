@@ -1,5 +1,5 @@
 ---
-title: 经典蓝牙（TODO）
+title: 经典蓝牙
 category: 
   - android-蓝牙开发
 tag:
@@ -221,10 +221,54 @@ private void ensureDiscoverable() {
 }
 ```
 
-> 注意：在设备 A 与设备 B 之间通过蓝牙相互发送聊天消息时，设备 A 与设备 B 中是同时在运行同一个 App 程序的。
+> 注意：在设备 `A` 与设备 `B` 之间通过蓝牙相互发送聊天消息时，设备 `A` 与设备 `B` 中是同时在运行同一个 `App` 程序的。
 
 ### 2.6 连接设备
 
-#### 2.6.1 连接为服务器
+#### 2.6.1 将设备设置为服务器设备
 
-#### 2.6.2 设置客户端
+以蓝牙聊天为例：
+
+1. 设备 `A` 发送消息给设备 `B` 时，设备 `A` 作为客户端设备，设备 `B` 作为服务器设备；
+
+2. 设备 `B` 发送消息给设备 `A` 时，设备 `B` 作为客户端设备，设备 `A` 作为服务器设备。
+
+也就是说，设备 `A` 与设备 `B` 相互发送消息时，要将这两个设备都设置为服务器设备（`SDP` 服务端）。
+
+将蓝牙设备作为 `SDP` 服务端时（`SDP` 服务发现协议）：
+
+1. 需要向本地 `SDP` 服务器（`local SDP server`）注册一个服务记录（`Service Record`），即调用 `BluetoothAdapter.listenUsingRfcommWithServiceRecord(name, uuid)` 方法向本地 `SDP` 服务器注册一个服务记录，其中：
+
+    ```:no-line-numbers
+    1. 参数 name 是自定义的服务记录的名称；
+    2. 参数 uuid 是自定义的服务记录的唯一标识；
+    3. listenUsingRfcommWithServiceRecord 方法返回一个 BluetoothServerSocket 对象。
+    ```
+
+2. 调用 `BluetoothServerSocket` 对象的 `accept()` 方法监听 `SDP` 客户端的连接请求。
+
+#### 2.6.2 客户端设备（本地设备）连接到服务器设备（远程设备）
+
+接收消息的设备作为服务器端（`SDP` 服务端，即远程设备），发送消息的设备作为客户端设备（`SDP` 客户端，即本地设备）。
+
+当作为 `SDP` 客户端的蓝牙设备想与作为 `SDP` 服务端的蓝牙设备通信时：
+
+1. 首先在作为 `SDP` 客户端的蓝牙设备上发现（扫描）附近的作为 `SDP` 服务端的蓝牙设备，从而拿到作为 `SDP` 服务端的蓝牙设备的 `mac` 地址；
+
+2. 在作为 `SDP` 客户端的蓝牙设备上，调用 `BluetoothAdapter.getRemoveDevice(address)` 方法，传入作为 `SDP` 服务端的蓝牙设备的 `mac` 地址，从而在作为 `SDP` 客户端的蓝牙设备上得到作为 `SDP` 服务端的蓝牙设备的 `BluetoothDevice` 对象；
+
+3. 在作为 `SDP` 客户端的蓝牙设备上调用作为 `SDP` 服务端的蓝牙设备的 `BluetoothDevice` 对象的 `BluetoothDevice.createRfcommSocketToServiceRecord(uuid)` 方法，传入在作为 `SDP` 服务端的蓝牙设备中的已经注册了的服务记录的 `uuid` 值。该方法会返回一个 `BluetoothSocket` 对象，调用返回的 `BluetoothSocket` 对象的 `connect` 方法，从而建立起连接。
+
+#### 2.6.3 总结 & 注意事项
+
+总结：
+
+![](./images/classic-bluetooth/01.png)
+
+注意事项：
+
+1. 经典蓝牙的通信是建立在 `Socket`上的；
+
+2. `SDP` 服务端需要将注册的服务记录的 `uuid` 提供给 `SDP` 客户端；
+
+3. `SDP` 客户端需要知道 `SDP` 服务端的 `mac` 地址以及注册的某个服务记录的 `uuid`，才能连接到 `SDP` 服务端。
