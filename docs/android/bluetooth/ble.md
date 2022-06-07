@@ -1,5 +1,5 @@
 ---
-title: 低功耗蓝牙（BLE）（TODO）
+title: 低功耗蓝牙（BLE）
 category: 
   - android-蓝牙开发
 tag:
@@ -341,8 +341,284 @@ protected void onResume() {
 }
 ```
 
-### 6.4 扫描附加的设备
+### 6.4 扫描附近的设备
+
+获取扫描器 `BluetoothLeScanner` 对象 & 设置扫描相关的配置参数：
+
+```java:no-line-numbers
+/* BleActivity.java */
+private BluetoothLeScanner mLeScanner;
+private ScanSettings mScanSettings;
+
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    ...
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        /*
+            1. 扫描模式 SCAN_MODE_LOW_LATENCY 表示低延迟的扫描方式，也就是占空比最大的扫描方式。其中：
+               占空比就是在一个扫描周期中，扫描持续的工作时长占整个周期时长的比例。
+               占空比越高，说明一个扫描周期中，扫描的持续工作时间越长。因此，扫描速度越快。
+            2. setReportDelay(3000) 表示在扫描到设备后，延迟 3s 上报（即触发回调函数）
+            3. ScanSettings 对象在调用 BluetoothLeScanner.startScan 方法开始扫描时，作为实参传入。
+        */
+        mLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+        mScanSettings = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .setReportDelay(3000).build();
+    }
+    ...
+}
+```
+
+开始扫描 & 停止扫描：
+
+```java:no-line-numbers
+/* BleActivity.java */
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    ...
+    mBtScan = (Button) findViewById(R.id.bt_scan);
+    mBtScan.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            if (!mIsScanStart) { // 点击按钮开始扫描，并在下一次点击按钮之前将按钮文本改为 “停止扫描”
+                mBtScan.setText("停止扫描");
+                mIsScanStart = true;
+                scan(true);
+            } else {             // 点击按钮停止扫描，并在下一次点击按钮之前将按钮文本改为 “开始扫描”
+                mBtScan.setText("开始扫描");
+                mIsScanStart = false;
+                scan(false);
+            }
+        }
+    });
+    ...
+}
+
+@TargetApi(23)
+private void scan(boolean enable) {
+    final ScanCallback scanCallback = new ScanCallback() {
+        /*
+            当扫描到蓝牙设备时，触发回调方法 ScanCallback.onScanResult(int, ScanResult)
+            注意：
+                1. 每扫描到一个蓝牙设备触发一次回调
+                2. 参数 ScanResult 中封装了扫描到的蓝牙设备 BluetoothDevice 对象
+        */
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            super.onScanResult(callbackType, result);
+            BluetoothDevice device = result.getDevice();
+            Log.d(TAG, "name = " + device.getName() + ", address = " + device.getAddress());
+            mBleTextView.setText(device.getName() + " - " + device.getAddress());
+            mBleAddress = device.getAddress();
+        }
+    };
+
+    if (enable) {
+        mLeScanner.startScan(null, mScanSettings, scanCallback); // 开始扫描
+    } else {
+        mLeScanner.stopScan(scanCallback); // 停止扫描
+    }
+}
+```
+
+> 从 `BluetoothLeScanner.startScan` 方法源码中的文档注释可以看出：调用 `startScan` 方法需要 `BLUETOOTH_ADMIN` 和 `ACCESS_FINE_LOCATION` 权限。
 
 ### 6.5 连接 & 断开 `BLE` 设备
 
-### 6.6 发现蓝牙设备的 `Service` 和特征值
+`step1`：先获取扫描到的蓝牙设备的 `mac` 地址 `address`
+
+```java:no-line-numbers
+/* BleActivity.java */
+private String mBleAddress = "";
+
+@TargetApi(23)
+private void scan(boolean enable) {
+    final ScanCallback scanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            BluetoothDevice device = result.getDevice();
+            // 获取扫描到的蓝牙设备的 mac 地址
+            mBleAddress = device.getAddress();
+        }
+    };
+    if (enable) {
+        mLeScanner.startScan(null, mScanSettings, scanCallback);
+    } else {
+        mLeScanner.stopScan(scanCallback);
+    }
+}
+```
+
+`step2`：调用 `BluetoothAdapter.getRemoteDevice(address)` 方法，根据 `mac` 地址得到远程蓝牙设备的 `BluetoothDevice` 对象
+
+`step3`：调用 `BluetoothDevice.connectGatt(context, autoConnect, callback)` 方法请求连接远程蓝牙设备
+
+`step4`：当远程蓝牙设备连接或断开时，会触发 `connectGatt` 方法中参数 `callback` 的回调方法 `onConnectionStateChange`
+
+```java:no-line-numbers
+/* BleActivity.java */
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    ...
+    mConnectButton = (Button) findViewById(R.id.bt_connect);
+    mConnectButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            if (!mIsConnected) {
+                connect();
+            } else {
+                disconnect();
+            }
+        }
+    });
+    ...
+}
+
+private BluetoothGatt mGatt;
+private boolean connect() {
+    // step2. 根据 mac 地址得到远程蓝牙设备（即外围设备）的 BluetoothDevice 对象
+    final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(mBleAddress);
+    // step3. 请求连接远程蓝牙设备
+    mGatt = device.connectGatt(this, false, mCallback);
+    if (mGatt != null) {
+        return true;
+    } else {
+        return false;
+    }
+}
+```
+
+```java:no-line-numbers
+/* BleActivity.java */
+private void disconnect() { // 断开与远程蓝牙设备的连接
+    if (mGatt != null) {
+        mGatt.disconnect();
+    }
+}
+```
+
+```java:no-line-numbers
+/* BleActivity.java */
+private final BluetoothGattCallback mCallback = new BluetoothGattCallback() {
+    @Override
+    public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+        // step4. 当远程蓝牙设备连接或断开时，会触发回调方法 onConnectionStateChange
+        mMainUIHandler.sendEmptyMessage(newState);
+    }
+
+    @Override
+    public void onServicesDiscovered(BluetoothGatt gatt, int status) {}
+
+    @Override
+    public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {}
+
+    @Override
+    public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {}
+
+    @Override
+    public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {}
+
+    ...
+};
+
+private final Handler mMainUIHandler = new Handler(Looper.getMainLooper()) {
+    @Override
+    public void handleMessage(Message msg) {
+        super.handleMessage(msg);
+        int newState = msg.what;
+        if (newState == BluetoothProfile.STATE_CONNECTED) { // 远程蓝牙设备已连接
+            ...
+        } else if (newState == BluetoothProfile.STATE_DISCONNECTED) { // 远程蓝牙设备已断开
+            ...
+        }
+    }
+};
+```
+
+注意：
+
+1. 调用 `BluetoothDevice.connectGatt(context, autoConnect, callback)` 方法连接远程蓝牙设备时，`BluetoothGattCallback` 类型的参数 `callback` 提供了一系列回调方法，用于监听蓝牙设备的连接状态、数据读写等操作；
+
+2. `BluetoothGattCallback` 中的回调方法是在 `binder` 线程中调用的，因此不能直接在回调方法中更新 `UI`；
+
+3. `connectGatt` 方法的返回值为 `BluetoothGatt` 对象，可用于操作已连接上的远程蓝牙设备（如：断开连接、读写数据等）。
+
+### 6.6 发现（查询）蓝牙设备的 `Service` 和 `Characteristic`（特征值）
+
+当中心设备（即 `GATT` 客户端，如运行 `SensorTag App` 的手机）与外围设备（即 `GATT` 服务端，如 `SensorTag`）建立起 `GATT` 连接后，可调用 `BluetoothGatt.discoverServices()` 方法查询外围设备提供的服务列表（[`Profile`](#_5-5-1-profile) 是 `Service` 的集合，即查询外围设备的 `Profile`）。
+
+当查询到服务列表时，会执行 `BluetoothGattCallback` 的回调函数 `onServiceDiscoverd`。
+
+```java:no-line-numbers
+/* BleActivity.java */
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    ...
+    mDiscoveryButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            if (mGatt != null) {
+                /*
+                    mGatt 是在连接外围设备时调用 `BluetoothDevice.connectGatt` 方法返回的。
+                    调用 mGatt.discoverServices() 方法获取外围设备中的 Profile（即 Service 集合）
+                */
+                mGatt.discoverServices();
+            }
+        }
+    });
+    ...
+}
+```
+
+```java:no-line-numbers
+/* BleActivity.java */
+private final BluetoothGattCallback mCallback = new BluetoothGattCallback() {
+    ...
+    @Override
+    public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+        /*
+            1. 当中心设备查询到外围设备中的 Profile 时，会通过该回调方法接收一个封装了 Profile 的参数 gatt
+            2. 自定义 discoverGattService(services) 方法，遍历外围设备的 Profile 中的 Service 集合。
+        */
+        discoverGattService(gatt.getServices());
+    }
+    ...
+};
+
+private void discoverGattService(List<BluetoothGattService> services) {
+    if (services == null)
+        return;
+
+    for (BluetoothGattService service : services) {
+
+        /*
+            遍历 Profile 中 Service 集合内的每个 Service，并打印 Service 的 UUID
+        */
+        String uuid = service.getUuid().toString();
+        Log.d(TAG, "Service uuid = " + uuid);
+
+        /*
+            每个 Service 中包含一个或多个 Characteristic（特征值），
+            遍历 Service 中包含的所有 Characteristic，并打印每个 Characteristic 的 UUID
+        */
+        List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
+        for (BluetoothGattCharacteristic characteristic : characteristics) {
+            String char_uuid = characteristic.getUuid().toString();
+            Log.d(TAG, "Characteristic uuid = " + char_uuid);
+        }
+    }
+}
+```
+
+### 6.7 示例 1：特征值中的描述符（`BluetoothGattDescriptor`）
+
+![](./images/ble/11.png)
+
+### 6.8 示例 2：与红外温度传感器（外围设备）的数据交互
+
+![](./images/ble/12.png)
+
+### 6.9 示例 3：`SensorTag` 属性表（基于 `ATT` 协议的查找表）
+
+![](./images/ble/13.png)
