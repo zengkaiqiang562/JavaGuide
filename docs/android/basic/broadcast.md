@@ -6,4 +6,4 @@ tag:
   - android-基础
 ---
 
-`https://hornhuang.blog.csdn.net/article/details/102845752`
+[17 个必须掌握的 BroadcastReceiver 知识点「建议收藏」](https://hornhuang.blog.csdn.net/article/details/102845752)
