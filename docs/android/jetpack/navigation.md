@@ -430,7 +430,116 @@ public void navigate(int resId, Bundle args, NavOptions navOptions)
 
 #### 3.8.1 传递参数的常见方式
 
+在调用重载的 `navigate` 方法时，通过 `Bundle` 类型的参数 `args` 进行参数传递。
+
+```java:no-line-numbers
+/* NavController.java */
+public final void navigate(int resId, Bundle args)
+```
+
+示例：
+
+```java:no-line-numbers
+Bundle bundle = new Bundle();
+bundle.putString("user_name", "Michael");
+bundle.putInt("age", 30);
+Navigation.findNavController(v).navigate(R.id.action_mainFragment_to_secondFragment, bundle);
+```
+
 #### 3.8.2 使用 `safe args` 传递参数
+
+`step1`：添加 `safe args` 插件所需要的依赖：
+
+```groovy:no-line-numbers
+/* 根 build.gradle */
+dependencies {
+    classpath 'androidx.navigation:navigation-safe-args-gradle-plugin:2.3.0-alpha01'
+}
+```
+
+```groovy:no-line-numbers
+/* app 模块的 build.gradle */
+apply plugin: 'androidx.navigation.safeargs'
+```
+
+`step3`：在 `nav_graph.xml` 文件中通过 `<argument>` 标签添加传递的参数
+
+> 一个 `<argument>` 标签表示一个参数。如果要传递多个参数，则需要添加多个 `<argument>` 标签。
+
+```xml:no-line-numbers
+<!-- nav_graph.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainFragment">
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.xxx.MainFragment"
+        android:label="fragment_main"
+        tools:layout="@layout/fragment_main">
+
+        <action
+            android:id="@+id/action_mainFragment_to_secondFragment"
+            app:destination="@id/secondFragment"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"/>
+
+        <!-- 添加参数 user_name -->
+        <argument
+            android:name="user_name"
+            app:argType="string"
+            android:defaultValue='"unknown"'/>
+
+        <!-- 添加参数 age -->
+        <argument
+            android:name="age"
+            app:argType="integer"
+            android:defaultValue="0"/>
+        
+    </fragment>
+
+    <fragment
+        android:id="@+id/secondFragment"
+        android:name="com.xxx.SecondFragment"
+        android:label="fragment_second"
+        tools:layout="@layout/fragment_second"/>
+
+</navigation>
+```
+
+> `gradle` 插件 `'androidx.navigation.safeargs'` 会根据 `<argument>` 标签在 `app/generateJava` 目录下生成如下代码:
+>
+> ![](./images/navigation/13.png)
+> 
+> `XxxArgs` 类中包含了参数所对应的 `setter/getter` 方法。
+
+`step3`：使用根据 `<argument>` 标签在 `app/generateJava` 目录下生成 `XxxArgs` 类来传递参数：
+
+```java:no-line-numbers
+/* 传递参数 */
+Bundle bundle = new MainFragmentArgs.Builder()
+                                    .setUserName("Michael")
+                                    .setAge(30)
+                                    .build().toBundle();
+
+Navigation.findNavController(v).navigate(R.id.action_mainFragment_to_sencondFragment, bundle);
+```
+
+```java:no-line-numbers
+/* 接收参数 */
+Bundle bundle = getArguments();
+if (bundle != null) {
+    String userName = MainFragmentArgs.fromBundle(bundle).getUserName();
+    int age = MainFragmentArgs.fromBundle(bundle).getAge();
+}
+```
+
+> 通过 `safe args` 的 gradle 插件生成的 `XxxArgs` 类提供的 `setter/getter` 方法来传递参数，使得操作更友好、更直观、且更安全。
 
 ## 4. `NavigationUI` 的使用
 

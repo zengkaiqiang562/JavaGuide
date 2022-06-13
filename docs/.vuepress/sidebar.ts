@@ -38,6 +38,7 @@ export const sidebarConfig = defineSidebarConfig({
       prefix: "basic/",
       children: [
         "activity",
+        "fragment",
         "service",
         "broadcast",
         "contentprovider",
