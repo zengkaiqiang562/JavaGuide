@@ -150,7 +150,18 @@ export const sidebarConfig = defineSidebarConfig({
             "android-memory-optimize", // 内存优化
             "android-layout-optimize", // 布局优化
             "frame-okhttp", // OkHttp框架
-            "frame-rxjava", // RxJava框架
+            // "frame-rxjava", // RxJava框架
+            {
+              text: "RxJava框架",
+              collapsable: true,
+              prefix: "rxjava/",
+              children: [
+                "overview",
+                "operator",
+                "scheduler",
+                "backpressure",
+              ]
+            },
             "frame-retrofit", // Retrofit框架
             "frame-glide", // Glide框架
             "frame-eventbus", // EventBus框架
