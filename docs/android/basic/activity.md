@@ -210,7 +210,7 @@ flowchart LR
 android:configChanges="orientation|keyboardHidden|screenSize"
 ```
 
-#### 1.3.2 系统内存不足导致低优先级的 Activity 所在进程被杀死
+#### 1.3.2 系统内存不足导致低优先级的 `Activity` 所在进程被杀死
 
 这种情况我们不好模拟，但是其数据存储和恢复过程和 [`1.3.1`](#_1-3-1-资源相关的系统配置改变导致-activity-销毁重建-如横竖屏切换) 完全一致。
 
@@ -307,6 +307,370 @@ android:theme="@android:style/Theme.Dialog"
     ```
 
 ## 2. 启动模式
+
+### 2.1 为什么需要启动模式
+
+在默认的启动模式下，当我们多次启动同一个 `Activity` 时，系统会创建多个实例并把它们一一放入任务栈中。
+
+> 任务栈是一种后进先出的栈结构，每按一下 `back` 键就会有一个 `Activity` 出栈，直到栈空为止，当栈中无任何 `Activity` 的时候，系统就会回收这个任务栈。
+
+但有时候，在多次启动同一个 `Activity` 时，我们并不想让系统在每次启动时都创建一个新的 `Activity` 实例，而是可以根据情况选择复用已启动的 `Activity` 实例。为了满足这种需求，Android 系统提供了四种启动模式来改变系统的默认行为。
+
+### 2.2 四种启动模式
+
+#### 2.2.1 `standard`（标准模式）
+
+系统的默认模式。
+
+不管被启动的 `Activity` 实例是否已存在，每次启动 `Activity` 时都会重新创建一个新的实例。
+
+被创建的 `Activity` 实例的生命周期方法回调流程为：`onCreate -> onStart -> onResume`。
+
+`standard` 模式是一种典型的多实例实现，即：
+
+1. 一个任务栈中可以有多个实例；
+   
+2. 多个实例也可以属于不同的任务栈。
+
+#### 2.2.1.1 `standard` 模式启动的 `Activity` 默认进入当前 `Context` 的任务栈中
+
+`standard` 模式下启动的 `Activity`，默认存放在当前 `Context` 的任务栈。
+
+`Activity` 是一种具有任务栈的 `Context`，在 `Activity` 中采用 `standard` 模式启动另一个 `Activity` 时，被启动的 `Activity` 默认和启动它的当前 `Activity` 存放在同一个任务栈中。
+
+#### 2.2.1.2 `standard` 模式启动时 `Context` 无任务栈的解决方案
+
+除了 `Activity` 之外的其他 `Context` 都不具备任务栈（如：`Service`，`Application` 都不具备任务栈）。
+
+因此，当在 `Service` 或 `Application` 中采用 `standard` 模式启动 `Activity` 时，会抛出异常。
+
+此时，就不能采用 `standard` 模式来启动 `Activity` 了，而是通过给 `Intent` 指定 `FLAG_ACTIVITY_NEW_TASK` 标记位，采用 `singleTask` 模式来启动 `Activity`。
+
+#### 2.2.2 `singleTop`（栈顶复用模式）
+
+在这种模式下启动的 `Activity`：
+
+1. 如果 `Activity` 实例已位于任务栈的栈顶，那么此 `Activity` 不会被重新创建，不会回调 `onCreate -> onStart`。而是回调 `onNewIntent -> onResume`。其中，通过 `onNewIntent(Intent)` 方法的参数 `Intent` 我们可以取出启动时传递的参数。
+
+    ```:no-line-numbers
+    假设任务栈为： A-B-C-D，其中 D 位于栈顶，此时：
+    1. 如果以 singleTop 模式启动 D，则栈内情况为：A-B-C-D
+    2. 如果以 standard 模式启动 D，则栈内情况为： A-B-C-D-D
+    ```
+   
+2. 如果 `Activity` 实例已位于任务栈，但不在栈顶，那么为这个 `Activity` 重新创建一个实例并放入到栈顶。而之前已位于任务栈中的 `Activity` 实例原封不动。（此情况下，相当于 `standard` 模式）
+
+    ```:no-line-numbers
+    假设任务栈为： A-B-C-D，其中 D 位于栈顶，此时：
+    1. 如果以 singleTop 模式启动 A，则栈内情况为：A-B-C-D-A
+    2. 如果以 standard 模式启动 A，则栈内情况为： A-B-C-D-A
+    ```
+
+#### 2.2.3 `singleTask`（栈内复用模式）
+
+是一种单实例模式。
+
+在这种模式下启动的 `Activity`，只要 `Activity` 实例已位于任务栈中，不管在不在栈顶，此 `Activity` 都不会被重新创建，不会回调 `onCreate -> onStart`。而是回调 `onNewIntent -> onResume`。
+
+具体地说，当采用  `singleTask`  模式启动 `Activity` `D` 时，先查询 `D` 所需的任务栈是否存在：
+
+1. 如果不存在，那么创建一个 `D` 所需的任务栈，同时创建 `D` 的实例并放入到该任务栈中。
+
+    ```:no-line-numbers
+    假设任务栈 S1 为： A-B-C，其中 C 位于栈顶，
+    此时采用 singleTask 模式启动 D，且 D 所需的任务栈为 S2，
+    由于 S2 和 D 的实例都不存在，所以会先创建任务栈 S2，再创建 D 的实例并放入到任务栈 S2 中
+    最终任务栈的情况为：
+        S1：A-B-C
+        S2：D
+    ```
+   
+2. 如果存在，那么判断已存在的任务栈中是否保存有 `D` 的实例：
+   
+   1. 若已存在的任务栈中没有保存 `D` 的实例，则创建 `D` 的实例并放入到任务栈中；
+
+        ```:no-line-numbers
+        假设任务栈 S1 为： A-B-C，其中 C 位于栈顶，
+        此时采用 singleTask 模式启动 D，且 D 所需的任务栈为 S1，
+        由于 S1 存在，但 D 的实例不存在，所以创建 D 的实例并放入到任务栈 S1 中
+        最终任务栈的情况为：
+            S1：A-B-C-D
+        ```
+   
+   2. 若已存在的任务栈中保存有 `D` 的实例，则不会再创建 `D` 的实例，而是将 `D` 移到栈顶（为了将 `D` 移到栈顶，会将 `D` 上面的其他 `Activity` 都移出任务栈，即 `clearTop`），并回调 `D` 的 `onNewIntent -> onResume` 方法。
+
+        ```:no-line-numbers
+        假设任务栈 S1 为： A-B-C-D-E-F，其中 F 位于栈顶，
+        此时采用 singleTask 模式启动 D，且 D 所需的任务栈为 S1，
+        由于 S1 存在，且 D 的实例也存在，所以将 D 移到 S1 的栈顶，同时将 D 上面的其他 Activity 从 S1 中移除
+        最终任务栈的情况为：
+            S1：A-B-C-D
+        ```
+
+#### 2.2.4 `singleInstance`（单实例模式）
+
+采用 `singleInstance` 模式启动的 `Activity` 独自位于一个任务栈中，即：
+
+1. 若 `Activity` 所需的任务栈不存在，则先创建任务栈，再创建 `Activity` 实例并放入到栈中；
+   
+2. 若 `Activity` 所需的任务栈存在，由于该任务栈只能用来存放此 `Activity` 的实例，所以任务栈存在，则说明 `Activity` 实例存在，因此不会创建 `Activity` 实例，而是回调此 `Activity` 的 `onNewIntent -> onResume` 方法。
+
+注意：当在 `singleInstance` 模式启动的 `Activity` `A` 中，以 `standard` 模式去启动 `Activity` `B` 时，虽然 `standard` 模式下 `B` 默认应该与 `A` 在同一个任务栈中，但由于 `A` 所在的任务栈只能存放一个 `A` 实例，所以此时会将 `B` 放入到一个新创建的任务栈中。
+
+### 2.3 给 Activity 指定启动模式的两种方式
+
+#### 2.3.1 在 `AndroidManifest.xml` 中通过 `android:launchMode` 属性指定
+
+```xml:no-line-numbers
+<activity
+    ...
+    android:launchMode=["standard" | "singleTop" | "singleTask" | "singleInstance"]
+    .../>
+```
+
+#### 2.3.2 在代码中通过给 `Intent` 设置的标志位指定
+
+```java:no-line-numbers
+Intent intent = new Intent();
+intent.setClass(MainActivity.this, SecondActivity.class);
+/*
+    FLAG_ACTIVITY_SINGLE_TOP：singleTop 模式
+    FLAG_ACTIVITY_NEW_TASK：singleTask 模式
+
+    注意：此方式无法指定为 singleInstance 模式
+*/
+intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+startActivity(intent);
+```
+
+### 2.4 `Activity` 的任务栈 & `taskAffinity` 属性
+
+任务栈分为前台任务栈和后台任务栈，后台任务栈中的 `Activity` 位于暂停状态，用户可以通过切换将后台任务栈再次调到前台。如：
+
+```:no-line-numbers
+假设任务栈 S1：A-B-C，C 位于栈顶。
+当屏幕上显示 C 时，S1 是前台任务栈。
+当在 C 中采用 singleTask 模式启动 D 时，假设 D 所需的任务栈为 S2。
+于是先创建 S2，再创建 D 实例并放入到 S2 中。
+D 启动并显示时，任务栈 S2 成为 前台任务栈，任务栈 S1 则切换成后台任务栈。
+```
+
+`taskAffinity` 可以翻译为任务相关性。`taskAffinity` 属性用于指定 `Activity` 所需任务栈的名字。
+
+默认情况下，所有 `Activity` 所需任务栈的名字都为应用的包名。
+
+> 也就是说，在没有使用 `taskAffinity` 属性为 `Activity` 指定任务栈时，除了 `singleInstance` 模式之外，`standard`、`singleTop`、`singleTask` 这三种模式下启动的 `Activity` 都只可能位于同一个任务栈中，且任务栈名 = 包名。
+
+注意：
+
+1. `taskAffinity` 属性的值为字符串，且中间必须含有包名分隔符 "`.`"
+
+2. 当通过 `taskAffinity` 属性为 `Activity` 单独指定包名时，属性值不能和包名相同，否则就相当于没有指定。
+
+3. `taskAffinity` 属性主要和 `singleTask` 启动模式或者 `allowTaskReparenting` 属性配对使用，在其他情况下没有意义。
+
+#### 2.4.1 `taskAffinity` 属性 & `singleTask` 模式结合使用
+
+指定采用 `singleTask` 模式启动的 `Activity` 所需的任务栈的名字。从而可以让 `Activity` 运行在一个名称不同于包名的任务栈中。
+
+#### 2.4.2 `taskAffinity` 属性 & `allowTaskReparenting` 属性结合使用
+
+在 `Activity` `A` 中使用 `standard` 或 `singleTop` 模式启动 `Activity` `B` 时，`B` 会放入 `A` 所在的任务栈 `S1` 中，且在 `B` 的生命周期内一直存在于这个任务栈 `S1` 中。
+
+但是，如果通过 `taskAffinity` 属性为 `B` 指定了一个不同于 `A` 的任务栈 `S2`，那么根据 `allowTaskReparenting` 属性，在 `B` 的生命周期内，`B` 所在的任务栈会有如下变化：
+
+1. 如果 `allowTaskReparenting` 属性为 `false`（默认值），那么 `B` 的生命周期内一直存在于任务栈 `S1` 中，不会发生变化。
+
+2. 如果 `allowTaskReparenting` 属性为 `true`，那么启动 `B` 时，`B` 仍然位于 `S1` 中。但是，当把 `S1` 切换成后台任务栈，把 `S2` 切换成前台任务栈时，`B` 所在的任务栈会从 `S1` 转移至 `S2`，此时在 `S2` 作为前台任务栈时显示的就是 B。而当 `S1` 再次切换成前台任务栈时，就不会再显示 `B` 了。
+
+    ```:no-line-numbers
+    比如，电子邮件 App 中显示邮件内容的 Activity A 中包含网页链接，点击该链接会启动可显示该网页的 Activity B。
+    而 B 应该是在浏览器 App 中定义的，即 A 和 B 属于不同的 App。
+    于是，A 和 B 所需的任务栈不同（任务栈名为各自所在 App 的包名，设 A 所需任务栈为 S1，B 所需任务栈为 S2）。
+    假设为 B 设置了 allowTaskReparenting 属性为 true，那么 B 所在的任务栈的变化过程为：
+    1. 在 A 中点击网页链接显示 B 时，B 位于 A 所在的任务栈 S1 的栈顶
+    2. 按 HOME 键回到桌面，S1 切换成后台任务栈
+    3. 点击浏览器 App 的桌面图标，于是创建了任务栈 S2，且任务栈 S2 切换成前台任务栈，
+       此时 S1 中的 B 就会转移至 S2 的栈顶，从而将 B 显示出来。（注意：此时就不会启动浏览器 App 的主 Activity 了）
+    4. 当再次进入电子邮件 App 时，S1 切换成前台任务栈，但此时 B 已从 S1 中移除，所以不会再显示 B 了。
+    ```
+
+### 2.5 示例
+
+#### 2.5.1 示例 1：查看 `Activity` 任务栈 & `dumpsys` 命令
+
+```xml:no-line-numbers
+<activity
+    android:name="com.ryg.chapter_1.MainActivity"
+    android:configChanges="orientation|screenSize"
+    android:label="@string/app_name"
+    android:launchMode="standard" >
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+</activity>
+```
+
+```java:no-line-numbers
+public class MainActivity extends Activity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        findViewById(R.id.button1).setOnClickListener(v -> {
+            Intent intent = new Intent();
+            intent.setClass(MainActivity.this, MainActivity.class);
+            intent.putExtra("time", System.currentTimeMillis());
+            startActivity(intent);
+        });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.d(TAG,"onNewIntent, time=" + intent.getLongExtra("time", 0));
+    }
+}
+```
+
+`MainActivity` 指定为 `standard` 模式，此时，连续点击三次按钮启动 `3` 次 `MainActivity`。算上原本的 `MainActvity` 实例，任务栈中应该有 `4` 个 `MainActivity` 的实例，执行 `adb shell dumpsys activity` 命令的日志如下：
+
+```log:no-line-numbers
+...
+Running activities (most recent first):
+     TaskRecord{41325370 #17 A com.ryg.chapter_1} # 包名为 com.ryg.chapter_1 的 App 的主任务栈
+       Run #4: ActivityRecord{41236968 com.ryg.chapter_1/.MainActivity}
+       Run #3: ActivityRecord{411f4b30 com.ryg.chapter_1/.MainActivity}
+       Run #2: ActivityRecord{411edcb8 com.ryg.chapter_1/.MainActivity}
+       Run #1: ActivityRecord{411e7588 com.ryg.chapter_1/.MainActivity}
+     TaskRecord{4125abc8 #2 A com.android.launcher} # 包名为 com.android.launcher 的桌面 App 的主任务栈
+       Run #0: ActivityRecord{412381f8 com.android.launcher/com.android.
+       launcher2.Launcher}
+...
+```
+
+> 可以看出，在名称为 `com.ryg.chapter_1` 的任务栈中，一共有 `4` 个 `MainActivity` 实例。
+
+将 `MainActivity` 指定为 `singleTask` 模式，此时，连续点击三次按钮启动 `3` 次 `MainActivity`。执行 `adb shell dumpsys activity` 命令的日志如下：
+
+```log:no-line-numbers
+Running activities (most recent first):
+     TaskRecord{41350dc8 #9 A com.ryg.chapter_1}
+       Run #1: ActivityRecord{412cc188 com.ryg.chapter_1/.MainActivity}
+     TaskRecord{4125abc8 #2 A com.android.launcher}
+       Run #0: ActivityRecord{412381f8 com.android.launcher/com.android.
+       launcher2.Launcher}
+```
+
+> 可以看出，采用 `singleTask` 时，在名称为 `com.ryg.chapter_1` 的任务栈中，一共只有 `1` 个 `MainActivity` 实例。
+> 
+> 查看 `logcat` 日志发现，`3` 次点击按钮启动 `MainActivity` 时，都回调了 `onNewIntent` 方法。
+> 
+> ![](./images/activity/02.png)
+
+
+#### 2.5.2 示例 2：`singleTop` 模式具有 `clearTop` 的效果
+
+```xml:no-line-numbers
+<activity
+    android:name="com.ryg.chapter_1.MainActivity"
+    android:configChanges="orientation|screenSize"
+    android:label="@string/app_name"
+    android:launchMode="standard" >
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+</activity>
+
+<activity
+    android:name="com.ryg.chapter_1.SecondActivity"
+    android:configChanges="screenLayout"
+    android:label="@string/app_name"
+    android:taskAffinity="com.ryg.task1"
+    android:launchMode="singleTask" />
+
+<activity
+    android:name="com.ryg.chapter_1.ThirdActivity"
+    android:configChanges="screenLayout"
+    android:taskAffinity="com.ryg.task1"
+    android:label="@string/app_name"
+    android:launchMode="singleTask" />
+```
+
+操作步骤为：
+
+1. 在 `MainActivity` 中单击按钮启动 `SecondActivity`
+   
+2. 在 `SecondActivity` 中单击按钮启动 `ThirdActivity`
+   
+3. 在 `ThirdActivity` 中单击按钮又启动 `MainActivity`
+   
+4. 再在 `MainActivity` 中单击按钮启动 `SecondActivity`
+   
+5. 按返回键
+   
+6. 再按返回键
+
+执行完第 `3` 步时，通过 `adb shell dumpsys activity` 命令打印日志如下：
+
+```log::no-line-numbers
+Running activities (most recent first):
+    TaskRecord{4132bd90 #12 A com.ryg.task1}
+       Run #4: ActivityRecord{4133fd18 com.ryg.chapter_1/.MainActivity}
+       Run #3: ActivityRecord{41349c58 com.ryg.chapter_1/.ThirdActivity}
+       Run #2: ActivityRecord{4132bab0 com.ryg.chapter_1/.SecondActivity}
+    TaskRecord{4125a008 #11 A com.ryg.chapter_1}
+       Run #1: ActivityRecord{41328c60 com.ryg.chapter_1/.MainActivity}
+    TaskRecord{41256440 #2 A com.android.launcher}
+       Run #0: ActivityRecord{41231d30 com.android.launcher/com.android.launcher2.Launcher}
+```
+
+> 分析：
+> 
+> 1. `MainActivity` 作为主 `Activity`，且没有通过 `taskAffinity` 属性指定任务栈，所以 `App` 启动时，先启动 `MainActivity`，并放入到任务栈 `com.ryg.chapter_1` 中；
+> 
+> 2. `MainActivity` 中启动 `SecondActivity` 时，由于 `SecondActivity` 的启动模式为 `singleTask`，且通过 `taskAffinity` 属性指定任务栈为 `com.ryg.task1`，所以先创建任务栈 `com.ryg.task1`，再创建 `SecondActivity` 实例，并将 `SecondActivity` 实例放入任务栈 `com.ryg.task1` 中；
+> 
+> 3. `SecondActivity` 中启动 `ThirdActivity` 时，由于 `ThirdActivity` 的启动模式为 `singleTask`，且通过 `taskAffinity` 属性指定任务栈为 `com.ryg.task1`，即和 `SecondActivity` 在同一个任务栈中，此时任务栈 `com.ryg.task1` 中不存在 `ThirdActivity` 实例，所以创建 `ThirdActivity` 实例并放入任务栈 `com.ryg.task1` 中；
+> 
+> 4. `ThirdActivity` 中启动 `MainActivity` 时，由于 `MainActivity` 的启动模式为 `standard`，所以新创建 `MainActivity` 实例并放入到任务栈 `com.ryg.task1` 中。（注意：此时存在了两个位于不同任务栈的 `MainActivity` 实例了）>
+
+执行完第 `4` 步时，通过 `adb shell dumpsys activity` 命令打印日志如下：
+
+```log::no-line-numbers
+Running activities (most recent first):
+    TaskRecord{4132bd90 #12 A com.ryg.task1}
+       Run #2: ActivityRecord{4132bab0 com.ryg.chapter_1/.SecondActivity}
+    TaskRecord{4125a008 #11 A com.ryg.chapter_1}
+       Run #1: ActivityRecord{41328c60 com.ryg.chapter_1/.MainActivity}
+    TaskRecord{41256440 #2 A com.android.launcher}
+       Run #0: ActivityRecord{41231d30 com.android.launcher/com.android.launcher2.Launcher}
+```
+
+> 分析：
+> 
+> 1. 在位于任务栈 `com.ryg.task1` 中的 `MainActivity` 中启动 `SecondActivity` 时，由于任务栈 `com.ryg.task1` 中已经存在了 `SecondActivity` 实例，所以不会再创建 `SecondActivity` 实例了，而是将已存在于此任务栈中的 `SecondActivity` 实例移动到栈顶，同时将 `SecondActivity` 实例之上的其他 `Activity` 全部从此任务栈中移出。
+
+执行第 `5` 步时，前台任务栈为 `com.ryg.task1`，且此任务栈中只有一个 `SecondActivity` 实例了，所以按下返回键后，`SecondActivity` 从任务栈 `com.ryg.task1` 中移除，任务栈 `com.ryg.task1` 变成空栈。于是，将任务栈 `com.ryg.chapter_1` 切换成前台任务栈，显示出该任务栈中的 `MainActivity`。
+
+执行第 `6` 步时，`App` 中只存在一个任务栈 `com.ryg.chapter_1` 了，且该任务栈中只存在一个 `MainActivity` 实例，所以按下返回键后，`MainActivity` 实例从该任务栈中移除，任务栈 `com.ryg.chapter_1` 变成空栈。于是，`App` 没有可以显示的 `Activity` 了，从而退出到桌面。
+
+### 2.6 启动模式的使用场景
+
+### 2.7 `Activity` 的 `Flags`
+
+#### 2.7.1  设置 `Activity` 启动模式的 `Flags`
+
+##### 2.7.1.1 `FLAG_ACTIVITY_NEW_TASK`
+
+##### 2.7.1.2 `FLAG_ACTIVITY_SINGLE_TOP`
+
+#### 2.7.2  影响 `Activity` 运行状态的 `Flags`
+
+##### 2.7.2.1 `FLAG_ACTIVITY_CLEAR_TOP`
+
+##### 2.7.2.2 `FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS`
 
 ## 3. 数据
 
