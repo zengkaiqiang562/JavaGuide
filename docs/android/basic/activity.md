@@ -764,7 +764,7 @@ Running activities (most recent first):
 
 #### 5.2.3 服务进程（`Service Process`）
 
-服务进程是通过 `startService()` 方法启动的进程，但不属于前台进程和可见进程。
+如果 `App` 界面对用户不可见，但存在一个通过 `startService` 方法启动的 `Service` 组件在后台运行，那么该 `App` 进程就是服务进程。
 
 例如，在后台播放音乐或者在后台下载就是服务进程。
 
