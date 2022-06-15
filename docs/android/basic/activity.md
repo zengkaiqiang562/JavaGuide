@@ -1,12 +1,14 @@
 ---
-title: Activity（TODO）
+title: Activity
 category: 
   - android-基础
 tag:
   - android-基础
 ---
 
-[Activity 的 36 大难点，你会几个？「建议收藏」](https://blog.csdn.net/qq_43377749/article/details/102728995)
+参考：[Activity 的 36 大难点，你会几个？「建议收藏」](https://blog.csdn.net/qq_43377749/article/details/102728995)
+
+参考：《`Android` 开发艺术探索》 第 `1` 章（`Activity` 的生命周期和启动模式）
 
 ## 1. 生命周期
 
@@ -115,6 +117,8 @@ onPause -> onStop -> onDestroy
 
 #### 1.3.1 资源相关的系统配置改变导致 `Activity` 销毁重建（如横竖屏切换）
 
+##### 1.3.1.1 `onSaveInstanceState` & `onRestoreInstanceState`
+
 当 `Activity` 从竖屏切换到横屏时，系统配置发生了改变，此时需要去加载适配横屏的资源目录中的图片。默认情况下，`Activity` 就会被销毁并且重新创建，其生命周期如下：
 
 ```mermaid
@@ -154,7 +158,7 @@ flowchart LR
 
 4. `onRestoreInstanceState` 的调用时机在 `onStart` 之后，`onResume` 之前。
 
-#####  1.3.1.1 `View` 层次结构的保存与恢复 & 委托思想
+#####  1.3.1.2 `View` 层次结构的保存与恢复 & 委托思想
 
 在 `onSaveInstanceState` 和 `onRestoreInstanceState` 方法中，系统自动为我们做了一定的恢复工作。
 
@@ -178,7 +182,7 @@ flowchart LR
 
 > 这种思想在 `Android` 中有很多应用，比如 `View` 的绘制过程、事件分发等都是采用类似的思想。
 
-#####  1.3.1.2 横竖屏切换时阻止 `Activity` 的销毁重建 & `configChanges` 属性
+#####  1.3.1.3 横竖屏切换时阻止 `Activity` 的销毁重建 & `configChanges` 属性
 
 当资源相关的系统配置发生改变时，系统默认的处理方式是将 `Activity` 销毁重建。
 
@@ -658,22 +662,122 @@ Running activities (most recent first):
 
 ### 2.6 启动模式的使用场景
 
+`standard` 模式是最普通的一种，没有什么特别注意。
+
+`singleInstance` 模式是整个系统的单例模式，在我们的应用中一般不会应用到。
+
+`singleTask` 最典型的使用场景就是 App 的主页 `Activity`。
+
+> 在同一个 `App` 中，不考虑使用 `taskAffinity` 属性指定其他任务栈的情况下，所有的 `Activity` 都存放在同一个任务栈中（即 `App` 的主任务栈，栈名 = 包名）。此时，采用 `singleTask` 模式启动的 `Activity` 在整个 `App` 中就只有唯一的实例。
+> 
+> 采用 `singleTask` 模式启动主页 `Activity` 的好处除了使主页 `Activity` 实例全局唯一之外，还可以通过 `singleTask` 模式自带的 `clearTop` 效果，使得当再次回到主页 `Activity` 时，同一栈内的其它 `Activity` 都被移除掉。于是，只要回到主页 `Activity`，那么按下 `back` 键时就会退出 `App`。
+> 
+> 注意：主页 `Activity` 是第一个显示的 `Activity`，当采用 `singleTask` 模式，且 `App` 中只有一个任务栈时，主页 `Activity` 要么在栈顶，要么在栈底。
+
+`singleTop` 模式可用于在当前 `Activity` 中再次启动当前的 `Activity`。此场景下使用 `singleTop` 模式可以避免 `Activity` 的重复创建。
+
+> 如点击按钮启动 `Activity` 时，如果多次快速地重复点击此按钮，就会多次重复地启动 `Activity`，此时若采用 `standard` 模式启动，任务栈中就会存在多个连续重复的 `Activity` 实例，那么当按返回键时，会重复显示这个 `Activity`。
+> 
+> 此时，采用 `singleTop` 模式可解决此情况下重复创建 `Activity` 的问题。（这里只是说明 `singleTop` 模式的使用场景，实际开发中应该尽量避免多次点击按钮的情况）
+
 ### 2.7 `Activity` 的 `Flags`
 
 #### 2.7.1  设置 `Activity` 启动模式的 `Flags`
 
 ##### 2.7.1.1 `FLAG_ACTIVITY_NEW_TASK`
 
+为Activity指定“singleTask”启动模式，其效果和在XML中指定该启动模式相同
+
 ##### 2.7.1.2 `FLAG_ACTIVITY_SINGLE_TOP`
+
+为Activity指定“singleTop”启动模式，其效果和在XML中指定该启动模式相同。
 
 #### 2.7.2  影响 `Activity` 运行状态的 `Flags`
 
 ##### 2.7.2.1 `FLAG_ACTIVITY_CLEAR_TOP`
 
+具有此标记位的 `Activity` 启动时，若任务栈中已存在此 `Activity` 实例，那么任务栈中此 `Activity` 实例之上的所有 `Activity` 都要出栈，即：清除此 `Activity` 顶部的所有 `Activity`。
+
+注意：
+
+1. `singleTask` 模式默认具有此标记位的效果。
+
+2. 当 `standard` 模式启动的 `Activity` 设置此标记位时，若任务栈中已存在此 `Activity` 实例，那么连同这个已存在的 `Activity` 实例以及其顶部的所有 `Activity` 实例都要出栈，然后新创建此 `Activity` 实例并放入栈中。
+
 ##### 2.7.2.2 `FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS`
+
+具有这个标记的 `Activity` 不会出现在历史 `Activity` 的列表中。
+
+> 当某些情况下我们不希望用户通过历史列表回到我们的 `Activity` 时使用此标记。
+> 
+> 此标记位等同于在 `XML` 中指定 `Activity` 的属性 `android:excludeFromRecents="true"`。
+
+### 2.8 `onNewIntent` 方法什么时候执行 
+
+只有当以 `singleTop`、`singleTask`、或 `singleInstance` 这三种模式启动 `Activity` 时， `onNewIntent` 方法才会被调用。具体为：
+
+1. 当以 `singleTop` 模式启动 `Activity` 时，若 `Activity` 所需任务栈的栈顶已存在此 `Activity` 实例，则执行 `onNewIntent`；
+
+2. 当以 `singleTask` 模式启动 `Activity` 时，若 `Activity` 所需任务栈中已存在此 `Activity` 实例，则执行 onNewIntent；
+
+3. 当以 `singleInstance` 模式启动 `Activity` 时，若 `Activity` 所需任务栈存在，则执行 `onNewIntent`；
 
 ## 3. 数据
 
+### 3.1 `Intent` 传递数据太大，报 `TransactionTooLargeException` 异常
+
+`Intent` 在传递数据时是有大小限制的：数据应该被限制在 `1MB` 之内（`1024KB`）
+
 ## 4. `Context`
 
+### 4.1 `Context` 的继承关系
+
+![](./images/activity/03.png)
+
 ## 5. 进程
+
+### 5.1 进程优先级
+
+```:no-line-numbers
+前台进程 > 可见进程 > 服务进程 > 后台进程 > 空进程
+```
+
+### 5.2 进程分类
+
+#### 5.2.1 前台进程（`Foreground Process`）
+
+以下任一条件成立，则进程会被认为位于前台：
+
+1. 进程中运行的 `Activity` 正在与用户进行交互（此时，`Activity` 的 `onResume` 方法已被调用）。
+
+2. 组件正在执行生命周期的回调（如：`onCreate`、`onStart`、`onDestory`）
+
+3. 被主动调用为前台 `Service`（`startForeground()`）
+
+4. `BroadcastReceiver` 正在执行 `onReceive()`
+
+#### 5.2.2 可见进程（`Visible Process`）
+
+可见进程指部分程序界面能够被用户看见，却不在前台与用户交互的进程。
+
+例如，我们在一个 `App` 的界面上弹出另一个 `App` 的对话框主题的 `Activity`，那么在对话框后面的原 `App` 的界面是可见的，但是并没有与用户进行交互，那么原 `App` 进程就是可见进程。
+
+#### 5.2.3 服务进程（`Service Process`）
+
+服务进程是通过 `startService()` 方法启动的进程，但不属于前台进程和可见进程。
+
+例如，在后台播放音乐或者在后台下载就是服务进程。
+
+#### 5.2.4 后台进程（`Background Process`）
+
+当 `App` 中运行的 `Activity` 对用户不可见（已调用了 `Activity` 的 `onStop` 方法）时，App 所在的进程就是后台进程。
+
+后台进程不会直接影响用户体验，所以当内存不足时，会优先杀死后台进程以空出内存给前台、可见、服务进程使用。
+
+一般地，会有很多后台进程同时运行着，因此，系统将所有的后台进程保存在一个实现了 `LRU`（`least recently used`）算法的容器中，以确保最近最少使用的后台进程先被杀死。
+
+#### 5.2.5 空进程（`Empty Process`）
+
+若 `App` 中没有组件正在运行，则 `App` 进程是一个空进程。
+
+空进程存在的意思在于：作为一个 `cache` 以提高下次启动组件的速度。
