@@ -65,9 +65,36 @@ public final boolean stopSelfResult(int startId)
 绑定状态下的 `Service` 组件，才可以与其他组件进行数据交互。
 
 ```java:no-line-numbers
+/* Context.java */
 public abstract boolean bindService(Intent service, ServiceConnection conn, int flags);
 
 public abstract void unbindService(ServiceConnection conn);
+```
+
+```java:no-line-numbers
+/* Service.java */
+public abstract IBinder onBind(Intent intent);
+```
+
+```java:no-line-numbers
+/* ServiceConnection.java */
+public interface ServiceConnection {
+    /*
+        参数 IBinder 的实参来源于 Service 中重写的 onBind 方法的返回值。
+        通常会在 Service 中自定义一个继承自 Binder 的内部类（Binder 实现了 IBinder 接口），
+        onBind 方法中创建此内部类的实例并返回。
+        于是，其他组件通过此继承自 Binder 的内部类与 Service 组件进行数据交互。
+        注意：在跨进程通信（IPC）中，onBind 方法返回的 IBinder 与 onServiceConnected 方法接收到的 IBinder 不是同一个对象。
+
+        实际开发中，我们会将用于数据交互的内部类方法定义在一个接口中（如 IService.java），
+        让内部类除了继承 Binder 之外，再实现 IService 接口，重写用于数据交互的接口方法。
+        于是，再将 onServiceConnected 方法接收到的 IBinder 实例（即内部类对象）强转成 IService 接口。
+        这样做的好处是避免将内部类的其它方法暴露出去，Service 组件仅对外提供所需的 API 方法。
+    */
+    void onServiceConnected(ComponentName name, IBinder service);
+
+    void onServiceDisconnected(ComponentName name);
+}
 ```
 
 ### 2.3 启动状态下的生命周期 & 绑定状态下的生命周期

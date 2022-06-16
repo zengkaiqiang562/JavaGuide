@@ -142,6 +142,7 @@ export const sidebarConfig = defineSidebarConfig({
                 "Factory-Pattern",
                 "Builder-Pattern",
                 "Facade-Pattern",
+                "Observer-Pattern",
               ]
             },
             "android-custom-view", // 自定义View
