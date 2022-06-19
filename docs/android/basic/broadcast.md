@@ -1,5 +1,5 @@
 ---
-title: BroadcastReceiver（TODO）
+title: BroadcastReceiver
 category: 
   - android-基础
 tag:
@@ -439,11 +439,11 @@ public abstract void sendStickyBroadcast(@RequiresPermission Intent intent);
 
 广播默认就是全局广播，即上面介绍的无序广播，有序广播，粘性广播都属于全局广播。
 
-全局广播就是可以在不同的进程之间（不管是 `App` 进程还是系统服务进程）进行数据交互的广播。
+全局广播就是可以在不同的进程之间（不管是 `App` 进程还是系统服务进程）进行广播的发送和接收（即进行数据交互）。
 
 #### 3.2.2 本地广播（局部广播）
 
-本地广播就是只能在同一个进程的组件与组件之间进行数据交互的广播。
+本地广播就是只能在同一个进程的组件与组件之间进行广播的发送和接收（即进行数据交互）。
 
 > 这里所指的组件可以是系统组件，也可以是普通组件。
 > 
@@ -451,30 +451,264 @@ public abstract void sendStickyBroadcast(@RequiresPermission Intent intent);
 > 
 > 普通组件指的是：为了让代码更容易管理和维护，我们通常会将代码按照功能或作用封装成组件。（也可以称之为自定义组件）
 
-本地广播的发送通过 `LocalBroadcastManager` 来发送。（而不是通过 `Context` 发送）
-
-接收本地广播的广播接收者也必须通过 `LocalBroadcastManager` 来注册/注销。（而不是通过 `Context` 注册/注销）
-
 ##### 3.2.2.1 本地广播的出现背景：广播的安全性问题
 
-##### 3.2.2.2 `LocalBroadcastManager`
+`BroadcastReceiver` 设计的初衷是用于在进程之间进行数据交互的。但是，可能会出现安全性问题，如：恶意进程不断地发送其他 `App` 进程可以接收的广播。
+
+对于仅在进程内部进行数据交互的需求，同时为了避免恶意进程的干扰，`Android` 提供了 `LocalBroadcastManager` 来发送仅在同一进程中才可以接收到的广播。
 
 ##### 3.2.2.3 本地广播的特点（好处）
 
+相比与全局广播，本地广播具体如下特点：
+
+1. 因为广播数据仅在进程中传播，所以不用担心广播数据泄露的问题。
+
+2. 对于仅注册为只监听本地广播的接收者，不用担心会接收到其它进程所发出的全局广播（即不用担心接收到其它恶意进程发出的伪造广播，而造成安全隐患）。
+
+    > 如果一个广播接收者不仅注册为可监听本地广播，还注册为可监听全局广播，那么该广播接收者还是有可能接收到其它恶意进程发出的伪造广播，而造成安全隐患。
+
+3. 相比于全局广播而已，本地广播不涉及进程间通信，所以本地广播更高效。
+
+4. 注意：没有为本地广播中的广播接收者提供静态注册的方式。
+
+##### 3.2.2.2 本地广播的使用：`LocalBroadcastManager`
+
+相比与全局广播的使用，本地广播只是在发送广播、以及注册/注销广播接收者时的方式不同：
+
+1. 本地广播的发送通过 `LocalBroadcastManager` 来发送。（而不是通过 `Context` 发送）
+
+2. 接收本地广播的广播接收者也必须通过 `LocalBroadcastManager` 来注册/注销。（而不是通过 `Context` 注册/注销）
+
+> 本地广播的接收过程和全局广播一样，都是通过回调 `BroadcastReceiver.onReceive(Context, Intent)` 方法实现的。
+> 
+> 另外，本地广播中不存在发送本地的有序广播或发送本地的黏性广播。
+
+```java:no-line-numbers
+/* LocalBroadcastManager.java */
+/*
+    LocalBroadcastManager 采用了单例设计模式
+*/
+static LocalBroadcastManager getInstance(Context context)
+```
+
+```java:no-line-numbers
+/* LocalBroadcastManager.java */
+/*
+    广播接收者总是在 App 进程的主线程中回调 onReceive 方法接收广播。
+*/
+boolean sendBroadcast(Intent intent)
+
+/*
+   广播接收者回调 onReceive 方法接收广播时所在的线程，与调用 sendBroadcastSync 方法发送广播时所在的线程相同。
+*/
+void sendBroadcastSync(Intent intent)
+```
+
+```java:no-line-numbers
+/* LocalBroadcastManager.java */
+/*
+    将参数 receiver 注册为本地广播的接收者，
+    receiver 可接收的本地广播通过参数 filter.addAction(String) 声明。
+*/
+void registerReceiver(BroadcastReceiver receiver, IntentFilter filter)
+
+/*
+    注销参数 receiver，不再让其接收本地广播。
+*/
+void unregisterReceiver(BroadcastReceiver receiver)
+```
+
+注意：
+
+1. 通过 `LocalBroadcastManager.sendBroadcast` 发送的本地广播，只有通过 `LocalBroadcastManager.registerReceiver` 注册了的广播接收者才能接收到。
+
+2. 一个广播接收者实例既可以注册为本地广播的接收者，也可以同时注册为全局广播的接收者。此时，该广播接收者实例的 `onReceive` 方法回调时，既可能表示收到本地广播，也可能表示收到全局广播。
+
+3. 本地广播的发送/接收过程，本地广播的接收者的注册/注销过程都在 `LocalBroadcastManager` 类中实现。`LocalBroadcastManager` 的实现并不存在 `App` 进程与 `AMS` 进程之间的通信。只存在同一个 `App` 进程中的多线程间通信。
+
 ### 3.3 系统广播
 
-## 4. `BroadcastReceiver` 在主线程中执行
+`Android` 系统内置了多个广播。其中，只要涉及手机的基本操作，基本上都会发出相应的系统广播，如：开机启动、网络状态改变、拍照、屏幕关闭与开启、电量不足等。
 
-## 5. 通过权限限制广播的接收
+当系统的某些状态改变，或者触发了系统中的某些操作时，系统内部就会发出相应的系统广播。
+
+常见的系统广播有：
+
+```java:no-line-numbers
+/* Telephone.java */
+/*
+    手机接收到短信时的广播
+*/
+public static final String SMS_RECEIVED_ACTION = "android.provider.Telephony.SMS_RECEIVED";
+```
+
+```java:no-line-numbers
+/* Intent.java */
+/*
+    电量过低时的广播
+*/
+public static final String ACTION_BATTERY_LOW = "android.intent.action.BATTERY_LOW";
+
+/*
+    电量发生改变时的广播
+    （粘性广播）
+*/
+public static final String ACTION_BATTERY_CHANGED = "android.intent.action.BATTERY_CHANGED";
+
+/*
+    手机连接上外部电源时的广播
+*/
+public static final String ACTION_POWER_CONNECTED = "android.intent.action.ACTION_POWER_CONNECTED";
+```
+
+> 更多的系统广播可参考` Intent.java` 文件中定义的相关静态成员变量
+
+## 4. `BroadcastReceiver` 在主线程中执行 & `BroadcastReceiver` 的生命周期很短
+
+一般情况下，`BroadcastReceiver` 的 `onReceive` 方法在主线程中执行。所以 `onReceive` 方法执行时不能做耗时操作。
+
+> 在子线程中调用 `LocalBroadcastManager.sendBroadcastSync(Intent)` 方法发送本地广播时，接收此广播的 `BroadcastReceiver` 的 `onReceive` 方法与 `sendBroadcastSync` 方法在同一子线程中执行。
+
+另外，如果 `App` 进程中只有一个 `BroadcastReceiver` 组件正在执行 `onReceive` 方法处理接收到的广播，那么当 `onReceive` 方法执行完毕后，`BroadcastReceiver` 组件马上就会被销毁，于是，由于 `App` 进程中无组件运行，所以 `App` 进程会成为空进程。而空进程是容易被系统杀死的。由此可知：
+
+```:no-line-numbers
+对于只有一个 BroadcastReceiver 组件正在运行的 App 进程，
+不要在 onReceive 方法中通过开启子线程来处理比较重要的线程任务。
+因为在 onReceive 方法执行完毕，BroadcastReceiver 被销毁后，App 进程会变成空进程，
+此时，即使空进程中的线程任务仍然在执行，这个空进程也是会很容易被系统杀死的。
+```
+
+## 5. 通过权限限制广播的接收，增加广播的安全性
+
+对于仅在同一进程中的数据交互，可以使用本地广播将数据交互限制在一个进程中，不需要考虑其他恶意进程所造成的安全性问题。
+
+但对于多个进程之间的数据交互，则必须使用全局广播，于是就有可能因其他恶意进程而产生安全性问题。此时，为了在全局广播中避免安全性问题，可以考虑通过在发送广播、或者注册广播接收者时声明权限来限制哪些进程可以参与广播的发送/接收过程。
 
 ### 5.1 发送广播时携带权限
 
+```java:no-line-numbers
+/* Context.java */
+public abstract void sendBroadcast(Intent intent, String receiverPermission);
+
+public abstract void sendOrderedBroadcast(Intent intent, String receiverPermission);
+
+public abstract void sendOrderedBroadcast(
+            Intent intent,
+            String receiverPermission, 
+            BroadcastReceiver resultReceiver,
+            Handler scheduler, 
+            int initialCode, 
+            String initialData,
+            Bundle initialExtras);
+```
+
+在发送广播的 `App` 进程中，调用 `sendBroadcast`/`sendOrderedBroadcast` 向接收广播的 `App` 进程发送广播时，可以通过参数 `receiverPermission` 指定接收广播的 `App` 进程需要申请的权限。
+
+如果接收广播的 `App` 进程没有申请参数 `receiverPermission` 指定的权限，那么就无法接收到广播。
+
+接收广播的 `App` 进程需要在 `AndroidManifest.xml` 中使用 `<uses-permission>` 来申请参数 `receiverPermission` 指定的权限。
+
+示例如下：
+
+```java:no-line-numbers
+/* 发送广播的 App 发送广播时携带权限 */
+sendBroadcast(new Intent("com.example.NOTIFY"),  Manifest.permission.SEND_SMS);
+```
+
+```xml:no-line-numbers
+<!-- 接收广播的 App 需要在 AndroidManifest.xml 中申请 SEND_SMS 权限后，才能接收到广播 "com.example.NOTIFY" -->
+<uses-permission android:name="android.permission.SEND_SMS"/>
+```
+
+注意：
+
+1. 这里使用到的权限既可以是系统权限，也可以是自定义权限。
+
+    > 自定义权限在 `AndroidManifest.xml` 中使用 [`<permission>`](https://developer.android.google.cn/guide/topics/manifest/permission-element) 进行自定义声明。
+
 ### 5.2 广播接收者注册时声明权限
+
+在接收广播的 `App` 进程中注册广播接收者时，也可以声明发送广播的 `App` 进程需要申请的权限。
+
+如果发送广播的 `App` 进程没有申请权限，那么广播就无法发送给接收者。
+
+在接收广播的 `App` 进程中，静态注册和动态注册时声明权限的方式如下：
+
+1. 静态注册时声明权限：
+
+    ```xml:no-line-numbers
+    <receiver android:name=".MyBroadcastReceiver"
+              android:permission="android.permission.SEND_SMS">
+        <intent-filter>
+            <action android:name="android.intent.action.AIRPLANE_MODE"/>
+        </intent-filter>
+    </receiver>
+    ```
+
+2. 动态注册时声明权限：
+
+    ```java:no-line-numbers
+    IntentFilter filter = new IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+    registerReceiver(receiver, filter, Manifest.permission.SEND_SMS, null);
+    ```
+
+于是，在发送广播的 App 进程中需要申请权限 `SEND_SMS`：
+
+```xml:no-line-numbers
+/* AndroidManifest.xml */
+<uses-permission android:name="android.permission.SEND_SMS"/>
+```
+
+> 注意：这里使用到的权限同样既可以是系统权限，也可以是自定义权限。
 
 ## 6. 让已停止的 `App` 接收到广播 & `FLAG_INCLUDE_STOPPED_PACKAGES`
 
-1. 静态注册
+在 `Android 3.1` 中为 `Intent` 添加了两个标记位，用来控制在发送广播时，广播是否要发送给已处于停止状态的应用。
 
-2. 发送广播时添加 `FLAG_INCLUDE_STOPPED_PACKAGES` 标记
+这两个标记位分别是：
 
-3. 请求需要的权限
+1. `FLAG_INCLUDE_STOPPED_PACKAGES`：表示包含已经停止的应用，这个时候广播会发送给已经停止的应用。
+
+2. `和FLAG_EXCLUDE_STOPPED_PACKAGES`：表示不包含已经停止的应用，这个时候广播不会发送给已经停止的应用。
+
+> 注意，已处于停止状态的应用可分为两种情形：
+> 
+> 1. 应用安装后未运行；
+> 
+> 2. 应用被手动或者其他应用强停了（可以理解为应用进程被杀掉了）。
+
+从 `Android 5.0` 以后，默认情况下发送广播时，广播是不会发送给已经停止的应用的。对应的源码如下：
+
+```java:no-line-numbers
+/* ActivityManagerService.java */
+final int broadcastIntentLocked(ProcessRecord callerApp,
+            String callerPackage, Intent intent, String resolvedType,
+            IIntentReceiver resultTo, int resultCode, String resultData,
+            Bundle resultExtras, String[] requiredPermissions, int appOp, Bundle bOptions,
+            boolean ordered, boolean sticky, int callingPid, int callingUid, int userId) {
+    ...
+    // By default broadcasts do not go to stopped apps.
+    intent.addFlags(Intent.FLAG_EXCLUDE_STOPPED_PACKAGES);
+    ...
+}
+```
+
+> 这样做是为了防止广播无意间或者在不必要的时候调起已经停止运行的应用。
+
+如果需要将广播发送给已停止的应用，那么在发送广播时，调用 `Intent.addFlags(flags)` 方法为 `sendBroadcast(Intent)` 方法的参数 `Intent` 添加 `FLAG_INCLUDE_STOPPED_PACKAGES` 标记即可。
+
+> 注意：当 `FLAG_EXCLUDE_STOPPED_PACKAGES` 和 `FLAG_INCLUDE_STOPPED_PACKAGES` 两种标记位共存时，以 `FLAG_INCLUDE_STOPPED_PACKAGES` 为准。
+
+> 补充：
+> 
+> 在 `Android 3.1` 之前，处于停止状态的应用是可以收到开机广播的；
+> 
+> 而从 `Android 3.1` 开始，处于停止状态的应用无法接收到开机广播。
+> 
+> 并且，由于开机广播是系统内部发送的，用户无法发送开机广播，也就无法添加 `FLAG_INCLUDE_STOPPED_PACKAGES` 标记。因此，在不修改系统源码的情况下，处于停止状态的应用是肯定无法接收到开机广播的。
+
+还有两点需要注意：
+
+1. 为了让已停止的 `App` 接收到广播，那么接收这个广播的 `BroadcastReceiver` 必须是静态注册的。（已停止的 `App` 中无法动态注册）
+
+2. 如果 `BroadcastReceiver` 接收不到广播，可能是所在的 `App` 停止了，但也可能是其他 `App` 进程在发送广播时携带了权限。（此时，就需要 `BroadcastReceiver` 所在的 `App` 申请相应的权限）
