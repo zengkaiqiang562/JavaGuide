@@ -8,11 +8,11 @@ tag:
 
 > 参考：[17 个必须掌握的 BroadcastReceiver 知识点「建议收藏」](https://hornhuang.blog.csdn.net/article/details/102845752)
 > 
+> 参考：《`Android` 开发艺术探索》 第 `9.4` 节（`BroadcastReceiver` 的工作过程）
+> 
 > 参考：[广播概览](https://developer.android.google.cn/guide/components/broadcasts#receiving-broadcasts)
 > 
 > 参考：[`<receiver>`](https://developer.android.google.cn/guide/topics/manifest/receiver-element)
-> 
-> 参考：《`Android` 开发艺术探索》 第 `9.4` 节（`BroadcastReceiver` 的工作过程）
 
 ## 1. `BroadcastReceiver`（广播接收者）概述
 
