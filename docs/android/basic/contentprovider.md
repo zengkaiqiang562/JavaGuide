@@ -91,6 +91,11 @@ public abstract Cursor query(Uri uri, String[] projection,
 ### 2.2 注册 `ContentProvider` 子类
 
 ```xml:no-line-numbers
+
+<!-- 
+    
+
+ -->
 <provider android:authorities="list"
           android:directBootAware=["true" | "false"]
           android:enabled=["true" | "false"]
@@ -108,6 +113,13 @@ public abstract Cursor query(Uri uri, String[] projection,
           android:writePermission="string" >
     ...
 </provider>
+```
+
+其中：
+
+```:no-line-numbers
+1. <provider> 标签：
+    包含于 <application> 标签中，用来注册自定义的 ContentProvider。
 ```
 
 #### 2.2.1 `android:authorities`：`ContentProvider` 的唯一标识
