@@ -111,6 +111,9 @@ RC ->> D : finished(call)
 RC ->> RC : return result
 end
 ```
+
+![](./images/frame-okhttp/01.png)
+
 **注意：**
 1. 在 `RealCall` 中通过布尔变量 `executed` 保证一个 `Call` 对象只能发起一次同步请求或一次异步请求；
 

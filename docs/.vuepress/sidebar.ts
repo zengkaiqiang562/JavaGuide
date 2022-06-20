@@ -3,6 +3,19 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
   // 应该把更精确的路径放置在前边
 
+  "/softs/": [ // 算法题 相关的 Blog
+    {
+      text: "PlantUML",
+      collapsable: true,
+      prefix: "plantuml/",
+      children: [
+        "install",
+        "sequence-diagram",
+        "activity-diagram",
+      ],
+    },
+  ],
+
   "/algorithm/": [ // 算法题 相关的 Blog
     "algorithms",
   ],

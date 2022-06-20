@@ -30,6 +30,9 @@ actions:
   - text: 算法题
     link: /algorithm/readme.md
     type: default 
+  - text: 软件工具
+    link: /softs/readme.md
+    type: default 
 footer: |-
   <a href="https://beian.miit.gov.cn/" target="_blank">鄂ICP备2020015769号-1</a> | 主题: <a href="https://vuepress-theme-hope.github.io/v2/" target="_blank">VuePress Theme Hope</a>
 ---
