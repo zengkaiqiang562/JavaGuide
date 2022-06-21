@@ -19,7 +19,7 @@ tag:
 
 > 在第 `4` 步中执行的 `call.execute()` 方法是一个**阻塞方法**，会使当前线程进入阻塞状态，直到返回 `Response` 对象。
 
-![](./images/frame-okhttp-01.png)
+![](./images/frame-okhttp/01.png)
 
 ### 异步请求步骤
 
@@ -31,7 +31,7 @@ tag:
 
 > 回调函数 `callback.onFailure` 和 `callback.onResponse` 都是在**子线程中调用**的。
 
-![](./images/frame-okhttp-02.png)
+![](./images/frame-okhttp/02.png)
 
 
 ### 同步请求和异步请求的区别
@@ -62,7 +62,7 @@ tag:
 5. 拦截器；
 6. ......
 
-![](./images/frame-okhttp-03.png)
+![](./images/frame-okhttp/03.png)
 
 ### `Request` 的配置
 
@@ -73,7 +73,7 @@ tag:
 4. 请求体；
 5. 标识本次请求的 `tag` 标签（可以用来取消本次请求）。
 
-![](./images/frame-okhttp-04.png)
+![](./images/frame-okhttp/04.png)
 
 ## `Call` 对象的作用
 
@@ -84,35 +84,11 @@ tag:
 >
 > 且在 `RealCall` 的构造方法中就创建好了重定向拦截器 `RetryAndFollowInterceptor`。
 
-![](./images/frame-okhttp-05.png)
+![](./images/frame-okhttp/05.png)
 
 ## 发起同步请求的源码分析
 
-```sequence
-participant RC as RealCall
-participant D as Dispatcher
-participant RIC as RealInterceptorChain
-
-RC ->> RC : execute()
-
-opt executed == false
-RC ->> D : executed(call)
-D ->> D : runningSyncCalls.add(call)
-
-RC ->> RC : result = getResponseWithInterceptorChain()
-activate RC
-    RC ->> RC : new RealInterceptorChain
-    RC ->> RIC : proceed(request)
-    RIC ->> RC : response
-deactivate RC
-
-RC ->> D : finished(call)
-
-RC ->> RC : return result
-end
-```
-
-![](./images/frame-okhttp/01.png)
+![](./images/frame-okhttp/uml/01.png)
 
 **注意：**
 1. 在 `RealCall` 中通过布尔变量 `executed` 保证一个 `Call` 对象只能发起一次同步请求或一次异步请求；
@@ -140,43 +116,7 @@ end
 
 ## 发起异步请求的源码分析
 
-```sequence
-participant RC as RealCall
-participant RIC as RealInterceptorChain
-participant AC as RealCall.AsyncCall
-participant D as Dispatcher
-participant ES as ExecutorService
-
-RC ->> RC : enqueue(callback)
-
-opt executed == false
-
-    RC ->> RC : new AysncCall(callback)
-
-    RC ->> D : enqueue(asyncCall)
-    alt runningAsyncCalls.size < maxRequests && runningCallsForHost(call) < maxRequestPerHost
-        D ->> D : runningAsyncCalls.add(asyncCall)
-        D ->> ES : execute(asyncCall)
-        ES ->> AC : run()
-
-        AC ->> AC : execute()
-        activate AC
-            AC ->> RC : getResponseWithInterceptorChain()
-            activate RC
-                RC ->> RC : new RealInterceptorChain
-                RC ->> RIC : proceed(request)
-                RIC ->> RC : response
-            deactivate RC
-            RC ->> AC : response
-            AC ->> AC : callback.onResponse(realCall, response)
-            AC ->> D : finished(asyncCall)
-        deactivate AC
-    else
-        D ->> D : readyAsyncCalls.add(asyncCall)
-    end
-
-end
-```
+![](./images/frame-okhttp/uml/02.png)
 
 ### 通过 `AsyncCall` 发起异步请求
 
@@ -340,7 +280,7 @@ private void promoteCalls() {
 不管是同步请求还是异步请求，都是调用 `RealCall.getResponseWithInterceptorChain()` 方法通过拦截器链来进行网络请求的。
 > 拦截器在工作时是没有同步或异步的说法的。同步或异步的说法其实就是指 `RealCall.getResponseWithInterceptorChain()` 方法是否是在多线程中调用的。
 
-![](./images/frame-okhttp-06.png)
+![](./images/frame-okhttp/06.png)
 
 `OkHttp` 内部提供了 5 个核心的拦截器：
 1. `RetryAndFollowUpInterceptor`：重试和失败时的重定向拦截器 
@@ -402,27 +342,7 @@ Response getResponseWithInterceptorChain() throws IOException {
 1. 在 `proceed` 方法中为下一个拦截器创建一个新的拦截器链对象 `nextChain`；
 2. 调用拦截器的 `intercept(nextChain)` 方法处理请求，并在处理后继续调用 `nextChain.proceed(request)` 方法，将处理后的请求继续交给下一个拦截器处理。
 
-```sequence
-participant RC as RealCall
-participant RIC as RealInterceptorChain
-participant RNFUI as RetryAndFollowUpInterceptor
-
-RC ->> RC : getResponseWithInterceptorChain()
-activate RC
-    Note over RC : index 初始为 0，准备从 interceptors 中的第 1 个拦截器开始处理
-    RC ->> RC : chain = new RealInterceptorChain(interceptors, ..., 0, request, ...)
-    RC ->> RIC : proceed(request)
-    activate RIC
-        RIC ->> RIC : curInterceptor = interceptors.get(index)
-        Note over RIC : 递增 index，当前拦截器拦截后，为下一个拦截器做准备
-        RIC ->> RIC : nextChain = new RealInterceptorChain(interceptors, ..., index + 1, request, ...)
-        RIC ->> RNFUI : curInterceptor.intercept(nextChain)
-        RNFUI -->> RIC : return response
-    deactivate RIC
-    RIC -->> RC : return response
-    RC ->> RC : return response
-deactivate RC
-```
+![](./images/frame-okhttp/uml/03.png)
 
 拦截器链的 `proceed` 方法采用了递归算法，通过拦截器集合 `interceptors` 中的拦截器依次调用：
 ```
@@ -442,25 +362,7 @@ response = realCall.getResponseWithInterceptorChain() -> chain.proceed(request) 
 
 ### `RetryAndFollowUpInterceptor` 重定向拦截器
 
-```sequence
-participant RNFUI as RetryAndFollowUpInterceptor
-participant RIC as RealInterceptorChain
-participant BI as BridgeInterceptor
-
-RNFUI ->> RNFUI : intercept(nextChain)
-activate RNFUI
-    RNFUI ->> RNFUI : reqeust = nextChain.request()
-    RNFUI ->> RIC : nextChain.proceed(reqeust)
-    activate RIC
-        RIC ->> RIC : curInterceptor = interceptors.get(index)
-        RIC ->> RIC : nextChain = new RealInterceptorChain(interceptors, ..., index + 1, request, ...)
-        RIC ->> BI : curInterceptor.intercept(nextChain)
-        BI -->> RIC : return response
-    deactivate RIC
-    RIC -->> RNFUI : return response
-    RNFUI ->> RNFUI : return response
-deactivate RNFUI
-```
+![](./images/frame-okhttp/uml/04.png)
 
 ```java
 /* RetryAndFollowUpInterceptor.java */
@@ -516,27 +418,7 @@ public Response intercept(Chain chain) throws IOException {
 
 ### `BridgeInterceptor` 桥接和适配拦截器
 
-```sequence
-participant BI as BridgeInterceptor
-participant RIC as RealInterceptorChain
-participant CI as CacheInterceptor
-
-BI ->> BI : intercept(nextChain)
-activate BI
-    BI ->> BI : reqeust = nextChain.request()
-    BI ->> BI : 对 request 中的请求头信息进行补充扩展
-    BI ->> RIC : nextChain.proceed(reqeust)
-    activate RIC
-        RIC ->> RIC : curInterceptor = interceptors.get(index)
-        RIC ->> RIC : nextChain = new RealInterceptorChain(interceptors, ..., index + 1, request, ...)
-        RIC ->> CI : curInterceptor.intercept(nextChain)
-        CI -->> RIC : return response
-    deactivate RIC
-    RIC -->> BI : return response
-    BI ->> BI : 对 response 进行必要的封装
-    BI ->> BI : return response
-deactivate BI
-```
+![](./images/frame-okhttp/uml/05.png)
 
 桥接和适配拦截器 `BridgeInterceptor` 的作用就是：
 1. 为 `Request` 添加必要的请求头信息；
@@ -544,33 +426,7 @@ deactivate BI
 
 ### `CacheInterceptor` 缓存拦截器（以及缓存的简单介绍）
 
-```sequence
-participant CI as CacheInterceptor
-participant RIC as RealInterceptorChain
-participant ConI as ConnectInterceptor
-
-CI ->> CI : intercept(nextChain)
-activate CI
-    CI ->> CI : reqeust = nextChain.request()
-    CI ->> CI : cacheResponse = cache.get(request)
-    alt CacheStrategy.networkRequest == null，使用缓存的响应数据
-        CI ->> CI : return cacheResponse
-    else 获取网络中的响应数据
-        Note over CI,RIC : networkRequest 其实就是 nextChain.request() 返回的
-        CI ->> RIC : nextChain.proceed(networkRequest)  
-        activate RIC
-            RIC ->> RIC : curInterceptor = interceptors.get(index)
-            RIC ->> RIC : nextChain = new RealInterceptorChain(interceptors, ..., index + 1,    request, ...)
-            RIC ->> ConI : curInterceptor.intercept(nextChain)
-            ConI -->> RIC : return response
-        deactivate RIC
-        RIC -->> CI : return response
-        Note over CI : 缓存从网络中获取到的 response
-        CI ->> CI : cache.put(response)
-        CI ->> CI : return response
-    end
-deactivate CI
-```
+![](./images/frame-okhttp/uml/06.png)
 
 缓存拦截器 `CacheInterceptor` 中使用的缓存类对象 `cache` 是通过 `OkHttpClient.Builder.cache(Cache)` 方法配置的。
 
@@ -604,31 +460,7 @@ public static String key(HttpUrl url) {
 
 ### `ConnectInterceptor` 网络连接拦截器（以及连接池的简单介绍）
 
-```sequence
-participant ConI as ConnectInterceptor
-participant RIC as RealInterceptorChain
-participant CSI as CallServerInterceptor
-
-ConI ->> ConI : intercept(nextChain)
-activate ConI
-    ConI ->> ConI : reqeust = nextChain.request()
-    Note over ConI : streamAllocation 在重定向拦截器的 intercept 方法中就已经创建好了
-    ConI ->> ConI : streamAllocation = nextChain.streamAllocation()
-    Note over ConI : 调用 newStream 方法获取到可用的 RealConnection 对象，并建立好网络连接。
-    ConI ->> ConI : httpCodec = streamAllocation.newStream(...)
-    Note over ConI : 返回可用的RealConnection对象 connection
-    ConI ->> ConI : connection = streamAllocation.connection()
-    ConI ->> RIC : proceed(request, streamAllocation, httpCodec, connection)
-    activate RIC
-        RIC ->> RIC : curInterceptor = interceptors.get(index)
-        RIC ->> RIC : nextChain = new RealInterceptorChain(interceptors, ..., index + 1,    request, ...)
-        RIC ->> CSI : curInterceptor.intercept(nextChain)
-        CSI -->> RIC : return response
-    deactivate RIC
-    RIC -->> ConI : return response
-    ConI ->> ConI : return response
-deactivate ConI
-```
+![](./images/frame-okhttp/uml/07.png)
 
 在 `StreamAllocation.newStream` 方法中会通过 `findHealthyConnection` 和 `findConnection` 方法来获取一个**建立好网络连接**的 `RealConnection` 对象。
 
@@ -650,39 +482,7 @@ deactivate ConI
 `CallServerInterceptor` 是拦截器链中最后一个处理请求的拦截器，用来获取网络中的响应数据。
 > 用户自定义的网络拦截器是插入在 `ConnectInterceptor` 和 `CallServerInterceptor` 之间的。
 
-```sequence
-participant CSI as CallServerInterceptor
-participant HC as Http1Codec
-
-Note over CSI : 这里不会再调用 nextChain.proceed 方法了，因为不存在下一个拦截器了。
-CSI ->> CSI : intercept(nextChain)
-activate CSI
-    CSI ->> CSI : request = nextChain.request()
-    CSI ->> CSI : streamAllocation = nextChain.streamAllocation()
-    Note over CSI : 对于 http 1.1，这里返回的 httpCodec 就是 Http1Codec
-    Note over CSI : Http1Codec.sink 用来发送请求数据
-    Note over CSI : Http1Codec.source 用来读取响应数据
-    CSI ->> CSI : httpCodec = nextChain.httpStream()
-    CSI ->> CSI : connection = nextChain.connection()
-    Note over CSI,HC : 向 Http1Codec.sink 中写入请求头信息
-    CSI ->> HC : writeRequestHeaders(request)
-    opt request.method() == "POST" && request.body() != null
-        Note over CSI,HC : 向 Http1Codec.sink 中写入请求体信息
-        CSI ->> HC : request.body().writeTo(BufferedSink)
-    end
-    Note over CSI,HC : 将 Http1Codec.sink 中的请求数据刷新到IO流中，发送给服务器
-    CSI ->> HC : finishRequest()
-    Note over CSI,HC : 通过 Http1Codec.source 读取网络IO中返回的响应头信息
-    CSI ->> HC : readResponseHeaders
-    HC -->> CSI : return responseBuilder
-    CSI ->> CSI : responseBuilder.build() 构建封装响应数据的对象response
-    CSI ->> HC : openResonseBody
-    Note over CSI,HC : responseBody 只是持有 Http1Codec.source，还未从网络IO中读取响应体数据
-    HC ->> CSI : return responseBody
-    CSI ->> CSI : response.body(responseBody)
-    CSI ->>  CSI : return  response
-deactivate CSI
-```
+![](./images/frame-okhttp/uml/08.png)
 
 OkHttp返回给调用者的响应对象 `response` 中并没有保存响应体数据，`response` 的 `body` 中只是持有了 `Http1Codec.source` 的引用。当调用者拿到 `response` 后，执行 `response.body.string()` 方法时，才会通过 `Http1Codec.source` 从网络 `IO` 中读取响应体数据。
 > 也就是说， `response.body.string()` 方法涉及到 `IO` 操作，不能在 `UI` 线程中执行。
