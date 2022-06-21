@@ -1,5 +1,5 @@
 ---
-title: 下载安装
+title: 下载安装与配置
 category: 
   - 软件工具
 tag:
@@ -108,3 +108,7 @@ skinparam defaultFontSize   11
 ```
 
 > 在 `PlantUML` 代码的开始，通过 `Skinparam` 命令还可以进行很多其它的配置。
+
+## 3. 可使用的颜色名称 & 十六进制值
+
+![](./images/install/09.png)
