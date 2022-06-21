@@ -74,7 +74,7 @@ tag:
 
 ![](./images/install/08.png)
 
-### 2.4 配置主题
+### 2.4 配置主题：`!theme`
 
 > 参考：`https://plantuml.com/zh/theme`
 
@@ -84,7 +84,7 @@ tag:
 @enduml
 ```
 
-在编写 `PlantUML` 代码时，通过语法：`!theme [themeName]` 可指定使用已存在的主题。
+在 `PlantUML` 代码的开始，，通过语法：`!theme [themeName]` 可指定使用已存在的主题。
 
 > 如使用主题 `spacelab`，即：`!theme spacelab`
 
@@ -92,9 +92,9 @@ tag:
 > 
 > 对应的源码地址为：`https://github.com/plantuml/plantuml/tree/master/themes`
 
-### 2.5 配置字体样式 & 字体大小
+### 2.5 配置字体样式 & 字体大小：`Skinparam` 命令
 
-> 参考： 《`PlantUML_Language_Reference_Guide_zh`》 中的 `Skinparam 命令` 章节。
+> 参考： [《`PlantUML_Language_Reference_Guide_zh`》](https://plantuml.com/zh/guide) 中的 `Skinparam 命令` 章节。
 > 
 > 参考 [主题源码](https://github.com/plantuml/plantuml/tree/master/themes) 中的 `Skinparam` 命令的使用>
 
@@ -107,4 +107,4 @@ skinparam defaultFontSize   11
 @enduml
 ```
 
-> 通过 `Skinparam` 命令还可以进行很多其它的配置。
+> 在 `PlantUML` 代码的开始，通过 `Skinparam` 命令还可以进行很多其它的配置。
