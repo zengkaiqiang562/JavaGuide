@@ -426,7 +426,7 @@ public int match(Uri uri)
 
 由于 `query`/`update`/`insert`/`delete`/`getType` 是在 `Binder` 线程中执行的，所以调用这些方法并不会阻塞 `ContentProvider` 所在进程的主线程。
 
-但是，如果其他 App 进程中通过 `ContentResolver` 的 `query`/`update`/`insert`/`delete`/`getType` 方法访问 `ContentProvider` 时，是在主线程中执行的，那么其他 App 进程的主线程就可能会阻塞。
+但是，如果其他 `App` 进程中通过 `ContentResolver` 的 `query`/`update`/`insert`/`delete`/`getType` 方法访问 `ContentProvider` 时，是在主线程中执行的，那么其他 `App` 进程的主线程就可能会阻塞。
 
 因此，其他 `App` 进程中通过 `ContentResolver` 访问 `ContentProvider` 时仍然需要在子线程中进行访问。
 
