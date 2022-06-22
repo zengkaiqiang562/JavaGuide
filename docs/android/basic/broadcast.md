@@ -39,7 +39,8 @@ tag:
 ```xml:no-line-numbers
 <receiver android:name="string"
           android:exported="true|false"
-          android:permission="string">
+          android:permission="string"
+          android:directBootAware=["true" | "false"]>
     <intent-filter>
         <!-- 指定该 BroadcastReceiver 所响应的 Intent 的 Action -->
         <action android:name="android.intent.action.BOOT_COMPLETED"/>
@@ -83,7 +84,19 @@ tag:
     当 <application> 中也没有指定 android:permission 属性的情况下，此广播接收者在接收广播时不受权限的限制。
     ```
 
-4. `<intent-filter>` & `<action>`
+4. `android:directBootAware`
+
+    ```:no-line-numbers
+    广播接收者是否可以监听到直接启动；即，它是否可以在用户解锁设备之前运行。默认为 false，不可以。
+    ```
+
+    > [直接启动](https://developer.android.google.cn/training/articles/direct-boot)：当设备已开机但用户尚未解锁设备时，`Android 7.0` 将在安全的 **直接启动** 模式下运行。
+    >
+    > 在静态注册时为 `<receiver>` 设置属性 `android:directBootAware = true`，并声明监听系统广播 `ACTION_LOCKED_BOOT_COMPLETED`。于是，注册的广播接收者就可以在开机后的锁屏状态下接收到此系统广播。
+    >
+    > 注意：为了接收到此广播，接收者所在的 `App` 还需要申请权限 `Manifest.permission.RECEIVE_BOOT_COMPLETED`
+
+5. `<intent-filter>` & `<action>`
 
     ```:no-line-numbers
     在 <receiver> 中，通过声明 <intent-filter> 过滤器，并在过滤器中添加 <action> 来声明广播接收者可接收的广播。
