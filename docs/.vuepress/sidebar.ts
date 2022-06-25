@@ -127,6 +127,34 @@ export const sidebarConfig = defineSidebarConfig({
         "ble",
       ],
     },
+    {
+      text: "系统源码分析",
+      collapsable: true,
+      prefix: "aosp/",
+      children: [
+        {
+          text: "Android 系统启动",
+          collapsable: true,
+          prefix: "system-startup/",
+          children: [
+            "init_proc",
+            "zygote_proc",
+            "systemserver_proc",
+            "launcher_startup",
+          ],
+        },
+        {
+          text: "Binder 机制",
+          collapsable: true,
+          prefix: "binder/",
+          children: [
+            "binder_overview",
+            "native_binder",
+            "java_binder",
+          ],
+        },
+      ],
+    },
   ],
 
   "/resume/": [//个人简历
