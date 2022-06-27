@@ -5,3 +5,5 @@ category:
 tag:
   - 网络通信
 ---
+
+> 参考：`XiaMiMusic` 项目中的 `DownloadTask.java`

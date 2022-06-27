@@ -5,3 +5,5 @@ category:
 tag:
   - android
 ---
+
+> 参考：`XiaMiMusic` 项目中的 `PlaybackFragment.java` 中的 `updateLrcView(lrcPath)` 方法
