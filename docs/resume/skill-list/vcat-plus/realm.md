@@ -7,3 +7,7 @@ tag:
   - android
   - 数据库
 ---
+
+> 参考：[realm数据库](https://www.mongodb.com/docs/realm-legacy/docs/java/4.1.1/)
+> 
+> 参考：[Realm(Java)的那些事](https://zhuanlan.zhihu.com/p/26173366)

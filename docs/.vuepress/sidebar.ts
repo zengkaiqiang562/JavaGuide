@@ -74,6 +74,7 @@ export const sidebarConfig = defineSidebarConfig({
       collapsable: true,
       prefix: "ui/",
       children: [
+        "ViewPager",
         "RecyclerView",
         "ConstraintLayout",
         "CoordinatorLayout",

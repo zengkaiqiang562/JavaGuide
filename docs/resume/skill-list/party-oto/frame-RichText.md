@@ -7,3 +7,7 @@ tag:
   - android
   - 第三方框架
 ---
+
+> 参考：[RichText](https://github.com/zzhoujay/RichText)
+> 
+> 参考：[wiki](https://github.com/zzhoujay/RichText/wiki)
