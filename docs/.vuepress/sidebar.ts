@@ -3,7 +3,11 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
     // 应该把更精确的路径放置在前边
 
-    "/softs/": [ // 算法题 相关的 Blog
+    "/zkq/java/": [ // Java
+        
+    ],
+
+    "/zkq/tools/": [ // 软件工具
         {
             text: "PlantUML",
             collapsable: true,
@@ -16,22 +20,22 @@ export const sidebarConfig = defineSidebarConfig({
         },
     ],
 
-    "/algorithm/": [ // 算法题 相关的 Blog
+    "/zkq/algorithm/": [ // 算法题 相关的 Blog
         "algorithms",
     ],
 
-    "/data-structure/": [ // 数据结构 相关的 Blog
+    "/zkq/data-structure/": [ // 数据结构 相关的 Blog
         "dynamic-array",
         "linked-list",
         "binary-tree",
     ],
 
-    "/db/": [ // 数据库 相关的 Blog
+    "/zkq/database/": [ // 数据库 相关的 Blog
         "sql",
         "mysql",
     ],
 
-    "/kotlin/": [ // Kotlin 相关的 Blog
+    "/zkq/kotlin/": [ // Kotlin 相关的 Blog
         "1-env-setup",
         "2-built-in-type",
         "3-class",
@@ -44,7 +48,7 @@ export const sidebarConfig = defineSidebarConfig({
         "10-coroutine",
     ],
 
-    "/android/": [// Android 相关的 Blog
+    "/zkq/android/": [// Android 相关的 Blog
         {
             text: "基础",
             collapsable: true,
@@ -158,12 +162,12 @@ export const sidebarConfig = defineSidebarConfig({
         },
     ],
 
-    "/resume/": [//个人简历
-        "keypoint", // 简历要点
+    "/zkq/project-experiences/": [//project-experiences
+        "skill-keypoint", // 技能要点
         {
-            text: "技能列表",
+            text: "项目列表",
             collapsable: false,
-            prefix: "skill-list/",
+            prefix: "project-list/",
             children: [
                 {
                     text: "个人优势",

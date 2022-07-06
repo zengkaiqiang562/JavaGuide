@@ -52,19 +52,19 @@ tag:
     > 
     > 存放在帧栈中的帧叫做栈帧。
 
-2. 帧（即 [栈帧](/resume/skill-list/others/jvm/jvm-spec.html#_8-10-3-7-栈帧)）可以用来保存一个方法的局部变量、操作数栈（`Java` 没有寄存器，所有参数传递使用操作数栈）、常量池指针、动态链接、方法返回值等。
+2. 帧（即 [栈帧](/zkq/project-experiences/project-list/others/jvm/jvm-spec.html#_8-10-3-7-栈帧)）可以用来保存一个方法的局部变量、操作数栈（`Java` 没有寄存器，所有参数传递使用操作数栈）、常量池指针、动态链接、方法返回值等。
 
 3. 每一次方法调用时都会创建一个帧，并压栈。退出方法时，修改栈顶指针就可以把栈帧中的内容销毁。
 
     > 帧是方法调用相关的。方法调用开始时创建帧，方法调用结束后销毁帧。
 
-4. [局部变量表](/resume/skill-list/others/jvm/jvm-spec.html#_8-10-3-8-局部变量表-local-variable-又称本地变量表) 存放了编译期可知的各种基本数据类型和引用类型，每个 `slot`（槽位） 存放 `32` 位的数据，`long`、`double` 占两个 `slot`。
+4. [局部变量表](/zkq/project-experiences/project-list/others/jvm/jvm-spec.html#_8-10-3-8-局部变量表-local-variable-又称本地变量表) 存放了编译期可知的各种基本数据类型和引用类型，每个 `slot`（槽位） 存放 `32` 位的数据，`long`、`double` 占两个 `slot`。
 
     > 局部变量表中的槽位（`slot`）是可以复用的。
     > 
-    > 参考 [`Code` 属性在 `class` 文件中的解析举例](/resume/skill-list/others/jvm/jvm-spec.html#_8-10-3-9-code-属性在-class-文件中的解析举例-slot-可复用)。
+    > 参考 [`Code` 属性在 `class` 文件中的解析举例](/zkq/project-experiences/project-list/others/jvm/jvm-spec.html#_8-10-3-9-code-属性在-class-文件中的解析举例-slot-可复用)。
     >
-    > 参考 《字节码执行引擎》 中的 [局部变量表](/resume/skill-list/others/jvm/class-exe-engine.html#_3-局部变量表)
+    > 参考 《字节码执行引擎》 中的 [局部变量表](/zkq/project-experiences/project-list/others/jvm/class-exe-engine.html#_3-局部变量表)
 
 `Java` 栈的优缺点：
 
@@ -94,9 +94,9 @@ tag:
 
 1. 方法区是线程共享的，通常用来保存加载的类的结构信息（即 `class` 文件中的二进制字节流数据，包括：类名、继承关系、字段、方法、附加属性等信息数据）。
 
-    > 参考 [类加载要完成的功能](/resume/skill-list/others/jvm/classloader.html#_2-1-类加载要完成的功能)。
+    > 参考 [类加载要完成的功能](/zkq/project-experiences/project-list/others/jvm/classloader.html#_2-1-类加载要完成的功能)。
     >
-    > 参考 [`Class` 文件的格式](/resume/skill-list/others/jvm/jvm-spec.html#_8-class-文件的格式)。
+    > 参考 [`Class` 文件的格式](/zkq/project-experiences/project-list/others/jvm/jvm-spec.html#_8-class-文件的格式)。
 
 2. 方法区通常和元空间（`Meta Space`）关联在一起。但具体的跟 `JVM` 实现和 `JDK` 版本有关。
 
@@ -108,7 +108,7 @@ tag:
 
 #### 1.1.5 运行时常量池
 
-运行时常量池是 `class` 文件中每个类或接口的 [常量池表](/resume/skill-list/others/jvm/jvm-spec.html#_8-5-常量池)，在运行期间的表示形式，通常包括：`JDK` 版本、类名、父类或父接口名、字段、方法等信息。
+运行时常量池是 `class` 文件中每个类或接口的 [常量池表](/zkq/project-experiences/project-list/others/jvm/jvm-spec.html#_8-5-常量池)，在运行期间的表示形式，通常包括：`JDK` 版本、类名、父类或父接口名、字段、方法等信息。
 
 **运行时常量池分配在方法区中。**
 

@@ -12,26 +12,29 @@ actions:
   - text: 知识星球
     link: /about-the-author/zhishixingqiu-two-years.md
     type: default
-  - text: 个人简历
-    link: /resume/resume.md
+  - text: 项目经历
+    link: /zkq/project-experiences/readme.md
+    type: default 
+  - text: Java
+    link: /zkq/java/readme.md
     type: default 
   - text: Android
-    link: /android/readme.md
+    link: /zkq/android/readme.md
     type: default 
   - text: Kotlin
-    link: /kotlin/readme.md
+    link: /zkq/kotlin/readme.md
     type: default
   - text: 数据库
-    link: /db/readme.md
+    link: /zkq/database/readme.md
     type: default 
   - text: 数据结构
-    link: /data-structure/readme.md
+    link: /zkq/data-structure/readme.md
     type: default 
   - text: 算法题
-    link: /algorithm/readme.md
+    link: /zkq/algorithm/readme.md
     type: default 
   - text: 软件工具
-    link: /softs/readme.md
+    link: /zkq/tools/readme.md
     type: default 
 footer: |-
   <a href="https://beian.miit.gov.cn/" target="_blank">鄂ICP备2020015769号-1</a> | 主题: <a href="https://vuepress-theme-hope.github.io/v2/" target="_blank">VuePress Theme Hope</a>

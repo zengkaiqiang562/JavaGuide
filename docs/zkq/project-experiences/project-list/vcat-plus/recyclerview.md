@@ -6,7 +6,7 @@ tag:
   - android
 ---
 
-> 参考：[RecyclerView](/android/ui/RecyclerView.html#_1-recyclerview-概述)
+> 参考：[RecyclerView](/zkq/android/ui/RecyclerView.html#_1-recyclerview-概述)
 > 
 > 参考：[RecyclerBanner](https://github.com/ren93/RecyclerBanner)
 > 

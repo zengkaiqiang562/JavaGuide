@@ -6,4 +6,4 @@ tag:
   - kotlin
 ---
 
-> 参考：[Kotlin](/kotlin/1-env-setup.html)
+> 参考：[Kotlin](/zkq/kotlin/1-env-setup.html)

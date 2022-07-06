@@ -45,9 +45,9 @@ tag:
 ![](./images/java-jmm/03.png)
 
 
-> 参考 《内存分配》 中的 [对象的内存布局](/resume/skill-list/others/jvm/memory-allocate.html#_2-3-对象的内存布局-对象头、实例数据、对齐填充)
+> 参考 《内存分配》 中的 [对象的内存布局](/zkq/project-experiences/project-list/others/jvm/memory-allocate.html#_2-3-对象的内存布局-对象头、实例数据、对齐填充)
 > 
-> 参考 《内存分配》 中的 [对象的访问方式](/resume/skill-list/others/jvm/memory-allocate.html#_2-4-对象的访问方式-使用句柄、使用指针)
+> 参考 《内存分配》 中的 [对象的访问方式](/zkq/project-experiences/project-list/others/jvm/memory-allocate.html#_2-4-对象的访问方式-使用句柄、使用指针)
 
 ## 3. `Java` 内存模型（`JMM`）
 
@@ -429,7 +429,7 @@ b 之前的写入（即 b=a 之前的 a=3）对读取 b 后的代码（即 print
 
 2. 禁止指令重排序
 
-    > [解决单例双重锁乱序问题](/resume/skill-list/personal-advantage/design-pattern/Singleton-Pattern.html#双重检查【推荐用】)
+    > [解决单例双重锁乱序问题](/zkq/project-experiences/project-list/personal-advantage/design-pattern/Singleton-Pattern.html#双重检查【推荐用】)
 
 #### 5.5.4 `volatile` 和 `synchronized` 的关系
 
@@ -457,7 +457,7 @@ b 之前的写入（即 b=a 之前的 a=3）对读取 b 后的代码（即 print
 
 ![](./images/java-jmm/23.png)
 
-相比于[未修正的代码](/resume/skill-list/others/java-jmm.html#_4-1-什么是重排序)，这里将变量 `a,b,x,y` 都用 `volatile` 修饰了。
+相比于[未修正的代码](/zkq/project-experiences/project-list/others/java-jmm.html#_4-1-什么是重排序)，这里将变量 `a,b,x,y` 都用 `volatile` 修饰了。
 
 #### 5.5.6 `volatile` 补充
 
@@ -539,4 +539,4 @@ b 之前的写入（即 b=a 之前的 a=3）对读取 b 后的代码（即 print
 
 ## 7. `JMM` 的应用（双重检查实现单例）
 
-[参考](/resume/skill-list/personal-advantage/design-pattern/Singleton-Pattern.html#双重检查【推荐用】)
+[参考](/zkq/project-experiences/project-list/personal-advantage/design-pattern/Singleton-Pattern.html#双重检查【推荐用】)

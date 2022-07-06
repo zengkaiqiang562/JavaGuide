@@ -26,7 +26,7 @@ tag:
 
 `BroadcastReceiver` 的原理类似于发布订阅模式。发送广播时所在的组件可以称为发布者，接收广播的 `BroadcastReceiver` 组件可以称为订阅者。
 
-> 发布订阅模式与观察者模式的区别参考：[观察者模式（`Observer Pattern`）](/resume/skill-list/personal-advantage/design-pattern/Observer-Pattern.html#_1-观察者模式-发布订阅模式-publish–subscribe-pattern-的区别)
+> 发布订阅模式与观察者模式的区别参考：[观察者模式（`Observer Pattern`）](/zkq/project-experiences/project-list/personal-advantage/design-pattern/Observer-Pattern.html#_1-观察者模式-发布订阅模式-publish–subscribe-pattern-的区别)
 
 ## 2. `BroadcastReceiver` 的工作过程
 

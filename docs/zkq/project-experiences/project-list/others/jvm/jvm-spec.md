@@ -99,15 +99,15 @@ tag:
 
 ### 4.4 运行时数据区
 
-参考 《内存分配》 中的 [运行时数据区](/resume/skill-list/others/jvm/memory-allocate.html#_1-1-运行时数据区-即内存区域-又称-jvm-内存结构)
+参考 《内存分配》 中的 [运行时数据区](/zkq/project-experiences/project-list/others/jvm/memory-allocate.html#_1-1-运行时数据区-即内存区域-又称-jvm-内存结构)
 
 ### 4.5 栈帧
 
 参考本文章中的 [栈帧](#_8-10-3-7-栈帧)
 
-参考 《内存分配》 中的 [`Java` 栈](/resume/skill-list/others/jvm/memory-allocate.html#_1-1-2-java-栈-又称-java-虚拟机栈-或虚拟机栈)
+参考 《内存分配》 中的 [`Java` 栈](/zkq/project-experiences/project-list/others/jvm/memory-allocate.html#_1-1-2-java-栈-又称-java-虚拟机栈-或虚拟机栈)
 
-参考 《字节码执行引擎》 中的 [栈帧](/resume/skill-list/others/jvm/class-exe-engine.html#_2-栈帧)
+参考 《字节码执行引擎》 中的 [栈帧](/zkq/project-experiences/project-list/others/jvm/class-exe-engine.html#_2-栈帧)
 
 ### 4.6 特殊方法
 
@@ -125,7 +125,7 @@ tag:
 
 ### 4.9 虚拟机的启动、加载、链接和初始化
 
-参考 [《类加载、连接和初始化》](/resume/skill-list/others/jvm/classloader.html)
+参考 [《类加载、连接和初始化》](/zkq/project-experiences/project-list/others/jvm/classloader.html)
 
 ## 5. 字节码指令集
 
@@ -766,7 +766,7 @@ StackMapTable 属性中保存了一个 stack_map_frame[] 数组，其中 stack_m
 
 ##### 8.10.3.9 `Code` 属性在 `class` 文件中的解析举例（`Slot` 可复用）
 
-> 参考 《字节码执行引擎》 中的 [局部变量表](/resume/skill-list/others/jvm/class-exe-engine.html#_3-局部变量表)
+> 参考 《字节码执行引擎》 中的 [局部变量表](/zkq/project-experiences/project-list/others/jvm/class-exe-engine.html#_3-局部变量表)
 
 ![](./images/jvm-spec/48.png)
 
