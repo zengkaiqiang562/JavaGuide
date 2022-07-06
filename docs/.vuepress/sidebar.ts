@@ -160,6 +160,17 @@ export const sidebarConfig = defineSidebarConfig({
                 },
             ],
         },
+        {
+            text: "其他",
+            collapsable: true,
+            prefix: "others/",
+            children: [
+                "version-new-feature",
+                "permission",
+                "launch-google-play",
+                "message-push",
+            ],
+        }
     ],
 
     "/zkq/project-experiences/": [//project-experiences
