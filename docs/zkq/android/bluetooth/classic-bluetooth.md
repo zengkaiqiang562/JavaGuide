@@ -3,8 +3,10 @@ title: 经典蓝牙
 category: 
   - android-蓝牙开发
 tag:
-  - android-蓝牙开发
+  - android-`蓝牙开发`
 ---
+
+> 参考：`Android相关【公众号：启舰杂谈】\14、Android强化：服务与通信\步骤二：Android App通信\第4课：经典蓝牙`
 
 ## 1. 概述
 
