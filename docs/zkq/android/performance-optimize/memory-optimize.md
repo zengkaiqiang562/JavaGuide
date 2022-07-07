@@ -282,7 +282,7 @@ public class MyActivity extends AppCompatActivity {
 
 如果 `Memory Monitor` 已运行，如下图所示：
 
-![](./images/android-memory-optimize/01.png)
+![](./images/memory-optimize/01.png)
 
 上图中标注的功能如下：
 1. 标识 `1`：`Initiate GC`，用来手动触发 `GC`。
@@ -295,7 +295,7 @@ public class MyActivity extends AppCompatActivity {
 
 ### 2.2 大内存申请与 `GC`
 
-![](./images/android-memory-optimize/02.png)
+![](./images/memory-optimize/02.png)
 
 如上图所示，已分配的内存急剧上升，表示大内存分配的场景。此时，我们需要判断这是不是合理的内存分配情况，并分析是 `Bitmap` 还是其他的大数据对象。进而对这种大数据进行优化，减少内存开销。
 > 图中已分配的内存接着出现急剧下降，表示垃圾收集事件，用来释放内存。
@@ -307,7 +307,7 @@ public class MyActivity extends AppCompatActivity {
 内存抖动一般指在很短的时间能内进行了多次的内存分配和释放。
 > 也就是说，出现内存抖动的原因主要是短时间内频繁地创建对象，`JVM` 为了应对这种情况，也会频繁地对内存进行 `GC`。
 
-![](./images/android-memory-optimize/03.png)
+![](./images/memory-optimize/03.png)
 
 如上图所示，内存抖动时就会产生锯齿状的抖动图示。
 
@@ -340,13 +340,13 @@ public class MyActivity extends AppCompatActivity {
 4. 操作应用程序；
 5. 单击 `Stop Allocation Tracking` 按钮，结束快照。这时 `Memory Monitor` 会显示出捕获快照的期间，如下图所示：
 
-    ![](./images/android-memory-optimize/04.png)
+    ![](./images/memory-optimize/04.png)
 
 6. 过几秒后就会自动打开一个窗口，显示当前生成的 `alloc` 文件的内存数据。
 
 ### 3.2 `alloc` 文件分析
 
-![](./images/android-memory-optimize/05.png)
+![](./images/memory-optimize/05.png)
 
 上图为自动打开的 `alloc` 文件窗口。窗口中的信息如下表所示：
 
@@ -367,7 +367,7 @@ public class MyActivity extends AppCompatActivity {
 
 上图的列表视图选择为 `Group by Method`，也可以选择 `Group by Allocator`，如下图所示：
 
-![](./images/android-memory-optimize/06.png)
+![](./images/memory-optimize/06.png)
 
 为了更好的解释 `Group by Allocator` 列表视图中的信息，给出上图对应的测试代码：
 
@@ -439,7 +439,7 @@ SecondActivity 总共分配了 6 个实例，它们占用的内存为 96 字节�
    
     > 每次单击 `Cause GC` 按钮都会强制应用程序进行垃圾回收，并将清理后的数据显示在 `Heap` 窗口中。
 
-![](./images/android-memory-optimize/07.png)
+![](./images/memory-optimize/07.png)
 
 如上图所示，`Heap Dump` 共有三个区域：
 1. 总览视图（标识 `1` 所示）；
@@ -512,25 +512,25 @@ SecondActivity 总共分配了 6 个实例，它们占用的内存为 96 字节�
 
 3. 在右边选择 `Heap` 选项，并单击 `Cause GC` 按钮，开始显示数据。如下图所示：
 
-    ![](./images/android-memory-optimize/08.png)
+    ![](./images/memory-optimize/08.png)
 
     > 此时 `data object` 的 `Total Size` 为 `270.266KB`。
 
 4. 接下来操作应用程序，应用程序中的内存泄漏代码如 [`3.2 alloc` 文件分析](#_3-2-alloc-文件分析) 中的代码所示。反复地在 `MainActivity` 和 `SecondActivity` 之间跳转 `10` 次（单击 `Button` 共 `20` 次），数据显示如下图：
 
-    ![](./images/android-memory-optimize/09-1.png)
+    ![](./images/memory-optimize/09-1.png)
 
     > 此时 `data object` 的 `Total Size` 变为了 `768.172KB`。
 
 5. 此时，单击 `Cause GC` 按钮，数据显示如下图：
 
-    ![](./images/android-memory-optimize/09-2.png)
+    ![](./images/memory-optimize/09-2.png)
 
     > 此时 `data object` 的 `Total Size` 变为了 `444.516KB`。
 
 6. 再单击一次 `Cause GC` 按钮，数据显示如下图：
 
-    ![](./images/android-memory-optimize/09-3.png)
+    ![](./images/memory-optimize/09-3.png)
 
     > 此时 `data object` 的 `Total Size` 变为了 `323.312KB`。
 
@@ -603,7 +603,7 @@ public class MainActivity extends AppCompatActivity {
 
 4. 单击 `Dump HPROP File` 按钮结束追踪，生成并保存 `hprof` 文件。如下图所示：
 
-    ![](./images/android-memory-optimize/10.png)
+    ![](./images/memory-optimize/10.png)
 
 ##### 转换为标准的 `hprof` 文件（使用 `hprof-conv` 进行转换）
 
@@ -631,7 +631,7 @@ D:\after.hprof 表示转换后的 hprof 文件的保存路径（即标准的 hpr
 
 3. 单击 `Dump Java Heap` 按钮，生成 `hprof` 文件，如下图所示：
 
-    ![](./images/android-memory-optimize/11.png)
+    ![](./images/memory-optimize/11.png)
 
 ##### 转换为标准的 `hprof` 文件（直接在 `Android Studio` 中转换）
 
@@ -645,7 +645,7 @@ Memory Monitor 生成的 hropf 文件都会显示在 AS 左侧的 Captures 标�
 
 如下图所示：
 
-![](./images/android-memory-optimize/12.png)
+![](./images/memory-optimize/12.png)
 
 ### 5.3 `MAT` 分析 `hprof` 文件
 
@@ -663,7 +663,7 @@ Memory Monitor 生成的 hropf 文件都会显示在 AS 左侧的 Captures 标�
         >
         > 如果内存泄漏不是特别明显，通过 `Leak Suspects` 标签页中的内容也很难发现内存泄漏的位置。
 
-        ![](./images/android-memory-optimize/13.png)
+        ![](./images/memory-optimize/13.png)
 
     2. `Overview` 标签页。
 
@@ -673,7 +673,7 @@ Memory Monitor 生成的 hropf 文件都会显示在 AS 左侧的 Captures 标�
         >
         > 单击每个彩色区域可以看到这块区域的详细信息。 
 
-        ![](./images/android-memory-optimize/14.png)
+        ![](./images/memory-optimize/14.png)
 
 在 `Overview` 标签页中，`Actions` 栏目下列出了 `MAT` 提供的 `4` 种 `Action`。其中分析内存泄漏最常用的就是 `Histogram` 和 `Dominator Tree`。
 
@@ -681,7 +681,7 @@ Memory Monitor 生成的 hropf 文件都会显示在 AS 左侧的 Captures 标�
 
 也可以通过在 `MAT` 工具栏中单击相应的选项打开 `Histogram` 和 `Dominator Tree`。`MAT` 工具栏如下图所示：
 
-![](./images/android-memory-optimize/15.png)
+![](./images/memory-optimize/15.png)
 
 > `MAT` 工具栏中，左边第二个选项是 `Histogram`，第三个选项是 `Dominator Tree`，第四个选项是 `OQL`。
 
@@ -689,7 +689,7 @@ Memory Monitor 生成的 hropf 文件都会显示在 AS 左侧的 Captures 标�
 
 `Dominator Tree` 译为支配树，用来分析对象的引用关系。界面如下图所示：
 
-![](./images/android-memory-optimize/16.png)
+![](./images/memory-optimize/16.png)
 
 其中：
 
@@ -721,7 +721,7 @@ Retained Heap：表示一个对象的 Retained Set 集合中包含的所有对�
 
 `GC Roots` 和引用链，以及支配树（`Retained Set`）的关系如下图所示：
 
-![](./images/android-memory-optimize/17.png)
+![](./images/memory-optimize/17.png)
 
 > 可以看出：
 > 
@@ -741,7 +741,7 @@ Retained Heap：表示一个对象的 Retained Set 集合中包含的所有对�
 
 `MAT` 所定义的支配树就是从引用树转换过来的，如下图所示：
 
-![](./images/android-memory-optimize/18.png)
+![](./images/memory-optimize/18.png)
 
 > 支配树反映的就是对象之间的支配关系。
 > 
@@ -766,7 +766,7 @@ Retained Heap：表示一个对象的 Retained Set 集合中包含的所有对�
 
 以 [泄漏代码](#_5-1-准备一段待分析的内存泄漏的代码) 为例，这里在 `Regex` 中输入 `MainActivity`，`Dominator Tree` 窗口中的信息如下图所示：
 
-![](./images/android-memory-optimize/19.png)
+![](./images/memory-optimize/19.png)
 
 如上图，在 `Dominator Tree` 中列出了很多的 `MainActivity` 实例。而 `MainActivity` 是不该有这么多实例的，除非 `MainActivity` 销毁后没有 `GC` 掉，因此可以断定 `MainActivity` 发生了内存泄漏。
 
@@ -776,11 +776,11 @@ Retained Heap：表示一个对象的 Retained Set 集合中包含的所有对�
 
 2. 选中 `Path To GC Roots` 选项后，根据引用类型会有多种子选项。比如 `with all references` 就是包含所有的引用。这里我们选择 `exclude all phantom/weak/soft etc. references`，该选项排除了虚引用、弱引用、软引用（这些引用一般是可以被回收的）。
 
-    ![](./images/android-memory-optimize/20.png)
+    ![](./images/memory-optimize/20.png)
 
 此时，`MAT` 就会给出选中的 `MainActivity` 对象的 `GC` 引用链，如下图所示：
 
-![](./images/android-memory-optimize/21.png)
+![](./images/memory-optimize/21.png)
 
 如上图，`com.xxx.MainActivity$LeakThread` 引用了 `com.xxx.MainActivity`，且是通过 `LeakThread` 中的 `this$0` 属性来引用的 `MainActivity`。
 
@@ -800,7 +800,7 @@ Retained Heap：表示一个对象的 Retained Set 集合中包含的所有对�
 
 `Histogram` 的窗口界面如下图所示：
 
-![](./images/android-memory-optimize/22.png)
+![](./images/memory-optimize/22.png)
 
 其中：
 
@@ -817,7 +817,7 @@ Retained Heap：表示一个对象的 Retained Set 集合中包含的所有对�
 
 1. 在 `Histogram` 窗口顶部的 `Regex` 中输入过滤条件，同 `Dominator Tree` 中的例子一样，这里输入 `MainActivity`，如下图所示：
 
-    ![](./images/android-memory-optimize/23.png)
+    ![](./images/memory-optimize/23.png)
 
     > 如上图，`MainActivity` 和 `LeakThread` 的实例各为 `11` 个，从而可以断定发生了内存泄漏。
     >
@@ -825,7 +825,7 @@ Retained Heap：表示一个对象的 Retained Set 集合中包含的所有对�
 
 2. 右键列表中的 `MainActivity` 项，在弹出的右键菜单中选择 `Merge Shortest Paths to GC Roots`，再选中 `exclue all phantom/weak/soft etc. references`，结果如下图所示：
 
-    ![](./images/android-memory-optimize/24.png)
+    ![](./images/memory-optimize/24.png)
 
     > `Dominator Tree` 中选中 `Path To GC Roots`，是用来分析单个对象的。
     >
@@ -852,7 +852,7 @@ SELECT * FROM [INSTANCEOF] <class_name> [WHREE <filter-expression>]
 
 当输入 `select * from instanceof android.app.Activity`，然后按下 `F5` 键（或单击工具栏中的红色叹号）时，会将当前内存中的所有 `Activity` 都显示出来，如下图所示：
 
-![](./images/android-memory-optimize/25.png)
+![](./images/memory-optimize/25.png)
 
 如果想查找具体的类，可以直接输入具体类的完整名称：
 
@@ -878,15 +878,15 @@ select * from com.xxx.MainActivity
 
 4. 将两个 `hprof` 文件的 `Histogram`（或 `Dominator Tree`） 添加到 `Compare Basket` 中，如下图所示：
 
-    ![](./images/android-memory-optimize/26.png)
+    ![](./images/memory-optimize/26.png)
 
 5. 在 `Compare Basket` 中单击红色叹号按钮生成 `Compared Tables`，`Compared Tables` 如下图所示：
 
-    ![](./images/android-memory-optimize/27.png)
+    ![](./images/memory-optimize/27.png)
 
 6. 在 `Compared Tables` 窗口下的顶部 `Regex` 中输入 `MainActivity` 进行筛选，如下图所示：
 
-    ![](./images/android-memory-optimize/28.png)
+    ![](./images/memory-optimize/28.png)
 
     > 可以看到，`MainActivity` 的实例增加了 `6` 个。但 `MainActivity` 的实例是不应该增加的，这说明发生了内存泄漏。
     >
@@ -894,13 +894,13 @@ select * from com.xxx.MainActivity
 
 除了可以通过 `Compare Basket` 对比两个 `hprof` 文件的 `Histogram` 外，还可以直接在某个 `hprof` 文件的 `Histogram` 窗口下，通过工具栏中的对比按钮选择其他 `hprof` 文件进行对比，如下图所示：
 
-![](./images/android-memory-optimize/29.png)
+![](./images/memory-optimize/29.png)
 
 > 此对比方式生成的结果和 `Compared Tables` 中的类似。
 
 同样地，在生成的结果窗口的顶部 `Regex` 中输入 `MainActivity` 进行筛选，如下图所示：
 
-![](./images/android-memory-optimize/30.png)
+![](./images/memory-optimize/30.png)
 
 同样地，可以看到，`MainActivity` 的实例增加了 `6` 个。但 `MainActivity` 的实例是不应该增加的，这说明发生了内存泄漏。
 
@@ -1017,7 +1017,7 @@ public class MainActivity extends AppCompatActivity {
 
 再稍等片刻，内存泄漏信息就会通过 `Notification` 展示处理，如三星 `S8` 手机的通知栏所示：
 
-![](./images/android-memory-optimize/31.png)
+![](./images/memory-optimize/31.png)
 
 > 在 `Notification` 中提示 `MainActivity` 发生了内存泄漏，泄漏的内存为 `787B`。
 
@@ -1025,7 +1025,7 @@ public class MainActivity extends AppCompatActivity {
 
 > 也可以通过 `LeakCanary` 提供的 `Leaks` 应用程序中的列表界面，进入内存泄漏详情页。
 
-![](./images/android-memory-optimize/32.png)
+![](./images/memory-optimize/32.png)
 
 > 点击上图中的加号可以查看具体类所在的包名称。
 
@@ -1041,7 +1041,7 @@ public class MainActivity extends AppCompatActivity {
 
 在内存泄漏详情页中，还可以将 `heap dump`（即 `hprof` 文件）和 `info` 信息分享出去，如下图所示：
 
-![](./images/android-memory-optimize/33.png)
+![](./images/memory-optimize/33.png)
 
 > 分享出去的 `hprof` 文件并不是标准的 `hprof` 文件，不能直接被 `MAT` 识别，需要通过 [`hprof-conv` 命令工具](#转换为标准的-hprof-文件-使用-hprof-conv-进行转换) 进行转换。
 

@@ -179,6 +179,15 @@ export const sidebarConfig = defineSidebarConfig({
             ],
         },
         {
+            text: "性能优化",
+            collapsable: true,
+            prefix: "performance-optimize/",
+            children: [
+                "memory-optimize", // 内存优化
+                "layout-optimize", // 布局优化
+            ],
+        },
+        {
             text: "系统源码分析",
             collapsable: true,
             prefix: "aosp/",
@@ -234,8 +243,6 @@ export const sidebarConfig = defineSidebarConfig({
                         "android-custom-view", // 自定义View
                         "android-ui-draw-process", // UI绘制流程
                         "android-event-dispatch-mechanism", // 事件分发机制
-                        "android-memory-optimize", // 内存优化
-                        "android-layout-optimize", // 布局优化
                         "architecture-mvc-mvp-mvvm", // MVC/MVP/MVVM 模式
                     ]
                 },
@@ -363,10 +370,6 @@ export const sidebarConfig = defineSidebarConfig({
                     prefix: "others/",
                     collapsable: true,
                     children: [
-                        "serializable-and-parcelable", // 对象序列化的概念，Serializeable实现序列化的方式，Parcelable实现序列化的方式，这两种方式的区别和使用场景
-                        "greendao-realm-compare", // GreenDao和Realm的对比，如何选择
-                        "android-nested-scroll", // 嵌套滑动的实现方式和原理
-                        "android-Anim", // 帧动画，补间动画，属性动画各自的概念，特点，使用场景。什么是插值器，什么是估值器
                         "android-asynctask", // AsyncTask
                         "android-handler", // 消息机制
                         "tcp-handshake",

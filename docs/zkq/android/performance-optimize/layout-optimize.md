@@ -7,14 +7,14 @@ tag:
 
 ## CPU 和 GPU
 
-![](./images/android-layout-optimize-01.png)
+![](./images/layout-optimize/01.png)
 
 图形绘制需要进行大量的算术逻辑运算。在没有 `GPU` 之前，计算机的算术逻辑运算都是交由 `CPU` 中的 `ALU` 算术逻辑单元完成的。
 但是，`CPU` 作为中央处理器，统管所有程序，其中有限的 `ALU` 不能满足图形绘制时所需的大量算术逻辑计算的要求，所以图形质量难以提升。
 
 而 `GPU` 则是专门用来进行图形绘制时的 算术逻辑运算的，`GPU` 中包含了很多的 `ALU` 算术逻辑单元，可以满足图形绘制时所需的大量算术逻辑计算。因此，自从 `GPU` 出现后，`CPU` 只需经过一些简单计算，把布局信息转成矢量图形信息，然后把矢量图形信息交给 `GPU`，由 `GPU` 根据矢量图形信息进行大量的算术逻辑计算，经过栅格化之后，把矢量图形信息转成 `Bitmap` 位图放到显示器上显示。
 
-![](./images/android-layout-optimize-02.png)
+![](./images/layout-optimize/02.png)
 
 ## 刷新频率和 `VSync` 信号
 
@@ -46,13 +46,13 @@ tag:
 
 只有在此 `16ms` 的间隔时间内，完成上面两个步骤才能将一帧图片成功地显示出来。否则延迟处理完成的这一帧图片无法及时显示，从而屏幕上还是显示原来的画面（即原来的画面在屏幕上多停留了 `16ms`）。如果连续几次都无法在 `16ms` 的间隔时间内完成以上两步，那么屏幕上原来的画面就会停留更长的时间，从而造成屏幕卡顿。
 
-![](./images/android-layout-optimize-03.png)
+![](./images/layout-optimize/03.png)
 
 > 只有第 `1` 帧图片正常显示，第 `2`、`3`、`4` 帧图片无法正常显示，造成屏幕画面无改变，产生卡顿（`Jank`）。
 
 如上图所示，当一帧画面渲染时间超过 `16ms` 的时候，垂直同步机制会让显示器硬件等待 `GPU` 完成栅格化渲染操作，这样会让这一帧画面多停留了 `16ms`，甚至更多。这样就造成了用户看起来画面停顿。
 
-![](./images/android-layout-optimize-04.png)
+![](./images/layout-optimize/04.png)
 
 ### 如何避免卡顿
 
@@ -64,7 +64,7 @@ tag:
 1. 减少布局控件，使 `CPU` 需要处理的 `UI` 对象减少，从而减少 `CPU` 的处理转换时间。
 2. 避免过度绘制，从而减少 `GPU` 的栅格化渲染处理时间。
 
-![](./images/android-layout-optimize-05.png)
+![](./images/layout-optimize/05.png)
 
 ## 过度绘制（`OverDraw`）
 
@@ -72,7 +72,7 @@ tag:
 
 `GPU` 的绘制过程就跟刷墙一样，一层层地进行，`16ms` 刷一次，这样就会造成图层覆盖的现象，即无用的图层还会被绘制在底层，造成不必要的浪费。
 
-![](./images/android-layout-optimize-06.png)
+![](./images/layout-optimize/06.png)
 
 ### `GPU` 过度绘制的几种情况
 
@@ -104,8 +104,8 @@ tag:
 
 在手机端的开发者选项里，开启 “调用 `GPU` 过度绘制” 
 
-![](./images/android-layout-optimize-07.png)
-![](./images/android-layout-optimize-08.png)
+![](./images/layout-optimize/07.png)
+![](./images/layout-optimize/08.png)
 
 如上图，其中颜色代表渲染的图层情况：
 1. 界面上什么都没有绘制时，无图层，此时该区域显示白色；
@@ -138,15 +138,15 @@ tag:
 
 ### 通过 `TreeView` 查看视图层级（`Hierarchy View`）
 
-![](./images/android-layout-optimize-09.png)
+![](./images/layout-optimize/09.png)
 
-![](./images/android-layout-optimize-10.png)
+![](./images/layout-optimize/10.png)
 
-![](./images/android-layout-optimize-11.png)
+![](./images/layout-optimize/11.png)
 
-![](./images/android-layout-optimize-12.png)
+![](./images/layout-optimize/12.png)
 
-![](./images/android-layout-optimize-13.png)
+![](./images/layout-optimize/13.png)
 
 ### 布局的优化思路
 
@@ -158,11 +158,11 @@ tag:
 
 #### `merge` 标签的作用
 
-![](./images/android-layout-optimize-14.png)
+![](./images/layout-optimize/14.png)
 
 #### 使用 `ConstraintLayout` 或 `RelativeLayout` 减少布局嵌套
 
-![](./images/android-layout-optimize-15.png)
+![](./images/layout-optimize/15.png)
 
 #### `include` 标签的作用
 
