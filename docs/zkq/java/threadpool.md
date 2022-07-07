@@ -26,7 +26,7 @@ tag:
 
 > `Android` 中的线程池都是直接或间接地通过配置 `ThreadPoolExecutor` 来实现的。
 
-![](./images/java-threadpool/01.png)
+![](./images/threadpool/01.png)
 
 如上图所示，`ThreadPoolExecutor` 提供了四个构造方法，但最终都是通过调用如下构造方法实现的：
 

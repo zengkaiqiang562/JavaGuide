@@ -4,7 +4,53 @@ export const sidebarConfig = defineSidebarConfig({
     // 应该把更精确的路径放置在前边
 
     "/zkq/java/": [ // Java
-        
+        "reflect", // 反射机制
+        "annotation", // 注解技术
+        "genericity", // 泛型编程
+        "thread", // 线程
+        "threadpool", // 线程池
+        "jmm", // Java内存模型——底层原理
+        {
+            text: "JVM",
+            prefix: "jvm/",
+            collapsable: true,
+            children: [
+                "jvm-spec",
+                "classloader",
+                "memory-allocate",
+                "class-exe-engine",
+                "gc",
+                "concurrence",
+            ]
+        }
+    ],
+
+    "/zkq/design-pattern/": [ // 设计模式
+        "object-oriented-design-principles",
+        "singleton-pattern",
+        "proxy-pattern",
+        "factory-pattern",
+        "builder-pattern",
+        "facade-pattern",
+        "observer-pattern",
+    ],
+
+    "/zkq/third-party-open-project/": [ // 开源框架
+        "okhttp", // OkHttp框架
+        {
+            text: "RxJava框架",
+            collapsable: true,
+            prefix: "rxjava/",
+            children: [
+                "overview",
+                "operator",
+                "scheduler",
+                "backpressure",
+            ]
+        },
+        "retrofit", // Retrofit框架
+        "glide", // Glide框架
+        "eventbus", // EventBus框架
     ],
 
     "/zkq/tools/": [ // 软件工具
@@ -185,45 +231,11 @@ export const sidebarConfig = defineSidebarConfig({
                     collapsable: true,
                     prefix: "personal-advantage/",
                     children: [
-                        "java-reflect", // 反射机制
-                        "java-annotation", // 注解技术
-                        "java-genericity", // 泛型编程
-                        // "design-model", // 设计模式（单例模式，代理模式，工厂模式，建造者模式，外观模式等 ）
-                        {
-                            text: "设计模式",
-                            collapsable: true,
-                            prefix: "design-pattern/",
-                            children: [
-                                "object-oriented-design-principles",
-                                "Singleton-Pattern",
-                                "Proxy-Pattern",
-                                "Factory-Pattern",
-                                "Builder-Pattern",
-                                "Facade-Pattern",
-                                "Observer-Pattern",
-                            ]
-                        },
                         "android-custom-view", // 自定义View
                         "android-ui-draw-process", // UI绘制流程
                         "android-event-dispatch-mechanism", // 事件分发机制
                         "android-memory-optimize", // 内存优化
                         "android-layout-optimize", // 布局优化
-                        "frame-okhttp", // OkHttp框架
-                        // "frame-rxjava", // RxJava框架
-                        {
-                            text: "RxJava框架",
-                            collapsable: true,
-                            prefix: "rxjava/",
-                            children: [
-                                "overview",
-                                "operator",
-                                "scheduler",
-                                "backpressure",
-                            ]
-                        },
-                        "frame-retrofit", // Retrofit框架
-                        "frame-glide", // Glide框架
-                        "frame-eventbus", // EventBus框架
                         "architecture-mvc-mvp-mvvm", // MVC/MVP/MVVM 模式
                     ]
                 },
@@ -355,25 +367,9 @@ export const sidebarConfig = defineSidebarConfig({
                         "greendao-realm-compare", // GreenDao和Realm的对比，如何选择
                         "android-nested-scroll", // 嵌套滑动的实现方式和原理
                         "android-Anim", // 帧动画，补间动画，属性动画各自的概念，特点，使用场景。什么是插值器，什么是估值器
-                        "java-thread", // 线程
-                        "java-threadpool", // 线程池
                         "android-asynctask", // AsyncTask
                         "android-handler", // 消息机制
                         "tcp-handshake",
-                        "java-jmm", // Java内存模型——底层原理
-                        {
-                            text: "JVM",
-                            prefix: "jvm/",
-                            collapsable: true,
-                            children: [
-                                "jvm-spec",
-                                "classloader",
-                                "memory-allocate",
-                                "class-exe-engine",
-                                "gc",
-                                "concurrence",
-                            ]
-                        }
                     ]
                 }
             ],

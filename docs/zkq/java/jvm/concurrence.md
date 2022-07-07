@@ -181,7 +181,7 @@ tag:
 
 ### 5.1 指令重排的基本规则
 
-> 参考 《`Java` 内存模型（`JMM`）》 中的 [`Happens-Before` 规则](/zkq/project-experiences/project-list/others/java-jmm.html#_5-4-happens-before-规则-保证可见性的规则)
+> 参考 《`Java` 内存模型（`JMM`）》 中的 [`Happens-Before` 规则](/zkq/java/jmm.html#_5-4-happens-before-规则-保证可见性的规则)
 
 指令重排的基本规则有：
 

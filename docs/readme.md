@@ -21,12 +21,18 @@ actions:
   - text: Android
     link: /zkq/android/readme.md
     type: default 
+  - text: 开源框架
+    link: /zkq/third-party-open-project/readme.md
+    type: default 
   - text: Kotlin
     link: /zkq/kotlin/readme.md
     type: default
   - text: 数据库
     link: /zkq/database/readme.md
     type: default 
+  - text: 设计模式
+    link: /zkq/design-pattern/readme.md
+    type: default
   - text: 数据结构
     link: /zkq/data-structure/readme.md
     type: default 

@@ -20,7 +20,7 @@ tag:
 
 ## 2. 栈帧
 
-> 参考 《认识 `JVM` 规范》 中的 [栈帧](/zkq/project-experiences/project-list/others/jvm/jvm-spec.html#_8-10-3-7-栈帧)
+> 参考 《认识 `JVM` 规范》 中的 [栈帧](/zkq/java/jvm/jvm-spec.html#_8-10-3-7-栈帧)
 
 栈帧的说明：
 
@@ -36,7 +36,7 @@ tag:
 
 ## 3. 局部变量表
 
-> 参考 《认识 `JVM` 规范》 中的 [局部变量表](/zkq/project-experiences/project-list/others/jvm/jvm-spec.html#_8-10-3-8-局部变量表-local-variable-又称本地变量表)
+> 参考 《认识 `JVM` 规范》 中的 [局部变量表](/zkq/java/jvm/jvm-spec.html#_8-10-3-8-局部变量表-local-variable-又称本地变量表)
 
 局部变量表的说明：
 
@@ -56,7 +56,7 @@ tag:
 
 ### 3.1 局部变量表中的槽位 `slot` 是可复用的
 
-> 参考 《认识 `JVM` 规范》 中的 [ `Code` 属性在 `class` 文件中的解析举例（`Slot` 可复用）](/zkq/project-experiences/project-list/others/jvm/jvm-spec.html#_8-10-3-9-code-属性在-class-文件中的解析举例-slot-可复用)
+> 参考 《认识 `JVM` 规范》 中的 [ `Code` 属性在 `class` 文件中的解析举例（`Slot` 可复用）](/zkq/java/jvm/jvm-spec.html#_8-10-3-9-code-属性在-class-文件中的解析举例-slot-可复用)
 
 ![](./images/class-exe-engine/03.png)
 

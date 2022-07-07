@@ -9,7 +9,7 @@ tag:
 
 为其他对象提供一种代理，用以控制对这个对象的访问。
 
-![](./images/proxy-pattern-01.png)
+![](./images/proxy-pattern/01.png)
 
 可分为 **静态代理** 和 **动态代理** 。
 

@@ -17,7 +17,7 @@ tag:
 
 ### 1.1 `EventBus` 的三要素（事件、订阅者、发布者）
 
-![](./images/frame-eventbus/01.png)
+![](./images/eventbus/01.png)
 
 如上图，`EventBus` 中的三要素为：
 

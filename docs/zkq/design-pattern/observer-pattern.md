@@ -7,7 +7,7 @@ tag:
 
 ## 1. 观察者模式 & 发布订阅模式（`Publish–Subscribe Pattern`）的区别
 
-![](./images/Observer-Pattern/01.png)
+![](./images/observer-pattern/01.png)
 
 区别如下：
 

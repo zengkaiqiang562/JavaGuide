@@ -19,7 +19,7 @@ tag:
 
 在服务端返回数据之后，`OkHttp` 将原始的结果交给 `Retrofit`，`Retrofit` 根据用户的需求对结果进行解析。
 
-![](./images/frame-retrofit-01.png)
+![](./images/retrofit/01.png)
 
 ## `RESTFul` 的简单介绍
 
@@ -40,7 +40,7 @@ tag:
 
 ## 如何使用 `Retrofit` 描述一个网络请求
 
-![](./images/frame-retrofit-02.png)
+![](./images/retrofit/02.png)
 
 如上图的自定义接口 `GitHubService` 所示：
 1. `Retrofit` 将网络请求抽象了 `Java` 接口；
@@ -59,7 +59,7 @@ tag:
 6. 发送网络请求（同步/异步）；
 7. 处理服务器返回的响应体数据。
 
-![](./images/frame-retrofit-03.png)
+![](./images/retrofit/03.png)
 
 > `step3` 中的 `path` `"xxx/xxx"` 加上 `step4` 中的 `baseUrl` `"http://xxx.xxx.com/"` 构成一个完整的请求 `url` 地址 `"http://xxx.xxx.com/xxx/xxx"`。
 
@@ -106,7 +106,7 @@ public static final class Builder {
 
 ### `baseUrl` 配置时的注意事项
 
-![](./images/frame-retrofit-04.png)
+![](./images/retrofit/04.png)
 
 **建议：**
 1. `baseUrl` 必须以 `/` 结尾；
@@ -243,7 +243,7 @@ static final class ExecutorCallbackCall<T> implements Call<T> {
 
 ### 自定义接口的实例化及接口方法的调用
 
-![](./images/frame-retrofit-05.png)
+![](./images/retrofit/05.png)
 
 `Retrofit` 中是采用动态代理模式来实例化自定义接口的。调用 `Retrofit.create` 方法返回自定义接口的动态代理对象，并通过动态代理对象来调用接口方法。
 

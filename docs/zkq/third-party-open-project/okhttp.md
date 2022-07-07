@@ -19,7 +19,7 @@ tag:
 
 > 在第 `4` 步中执行的 `call.execute()` 方法是一个**阻塞方法**，会使当前线程进入阻塞状态，直到返回 `Response` 对象。
 
-![](./images/frame-okhttp/01.png)
+![](./images/okhttp/01.png)
 
 ### 异步请求步骤
 
@@ -31,7 +31,7 @@ tag:
 
 > 回调函数 `callback.onFailure` 和 `callback.onResponse` 都是在**子线程中调用**的。
 
-![](./images/frame-okhttp/02.png)
+![](./images/okhttp/02.png)
 
 
 ### 同步请求和异步请求的区别
@@ -62,7 +62,7 @@ tag:
 5. 拦截器；
 6. ......
 
-![](./images/frame-okhttp/03.png)
+![](./images/okhttp/03.png)
 
 ### `Request` 的配置
 
@@ -73,7 +73,7 @@ tag:
 4. 请求体；
 5. 标识本次请求的 `tag` 标签（可以用来取消本次请求）。
 
-![](./images/frame-okhttp/04.png)
+![](./images/okhttp/04.png)
 
 ## `Call` 对象的作用
 
@@ -84,11 +84,11 @@ tag:
 >
 > 且在 `RealCall` 的构造方法中就创建好了重定向拦截器 `RetryAndFollowInterceptor`。
 
-![](./images/frame-okhttp/05.png)
+![](./images/okhttp/05.png)
 
 ## 发起同步请求的源码分析
 
-![](./images/frame-okhttp/uml/01.png)
+![](./images/okhttp/uml/01.png)
 
 **注意：**
 1. 在 `RealCall` 中通过布尔变量 `executed` 保证一个 `Call` 对象只能发起一次同步请求或一次异步请求；
@@ -116,7 +116,7 @@ tag:
 
 ## 发起异步请求的源码分析
 
-![](./images/frame-okhttp/uml/02.png)
+![](./images/okhttp/uml/02.png)
 
 ### 通过 `AsyncCall` 发起异步请求
 
@@ -280,7 +280,7 @@ private void promoteCalls() {
 不管是同步请求还是异步请求，都是调用 `RealCall.getResponseWithInterceptorChain()` 方法通过拦截器链来进行网络请求的。
 > 拦截器在工作时是没有同步或异步的说法的。同步或异步的说法其实就是指 `RealCall.getResponseWithInterceptorChain()` 方法是否是在多线程中调用的。
 
-![](./images/frame-okhttp/06.png)
+![](./images/okhttp/06.png)
 
 `OkHttp` 内部提供了 5 个核心的拦截器：
 1. `RetryAndFollowUpInterceptor`：重试和失败时的重定向拦截器 
@@ -342,7 +342,7 @@ Response getResponseWithInterceptorChain() throws IOException {
 1. 在 `proceed` 方法中为下一个拦截器创建一个新的拦截器链对象 `nextChain`；
 2. 调用拦截器的 `intercept(nextChain)` 方法处理请求，并在处理后继续调用 `nextChain.proceed(request)` 方法，将处理后的请求继续交给下一个拦截器处理。
 
-![](./images/frame-okhttp/uml/03.png)
+![](./images/okhttp/uml/03.png)
 
 拦截器链的 `proceed` 方法采用了递归算法，通过拦截器集合 `interceptors` 中的拦截器依次调用：
 ```
@@ -362,7 +362,7 @@ response = realCall.getResponseWithInterceptorChain() -> chain.proceed(request) 
 
 ### `RetryAndFollowUpInterceptor` 重定向拦截器
 
-![](./images/frame-okhttp/uml/04.png)
+![](./images/okhttp/uml/04.png)
 
 ```java
 /* RetryAndFollowUpInterceptor.java */
@@ -418,7 +418,7 @@ public Response intercept(Chain chain) throws IOException {
 
 ### `BridgeInterceptor` 桥接和适配拦截器
 
-![](./images/frame-okhttp/uml/05.png)
+![](./images/okhttp/uml/05.png)
 
 桥接和适配拦截器 `BridgeInterceptor` 的作用就是：
 1. 为 `Request` 添加必要的请求头信息；
@@ -426,7 +426,7 @@ public Response intercept(Chain chain) throws IOException {
 
 ### `CacheInterceptor` 缓存拦截器（以及缓存的简单介绍）
 
-![](./images/frame-okhttp/uml/06.png)
+![](./images/okhttp/uml/06.png)
 
 缓存拦截器 `CacheInterceptor` 中使用的缓存类对象 `cache` 是通过 `OkHttpClient.Builder.cache(Cache)` 方法配置的。
 
@@ -460,7 +460,7 @@ public static String key(HttpUrl url) {
 
 ### `ConnectInterceptor` 网络连接拦截器（以及连接池的简单介绍）
 
-![](./images/frame-okhttp/uml/07.png)
+![](./images/okhttp/uml/07.png)
 
 在 `StreamAllocation.newStream` 方法中会通过 `findHealthyConnection` 和 `findConnection` 方法来获取一个**建立好网络连接**的 `RealConnection` 对象。
 
@@ -482,7 +482,7 @@ public static String key(HttpUrl url) {
 `CallServerInterceptor` 是拦截器链中最后一个处理请求的拦截器，用来获取网络中的响应数据。
 > 用户自定义的网络拦截器是插入在 `ConnectInterceptor` 和 `CallServerInterceptor` 之间的。
 
-![](./images/frame-okhttp/uml/08.png)
+![](./images/okhttp/uml/08.png)
 
 OkHttp返回给调用者的响应对象 `response` 中并没有保存响应体数据，`response` 的 `body` 中只是持有了 `Http1Codec.source` 的引用。当调用者拿到 `response` 后，执行 `response.body.string()` 方法时，才会通过 `Http1Codec.source` 从网络 `IO` 中读取响应体数据。
 > 也就是说， `response.body.string()` 方法涉及到 `IO` 操作，不能在 `UI` 线程中执行。

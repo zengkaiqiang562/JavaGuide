@@ -8,7 +8,7 @@ tag:
 
 ## 1. 从 `Java` 代码到 `CPU` 指令
 
-![](./images/java-jmm/01.png)
+![](./images/jmm/01.png)
 
 如上图：
 1. 最开始，我们编写的 `Java` 代码是 `*.java` 文件；
@@ -25,7 +25,7 @@ tag:
 
 ### 2.1 `JVM` 内存结构
 
-![](./images/java-jmm/02.png)
+![](./images/jmm/02.png)
 
 如上图，`JVM` 内存结构包括：
 1. 堆（`heap`）
@@ -42,12 +42,12 @@ tag:
 
 当我们在 `Java` 代码中使用 `new` 创建一个对象时，`JVM` 会创建一个 `instanceOopDesc` 对象，这个对象中包含了对象头以及实例数据。
 
-![](./images/java-jmm/03.png)
+![](./images/jmm/03.png)
 
 
-> 参考 《内存分配》 中的 [对象的内存布局](/zkq/project-experiences/project-list/others/jvm/memory-allocate.html#_2-3-对象的内存布局-对象头、实例数据、对齐填充)
+> 参考 《内存分配》 中的 [对象的内存布局](/zkq/java/jvm/memory-allocate.html#_2-3-对象的内存布局-对象头、实例数据、对齐填充)
 > 
-> 参考 《内存分配》 中的 [对象的访问方式](/zkq/project-experiences/project-list/others/jvm/memory-allocate.html#_2-4-对象的访问方式-使用句柄、使用指针)
+> 参考 《内存分配》 中的 [对象的访问方式](/zkq/java/jvm/memory-allocate.html#_2-4-对象的访问方式-使用句柄、使用指针)
 
 ## 3. `Java` 内存模型（`JMM`）
 
@@ -84,9 +84,9 @@ tag:
 
 ### 4.1 什么是重排序
 
-![](./images/java-jmm/04.png)
+![](./images/jmm/04.png)
 
-![](./images/java-jmm/05.png)
+![](./images/jmm/05.png)
 
 如上代码中，演示了重排序的现象，分析如下：
 
@@ -118,7 +118,7 @@ tag:
 
 ### 4.2 重排序的好处（提高处理速度）
 
-![](./images/java-jmm/06.png)
+![](./images/jmm/06.png)
 
 如上图所示，对比重排序前后的指令优化，重排序明显提高了处理速度。
 
@@ -133,11 +133,11 @@ tag:
 
 ### 5.1 什么是可见性问题
 
-![](./images/java-jmm/07.png)
+![](./images/jmm/07.png)
 
 如上代码所示，分析如下三种情况：
 
-![](./images/java-jmm/08.png)
+![](./images/jmm/08.png)
 
 ```:no-line-numbers
 1. 当读线程 readThread 先全部执行完毕时，就会打印 b=2; a=1
@@ -147,7 +147,7 @@ tag:
 
 **特别地，当出现可见性问题时，就会出现 `b=3; a=1` 的情况：**
 
-![](./images/java-jmm/09.png)
+![](./images/jmm/09.png)
 
 ```:no-line-numbers
 什么是可见性问题？
@@ -184,15 +184,15 @@ public class FieldVisibility {
 
 **未使用 `volatile` 时**
 
-![](./images/java-jmm/10.png)
+![](./images/jmm/10.png)
 
 **使用 `volatile` 时**
 
-![](./images/java-jmm/11.png)
+![](./images/jmm/11.png)
 
 ### 5.2 为什么会有可见性问题
 
-![](./images/java-jmm/12.png)
+![](./images/jmm/12.png)
 
 出现可见性问题的根本原因就是 **`CPU` 有多级缓存，导致读的数据过期**，具体为：
 1. 高速缓存的容量比主内存小，但是速度仅次于寄存器，所以在 `CPU` 和主内存之间就多了 `Cache` 层。
@@ -204,7 +204,7 @@ public class FieldVisibility {
 
 #### 5.3.1 什么是主内存和本地内存
 
-![](./images/java-jmm/13.png)
+![](./images/jmm/13.png)
 
 如上如的底层细节中：
 
@@ -218,7 +218,7 @@ L3 cache，RAM 看成是主内存
 
 这里说的本地内存并不是真的是一块给每个线程分配的内存，而是 `JMM` 的一个抽象，是对于寄存器、一级缓存、二级缓存等的抽象。
 
-![](./images/java-jmm/14.png)
+![](./images/jmm/14.png)
 
 #### 5.3.2 主内存和本地内存的关系（导致可见性问题）
 
@@ -253,13 +253,13 @@ L3 cache，RAM 看成是主内存
 即使发生重排序，单线程规则也不会改变。
 ```
 
-![](./images/java-jmm/15.png)
+![](./images/jmm/15.png)
 
-![](./images/java-jmm/16.png)
+![](./images/jmm/16.png)
 
 #### 5.4.2 锁操作（`synchronized` 和 `Lock`）
 
-![](./images/java-jmm/17.png)
+![](./images/jmm/17.png)
 
 如上图：
 
@@ -279,7 +279,7 @@ L3 cache，RAM 看成是主内存
 不会由于主内存和工作内存之间的同步不及时而导致可见性问题。
 ```
 
-![](./images/java-jmm/18.png)
+![](./images/jmm/18.png)
 
 #### 5.4.4 线程启动
 
@@ -287,7 +287,7 @@ L3 cache，RAM 看成是主内存
 在线程 A 中启动线程 B 时，在线程 A 中调用线程 B 的 start() 方法之前的所有修改，在线程 B 运行时都是可见的。
 ```
 
-![](./images/java-jmm/19.png)
+![](./images/jmm/19.png)
 
 #### 5.4.5 线程 `join`
 
@@ -296,7 +296,7 @@ L3 cache，RAM 看成是主内存
 之后，在 Thread A 中执行 statement 1; 时，Thread B 中对主内存中变量的修改，在 Thread A 中都是可见的。
 ```
 
-![](./images/java-jmm/20.png)
+![](./images/jmm/20.png)
 
 #### 5.4.6 传递性
 
@@ -336,7 +336,7 @@ hb(A, B) 表示 A happens before B，即 A 对主内存中变量的修改，对 
 
 #### 5.4.10 `happens-before` 演示案例
 
-![](./images/java-jmm/21.png)
+![](./images/jmm/21.png)
 
 以上代码中，会出现如下几种情况：
 
@@ -403,7 +403,7 @@ b 之前的写入（即 b=a 之前的 a=3）对读取 b 后的代码（即 print
 
 另外，`volatile` 还可以作为刷新之前变量的触发器：
 
-![](./images/java-jmm/22.png)
+![](./images/jmm/22.png)
 
 如上代码所示：
 
@@ -429,7 +429,7 @@ b 之前的写入（即 b=a 之前的 a=3）对读取 b 后的代码（即 print
 
 2. 禁止指令重排序
 
-    > [解决单例双重锁乱序问题](/zkq/project-experiences/project-list/personal-advantage/design-pattern/Singleton-Pattern.html#双重检查【推荐用】)
+    > [解决单例双重锁乱序问题](/zkq/design-pattern/singleton-pattern.html#双重检查【推荐用】)
 
 #### 5.5.4 `volatile` 和 `synchronized` 的关系
 
@@ -455,7 +455,7 @@ b 之前的写入（即 b=a 之前的 a=3）对读取 b 后的代码（即 print
 
 #### 5.5.5 用  `volatile` 修正重排序问题
 
-![](./images/java-jmm/23.png)
+![](./images/jmm/23.png)
 
 相比于[未修正的代码](/zkq/project-experiences/project-list/others/java-jmm.html#_4-1-什么是重排序)，这里将变量 `a,b,x,y` 都用 `volatile` 修饰了。
 
@@ -477,7 +477,7 @@ b 之前的写入（即 b=a 之前的 a=3）对读取 b 后的代码（即 print
    
 2. `synchronized` 不仅让被保护的代码安全，还近朱者赤，如下代码所示：
 
-    ![](./images/java-jmm/24.png)
+    ![](./images/jmm/24.png)
 
 ## 6. 原子性
 
@@ -525,7 +525,7 @@ b 之前的写入（即 b=a 之前的 a=3）对读取 b 后的代码（即 print
 
 > 对于商用的 `Java` 虚拟机，`JVM` 内部已经保证了 `long` 或 `double` 类型变量的赋值操作具备原子性。因此，实际开发中，不再需要为了保证 `long` 或 `double` 类型变量的赋值操作具备原子性，而使用 `volatile` 关键字修饰它们。
 
-![](./images/java-jmm/25.png)
+![](./images/jmm/25.png)
 
 ### 6.4 原子操作 + 原子操作 != 原子操作
 
@@ -539,4 +539,4 @@ b 之前的写入（即 b=a 之前的 a=3）对读取 b 后的代码（即 print
 
 ## 7. `JMM` 的应用（双重检查实现单例）
 
-[参考](/zkq/project-experiences/project-list/personal-advantage/design-pattern/Singleton-Pattern.html#双重检查【推荐用】)
+[参考](/zkq/design-pattern/singleton-pattern.html#双重检查【推荐用】)

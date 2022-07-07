@@ -36,14 +36,14 @@ public void run() {
 
 #### 错误观点1. 线程池创建线程是一种新建线程的方式
 
-![](./images/java-thread/java-thread-01.png)
+![](./images/thread/01.png)
 
 如上图，线程池是通过 `ThreadFactory` 接口的 `newThread(Runnable)` 方法来获取线程的。而每个 `ThreadFactory` 接口的实现类重写 `newThread(Runnable)` 方法时，都是通过传入一个 `Runnable` 接口的实现类对象来创建线程的。
 > 也就是说，线程池创建线程的本质还是通过 **实现 `Runnable` 接口** 完成的。
 
 #### 错误观点2. 通过 `Callable` 和 `FutureTask` 创建线程是一种新建线程的方式
 
-![](./images/java-thread/java-thread-02.png)
+![](./images/thread/02.png)
 
 本质还是 **实现 `Runnable` 接口**。
 
@@ -76,7 +76,7 @@ public void run() {
 
 ### 2.3 `start` 方法源码分析（`start` 方法的主要作用）
 
-![](./images/java-thread/java-thread-03.png)
+![](./images/thread/03.png)
 
 `start` 方法的主要作用是：
 1. 检查线程状态
@@ -106,19 +106,19 @@ public void run() {
 
 #### 3.3.1 停止正常运行的线程
 
-![](./images/java-thread/java-thread-04.png)
+![](./images/thread/04.png)
 
 #### 3.3.2 停止正处于阻塞状态下的线程
 
-![](./images/java-thread/java-thread-05.png)
+![](./images/thread/05.png)
 
 #### 3.3.3 停止每次循环时都会短暂阻塞的线程
 
-![](./images/java-thread/java-thread-06.png)
+![](./images/thread/06.png)
 
 ### 3.4 无法停止线程的情况（及解决方式）
 
-![](./images/java-thread/java-thread-07.png)
+![](./images/thread/07.png)
 
 ### 3.5 停止线程的最佳实践
 
@@ -127,14 +127,14 @@ public void run() {
 传递中断就是说 `run` 方法中的被调函数中发生阻塞的时候，中断了线程，此时，在被调用函数中的阻塞方法（如 `sleep`，`wait`）抛出了 `InterruptedException` 异常时，不能直接在被调函数中对 `InterruptedException` 异常进行 `try/catch`，而是应该将该异常向上抛给 `run` 方法处理。
 > 即：不要在`run` 方法中的被调函数内处理中断，而是将中断传递给 `run` 方法处理。
 
-![](./images/java-thread/java-thread-08.png)
+![](./images/thread/08.png)
 
 #### 3.5.2 不想或无法传递时：恢复中断
 
 恢复中断就是说`run` 方法中的被调函数中发生阻塞的时候，中断了线程，此时，在被调用函数中的阻塞方法（如 `sleep`，`wait`）抛出了 `InterruptedException` 异常时，如果被调函数不想将异常向上抛给 `run` 方法，或者是其他无法将异常抛出给 `run` 方法的情况，那么被调函数中可以对异常进行 `try/catch`，然后再调用当前线程的 `interrupt()` 方法，再发出一次中断，使得中断标记位为 `1`，于是，在 `run` 方法中就可以判断 `isInterrupted()` 是否返回 `true` 来结束循环，从而停止线程。
 > 即：如果 `run` 方法中的被调函数内无法将中断传递给 `run` 方法，那么就在被调函数中重新发起一个中断。
 
-![](./images/java-thread/java-thread-09.png)
+![](./images/thread/09.png)
 
 #### 3.5.3 不应屏蔽中断
 
@@ -144,7 +144,7 @@ public void run() {
 
 以下这些方法都会在线程调用 `interrupt()` 方法发出中断时，抛出 `InterruptedException` 异常。
 
-![](./images/java-thread/java-thread-10.png)
+![](./images/thread/10.png)
 
 ### 3.7 停止线程的错误方式
 
@@ -170,7 +170,7 @@ public void run() {
 
 #### 3.7.3 用 `volatile` 设置 `boolean` 标记位
 
-![](./images/java-thread/java-thread-11.png)
+![](./images/thread/11.png)
 
 ##### `BlockingQueue` 阻塞队列的特点
   
@@ -185,17 +185,17 @@ public void run() {
 3. 找到 `native` 方法对应的方法名
 4. 去 `src/hotspot/share/prims/jvm.cpp` 里看 `cpp` 代码
 
-![](./images/java-thread/java-thread-12.png)
+![](./images/thread/12.png)
 
-![](./images/java-thread/java-thread-13.png)
+![](./images/thread/13.png)
 
-![](./images/java-thread/java-thread-14.png)
+![](./images/thread/14.png)
 
-![](./images/java-thread/java-thread-15.png)
+![](./images/thread/15.png)
 
 ### 3.9 判断是否已中断的方法对比（`isInterrupted` 和 `interrupted()`）
 
-![](./images/java-thread/java-thread-16.png)
+![](./images/thread/16.png)
 
 #### 3.9.1 `Thread.isInterrupted()`
 
@@ -264,7 +264,7 @@ public void run() {
 
 ### 4.7 状态间的转化示意图
 
-![](./images/java-thread/java-thread-17.png)
+![](./images/thread/17.png)
 
 > 从线程的状态转化图中可以看出，有些状态之间是可以相互转化的，有些状态之间是不可以相互转化的（即不可逆的）。
 >
@@ -272,9 +272,9 @@ public void run() {
 
 ### 4.8 获取线程状态（`Thread.getState()`）
 
-![](./images/java-thread/java-thread-18.png)
+![](./images/thread/18.png)
 
-![](./images/java-thread/java-thread-19.png)
+![](./images/thread/19.png)
 
 ### 4.9 什么是阻塞状态？
 
@@ -285,7 +285,7 @@ public void run() {
 
 ### 5.1 方法概览
 
-![](./images/java-thread/java-thread-20.png)
+![](./images/thread/20.png)
 
 ### 5.2 `wait`、`notify`、`notifyAll` 方法详解
 
@@ -343,9 +343,9 @@ public void run() {
 3. 过了 `wait(timeout)` 规定的超时时间（如果传入 `0` 就是永久等待）；
 4. 线程自身调用了 `interrupt()` 方法。
 
-![](./images/java-thread/java-thread-21.png)
+![](./images/thread/21.png)
 
-![](./images/java-thread/java-thread-22.png)
+![](./images/thread/22.png)
 
 #### 5.2.3 特点&性质
 
@@ -376,10 +376,10 @@ public void run() {
 能够更好地对生产操作和消费操作进行协同控制。
 ```
 
-![](./images/java-thread/java-thread-23.png)
-![](./images/java-thread/java-thread-24.png)
+![](./images/thread/23.png)
+![](./images/thread/24.png)
 
-![](./images/java-thread/java-thread-25.png)
+![](./images/thread/25.png)
 
 #### 5.2.5 两个线程交替打印 `0~100` 的奇偶数
 
@@ -394,11 +394,11 @@ public void run() {
 
 **1. 用 `synchronized` 关键字实现**
 
-![](./images/java-thread/java-thread-26.png)
+![](./images/thread/26.png)
 
 **2. 用 `wait` 和 `notify` 方法实现**
 
-![](./images/java-thread/java-thread-27.png)
+![](./images/thread/27.png)
 
 #### 5.2.6 常见面试问题
 
@@ -489,7 +489,7 @@ suspend 和 resume 是搭配使用的，通过 suspend 将线程挂起，通过 
 
 #### 5.3.3 更优雅的 `sleep` 方式（`TimeUnit.XXX.sleep(time)`）
 
-![](./images/java-thread/java-thread-28.png)
+![](./images/thread/28.png)
 
 #### 5.3.4 `sleep` 与 `wait/notify` 的异同
 
@@ -507,15 +507,15 @@ suspend 和 resume 是搭配使用的，通过 suspend 将线程挂起，通过 
 
 #### 5.4.1 从源码中分析 `join` 方法的作用
 
-![](./images/java-thread/java-thread-29.png)
+![](./images/thread/29.png)
 
 #### 5.4.2 `join` 方法的普通用法
 
-![](./images/java-thread/java-thread-30.png)
+![](./images/thread/30.png)
 
 #### 5.4.3 `join` 方法遇到中断
 
-![](./images/java-thread/java-thread-31.png)
+![](./images/thread/31.png)
 
 #### 5.4.4 使用 `CountDownLatch` 或 `CyclicBarrier` 类实现 `join` 的功能
 
@@ -563,11 +563,11 @@ suspend 和 resume 是搭配使用的，通过 suspend 将线程挂起，通过 
 
 ### 6.1 线程各属性纵览
 
-![](./images/java-thread/java-thread-32.png)
+![](./images/thread/32.png)
 
 ### 6.2 线程 `Id`
 
-![](./images/java-thread/java-thread-33.png)
+![](./images/thread/33.png)
 
 线程 `id` 是唯一的，在线程的生命周期中不会改变。
 
@@ -579,13 +579,13 @@ suspend 和 resume 是搭配使用的，通过 suspend 将线程挂起，通过 
 
 在我们自己创建线程之前，`JVM` 已经创建了多个线程，因此，我们自己所创建线程的线程 `id > 1`。
 
-![](./images/java-thread/java-thread-34.png)
+![](./images/thread/34.png)
 
 ### 6.3 线程名
 
 如果我们在创建线程时，没有通过构造函数指定线程名，那么 `Thread` 类内部会指定一个默认的线程名 `Thread-<num>`。
 
-![](./images/java-thread/java-thread-35.png)
+![](./images/thread/35.png)
 
 ### 6.4 守护线程
 
@@ -612,7 +612,7 @@ suspend 和 resume 是搭配使用的，通过 suspend 将线程挂起，通过 
 
 > 注意：**必须在调用 `start()` 方法前**，调用 `setDaemon(true) 将线程设置为守护线程`。
 
-![](./images/java-thread/java-thread-36.png)
+![](./images/thread/36.png)
 
 #### 6.4.3 常见面试题
 
@@ -638,9 +638,9 @@ suspend 和 resume 是搭配使用的，通过 suspend 将线程挂起，通过 
 
 `Java` 为线程定义了 `[1, 10]` 范围内的优先级，默认是 `5`。
 
-![](./images/java-thread/java-thread-37.png)
+![](./images/thread/37.png)
 
-![](./images/java-thread/java-thread-38.png)
+![](./images/thread/38.png)
 
 #### 6.5.2 程序设计不建议依赖于优先级
 
@@ -667,13 +667,13 @@ suspend 和 resume 是搭配使用的，通过 suspend 将线程挂起，通过 
 2. 子线程异常无法用传统方法捕获；
     > `try-catch` 只能捕获当前线程中发生在 `try-catch` 代码块内的异常。如果 `try-catch` 代码块在线程 `A` 中执行，`try-catch` 代码块内启动了一个子线程，那么子线程的 `run` 方法中抛出的异常是无法被线程 `A` 中的 `try-catch` 捕获到的。
 
-    ![](./images/java-thread/java-thread-39.png)
+    ![](./images/thread/39.png)
 
 3. 对于无法直接捕获的异常，可以使用 `UncaughtExceptionHandler` 来统一处理，提高健壮性。
 
 ### 7.2 未捕获异常的分发处理策略（`UncaughtExceptionHandler` 的工作原理）
 
-![](./images/java-thread/java-thread-40.png)
+![](./images/thread/40.png)
 
 ```sequence
 participant T as Thread
@@ -713,7 +713,7 @@ deactivate T
 
 ### 7.3 `UncaughtExceptionHandler` 的使用示例
 
-![](./images/java-thread/java-thread-41.png)
+![](./images/thread/41.png)
 
 ### 7.4 常见面试问题
 
@@ -771,7 +771,7 @@ deactivate T
 
 ##### 8.1.2.1 多线程下的 `i++` 异常情况分析
 
-![](./images/java-thread/java-thread-42.png)
+![](./images/thread/42.png)
 
 如上图所示：
 
@@ -787,11 +787,11 @@ deactivate T
 
 如下代码所示，可以通过 `AtomicInteger` 解决这个问题。
 
-![](./images/java-thread/java-thread-43.png)
+![](./images/thread/43.png)
 
 ##### 8.1.2.2 演示死锁的产生
 
-![](./images/java-thread/java-thread-44.png)
+![](./images/thread/44.png)
 
 ##### 8.1.2.3 对象发布和初始化时的安全问题
 
@@ -805,23 +805,23 @@ deactivate T
 
 1. 方法返回一个 `private` 对象（`private` 的本意是不让外部访问）；
 
-    ![](./images/java-thread/java-thread-45.png)
+    ![](./images/thread/45.png)
 
 2. 还未完成初始化（构造函数没完全执行完毕）就把对象提供给外界，如：
    1. 在构造函数中未初始化完毕就 `this` 赋值；
 
-        ![](./images/java-thread/java-thread-46.png)
+        ![](./images/thread/46.png)
 
    2. 隐式逸出（如注册监听事件）；
 
-        ![](./images/java-thread/java-thread-47.png)
-        ![](./images/java-thread/java-thread-48.png)
+        ![](./images/thread/47.png)
+        ![](./images/thread/48.png)
    
    3. 构造函数中运行线程。
 
-        ![](./images/java-thread/java-thread-49.png)
+        ![](./images/thread/49.png)
 
 ### 8.2 性能问题
 
-![](./images/java-thread/java-thread-50.png)
+![](./images/thread/50.png)
 
