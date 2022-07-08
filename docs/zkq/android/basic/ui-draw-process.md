@@ -11,15 +11,15 @@ tag:
 
 从 `startActivity` 到 `scheduleLaunchActivity`
 
-![](./images/android-ui-draw-process/uml/01.png)
+![](./images/ui-draw-process/uml/01.png)
 
 从 `scheduleLaunchActivity` 到 `addView`
 
-![](./images/android-ui-draw-process/uml/02.png)
+![](./images/ui-draw-process/uml/02.png)
 
 > 执行 `wm.addView(decor, l)` 时，开始进入 `UI` 的绘制流程，也就是说，`UI` 的绘制是在执行完 `Activity.onResume` 方法之后才开始的。
 
-![](./images/android-ui-draw-process/uml/03.png)
+![](./images/ui-draw-process/uml/03.png)
 
 > `Android 6.0` 中，`DecorView` 还是 `PhoneWindow` 的内部类
 

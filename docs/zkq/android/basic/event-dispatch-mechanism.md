@@ -40,9 +40,9 @@ Activity -> Window -> DecorView -> ViewGroup -> View
 
 ## `Activity` 的事件分发流程
 
-![](./images/android-event-dispatch-mechanism-01.png)
+![](./images/event-dispatch-mechanism/01.png)
 
-![](./images/android-event-dispatch-mechanism-02.png)
+![](./images/event-dispatch-mechanism/02.png)
 
 ```
 Activity 持有 PhoneWindow 对象的引用（Activity.mWindow）
@@ -58,9 +58,9 @@ DecorView 就是 Activity 界面上的顶层 ViewGroup 容器。
 
 在 `Activity.dispatchTouchEvent` 方法中，如果事件没有被消费掉（即 `getWindow().superDispatchTouchEvent(ev)` 返回 `false`），那么就会执行 `Activity.onTouchEvent` 方法，由 `Activity` 来处理事件。
 
-![](./images/android-event-dispatch-mechanism-03.png)
-![](./images/android-event-dispatch-mechanism-04.png)
-![](./images/android-event-dispatch-mechanism-05.png)![](./images/android-event-dispatch-mechanism-06.png)
+![](./images/event-dispatch-mechanism/03.png)
+![](./images/event-dispatch-mechanism/04.png)
+![](./images/event-dispatch-mechanism/05.png)![](./images/event-dispatch-mechanism/06.png)
 
 `Activity` 在进行事件处理时，主要就是考虑当 `Activity` 为 `Dialog` 类型时的情况。
 
@@ -75,7 +75,7 @@ DecorView 就是 Activity 界面上的顶层 ViewGroup 容器。
 
 ## `ViewGroup` 的事件分发流程
 
-![](./images/android-event-dispatch-mechanism-07.png)
+![](./images/event-dispatch-mechanism/07.png)
 
 ### `ViewGroup.dispatchTouchEvent` 方法分析
 
@@ -1053,7 +1053,7 @@ private boolean dispatchTransformedTouchEvent(MotionEvent event, boolean cancel,
 
 这里的`View` 特指没有子`View`的视图，所以事件分发到了 `View` 中，就分发完成了，此时开始处理事件。
 
-![](./images/android-event-dispatch-mechanism-08.png)
+![](./images/event-dispatch-mechanism/08.png)
 
 ### `View.dispatchTouchEvent` 方法分析
 

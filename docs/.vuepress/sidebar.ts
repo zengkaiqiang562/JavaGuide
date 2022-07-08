@@ -106,6 +106,11 @@ export const sidebarConfig = defineSidebarConfig({
                 "broadcast",
                 "contentprovider",
                 "serialize",
+                "asynctask", // AsyncTask
+                "handler", // 消息机制
+                "custom-view", // 自定义View
+                "ui-draw-process", // UI绘制流程
+                "event-dispatch-mechanism", // 事件分发机制
             ],
         },
         {
@@ -236,17 +241,6 @@ export const sidebarConfig = defineSidebarConfig({
             prefix: "project-list/",
             children: [
                 {
-                    text: "个人优势",
-                    collapsable: true,
-                    prefix: "personal-advantage/",
-                    children: [
-                        "android-custom-view", // 自定义View
-                        "android-ui-draw-process", // UI绘制流程
-                        "android-event-dispatch-mechanism", // 事件分发机制
-                        "architecture-mvc-mvp-mvvm", // MVC/MVP/MVVM 模式
-                    ]
-                },
-                {
                     text: "VCAT+重构",
                     prefix: "vcat-plus-refactor/",
                     collapsable: true,
@@ -365,16 +359,6 @@ export const sidebarConfig = defineSidebarConfig({
                         "android-api-ble-bluetooth", // BLE蓝牙API的使用方式
                     ]
                 },
-                {
-                    text: "其他",
-                    prefix: "others/",
-                    collapsable: true,
-                    children: [
-                        "android-asynctask", // AsyncTask
-                        "android-handler", // 消息机制
-                        "tcp-handshake",
-                    ]
-                }
             ],
         }
     ],

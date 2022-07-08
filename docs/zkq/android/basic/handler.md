@@ -19,11 +19,11 @@ tag:
 
 `Handler` 机制的工作过程如下：
 
-![](./images/android-handler/02.png)
+![](./images/handler/02.png)
 
 ### 2.1 `Handler` 发送消息
 
-![](./images/android-handler/01.png)
+![](./images/handler/01.png)
 
 > 如上图所示，`Handler.sendXxx` 和 `Handler.postXxx` 方法最终都是调用了 `Handler.enqueueMessage` 方法。
 
@@ -289,7 +289,7 @@ private Looper(boolean quitAllowed) {
 
 2. `Handler` 对象中通过属性 `mLooper` 持有 `Looper` 对象的引用，通过属性 `mQueue` 持有 `MessageQueue` 对象的引用。其中，`Handler.mQueue` 就是引用了 `mLooper.mQueue`，即 `Handler` 对象中引用的 `MessageQueue` 就是在 `mLooper` 对象中创建的。（即：`Handler` 对象绑定了 `Looper` 对象，同时也就绑定了 `MessageQueue` 对象）
 
-    ![](./images/android-handler/03.png)
+    ![](./images/handler/03.png)
 
     > 如上图所示，创建 `Handler` 对象时：
     >
@@ -558,7 +558,7 @@ public static void loop() {
 
 所以，为了避免这种问题，应该调用 `Message.obtain` 方法尝试从对象池 `sPool` 中获取一个可复用的 `Message` 对象，而不是直接 `new` 一个 `Message` 对象。并且在 `Message` 对象使用完毕后，调用 `Message.recycleUnchecked()` 方法清除掉 `Message` 对象的消息数据，再将其回收到对象池 `sPool` 中，以便下一次能够继续复用。
 
-![](./images/android-handler/04.png)
+![](./images/handler/04.png)
 
 > 优先通过重载的 `obtain` 静态方法获取 `Message` 对象。
 
@@ -647,7 +647,7 @@ public static void loop() {
 才会从消息队列的头部节点开始，依次挨个地取出每个消息，而不考虑取出的是同步消息还是异步消息。
 ```
 
-![](./images/android-handler/05.png)
+![](./images/handler/05.png)
 
 ### 12.3 同步屏障的应用：刷新 `UI`
 
@@ -668,7 +668,7 @@ public static void loop() {
 因此，可以在 doTraversal() 方法中调用 MessageQueue.removeSyncBarrier 方法停止同步屏障。
 ```
 
-![](./images/android-handler/06.png)
+![](./images/handler/06.png)
 
 ## 13. `HandlerThread`
 
@@ -691,7 +691,7 @@ HandlerThread 内部通过同步锁，保证在其它线程中能够安全地调
 这是因为，新创建线程中的 run 方法，在其它线程调用 getLooper 时可能还未执行，从而新创建线程中的 Looper 对象还未创建。
 ```
 
-![](./images/android-handler/07.png)
+![](./images/handler/07.png)
 
 ## 14. `IntentService`
 
@@ -719,11 +719,11 @@ IntentService 内部维护了一个在子线程中运行的 Handler 消息机制
 除非在重写的 onHandleIntent 中调用 stopSelf()、stopSelf(-1)、stopService(intent) 才会立即将 IntentService 停下来。
 ```
 
-![](./images/android-handler/08.png)
+![](./images/handler/08.png)
 
 ### 14.1 示例：`IntentService` 的使用
 
-![](./images/android-handler/09.png)
+![](./images/handler/09.png)
 
 ## 15. `Handler` 面试题
 
