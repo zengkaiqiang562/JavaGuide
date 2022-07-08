@@ -4,12 +4,12 @@ import { sidebarConfig } from "./sidebar";
 
 export default defineThemeConfig({
   logo: "/logo.png",
-  hostname: "https://javaguide.cn/",
-  author: {
-    name: "Guide",
-    url: "https://javaguide.cn/",
-  },
-  repo: "https://github.com/Snailclimb/JavaGuide",
+  // hostname: "https://javaguide.cn/",
+  // author: {
+  //   name: "Guide",
+  //   url: "https://javaguide.cn/",
+  // },
+  // repo: "https://github.com/Snailclimb/JavaGuide",
   docsDir: "docs",
   iconPrefix: "iconfont icon-",
   pure: true,
