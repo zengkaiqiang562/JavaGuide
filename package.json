@@ -1,8 +1,8 @@
 {
-  "name": "javaguide",
+  "name": "android_guide",
   "version": "2.0.0-alpha.40",
   "private": true,
-  "description": "javaguide",
+  "description": "android_guide",
   "license": "MIT",
   "author": "Guide",
   "scripts": {

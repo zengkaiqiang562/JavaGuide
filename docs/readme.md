@@ -3,8 +3,9 @@ home: true
 icon: home
 title: 主页
 heroImage: /logo.svg
-heroText: JavaGuide
-tagline: 「Java学习+面试指南」一份涵盖大部分 Java 程序员所需要掌握的核心知识。准备 Java 面试，首选 JavaGuide！
+heroText: Android Guide
+# tagline: 「Java学习+面试指南」一份涵盖大部分 Java 程序员所需要掌握的核心知识。准备 Java 面试，首选 JavaGuide！
+tagline: 「Android 学习 + 面试指南」一份涵盖大部分 Android 程序员所需要掌握的核心知识。准备 Android 面试，首选 Android Guide！
 actions:
   - text: 开始阅读
     link: /home/
@@ -42,8 +43,8 @@ actions:
   - text: 软件工具
     link: /zkq/tools/readme.md
     type: default 
-footer: |-
-  <a href="https://beian.miit.gov.cn/" target="_blank">鄂ICP备2020015769号-1</a> | 主题: <a href="https://vuepress-theme-hope.github.io/v2/" target="_blank">VuePress Theme Hope</a>
+# footer: |-
+#   <a href="https://beian.miit.gov.cn/" target="_blank">鄂ICP备2020015769号-1</a> | 主题: <a href="https://vuepress-theme-hope.github.io/v2/" target="_blank">VuePress Theme Hope</a>
 ---
 
 ## 必看专栏
@@ -66,8 +67,8 @@ footer: |-
 - [《分布式相关面试题汇总》](https://t.1yb.co/GXLF)
 - [《图解计算机基础》](https://mp.weixin.qq.com/s?__biz=Mzg2OTA0Njk0OA==&mid=100021725&idx=1&sn=2db9664ca25363139a81691043e9fd8f&chksm=4ea19a1679d61300d8990f7e43bfc7f476577a81b712cf0f9c6f6552a8b219bc081efddb5c54#rd)
 
-## 公众号
+<!-- ## 公众号
 
 最新更新会第一时间同步在公众号，强烈推荐大家关注一波！另外，公众号上有很多干货不会同步在线阅读网站。
 
-![我的公众号](https://cdn.jsdelivr.net/gh/javaguide-tech/blog-images/2020-08/167598cd2e17b8ec.png)
+![我的公众号](https://cdn.jsdelivr.net/gh/javaguide-tech/blog-images/2020-08/167598cd2e17b8ec.png) -->

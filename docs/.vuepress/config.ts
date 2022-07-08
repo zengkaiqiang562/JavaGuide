@@ -3,8 +3,10 @@ import themeConfig from "./themeConfig";
 
 module.exports = defineHopeConfig({
   port: 8080,
-  title: "JavaGuide",
-  description: "Java学习&&面试指南",
+  // title: "JavaGuide",
+  title: "Android Guide",
+  // description: "Java学习&&面试指南",
+  description: "Android 学习 && 面试指南",
   //指定 vuepress build 的输出目录
   dest: "./dist",
   // 是否开启默认预加载 js

@@ -25,8 +25,8 @@ export default defineThemeConfig({
       Gitee: "https://gitee.com/SnailClimb",
     },
   },
-  footer:
-    '<a href="https://beian.miit.gov.cn/" target="_blank">鄂ICP备2020015769号-1</a>',
+  // footer:
+  //   '<a href="https://beian.miit.gov.cn/" target="_blank">鄂ICP备2020015769号-1</a>',
   displayFooter: true,
   headerDepth: 6,
   plugins: {

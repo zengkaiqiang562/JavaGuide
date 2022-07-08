@@ -1,6 +1,7 @@
 ---
 icon: creative
-title: JavaGuide（Java学习&&面试指南）
+# title: JavaGuide（Java学习&&面试指南）
+title: Android Guide
 ---
 
 <div style="text-align:center">
