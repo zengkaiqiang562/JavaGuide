@@ -7,12 +7,12 @@ heroText: Android Guide
 # tagline: 「Java学习+面试指南」一份涵盖大部分 Java 程序员所需要掌握的核心知识。准备 Java 面试，首选 JavaGuide！
 tagline: 「Android 学习 + 面试指南」一份涵盖大部分 Android 程序员所需要掌握的核心知识。准备 Android 面试，首选 Android Guide！
 actions:
-  - text: 开始阅读
-    link: /home/
-    type: primary
-  - text: 知识星球
-    link: /about-the-author/zhishixingqiu-two-years.md
-    type: default
+  # - text: 开始阅读
+  #   link: /home/
+  #   type: primary
+  # - text: 知识星球
+  #   link: /about-the-author/zhishixingqiu-two-years.md
+  #   type: default
   - text: 项目经历
     link: /zkq/project-experiences/readme.md
     type: default 
