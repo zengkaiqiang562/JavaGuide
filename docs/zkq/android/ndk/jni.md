@@ -14,7 +14,9 @@ tag:
 
 ### 1.1 `JNI` 和 `NDK` 的开发流程
 
-**`JNI` 的开发流程：**
+#### 1.1.1 `JNI` 的开发流程
+
+`JNI` 的开发流程如下：
 
 1. 在 `Java` 类中声明 `native` 方法
 
@@ -68,7 +70,7 @@ tag:
 
     > 注意：`System.loadLibrary("name")` 中传入的 `libname.so` 库名称不需要加前缀 "`lib`" 和后缀 "`.so`"
 
-**NDK 的开发流程**
+#### 1.1.2 `NDK` 的开发流程
 
 使用 `NDK` 进行开发可以省去编译生成 `so` 库的步骤，`AndroidStudio` 会根据我们通过 `NDK` 所实现的相关配置自动编译生成 `so` 库。
 
@@ -76,9 +78,15 @@ tag:
 > 
 > 但另外也多了些其他的配置文件。
 
-使用 `NDK` 进行开发时，可以使用 `Makefile` 进行配置，也可以使用 `CMake` 进行配置（现在推荐使用 `CMake` 配置了），还可以直接在 `build.gradle` 中进行配置
+使用 `NDK` 进行开发时，可以使用 `ndk-build`（基于 `Makefile` 的构建脚本）构建原生库（即 `so` 动态库，或静态库），也可以使用 `CMake` 构建原生库（现在推荐使用 `CMake` 了）。
 
-使用 `Makefile` 进行配置时，需要创建 `Android.mk` 和 `Application.mk` 这两个配置文件，其中：
+不管是采用 `ndk-build` 进行构建，还是采用 `CMake` 的进行构建，最后都需要在 `build.gradle` 中进行配置后，才能集成到 `AndroidStudio` 项目中。
+
+##### 1.1.2.1 使用 `ndk-build`（`Makefile`）构建
+
+> 参考：[ndk-build](/zkq/android/ndk/ndk-build.html)
+
+使用 `ndk-build`（`Makefile`） 进行构建时，需要创建 `Android.mk` 和 `Application.mk` 这两个配置文件，其中：
 
 ```:no-line-numbers
 在 Android.mk 文件中可以配置编译 so 库时所需要的源文件，以及生成的 so 库的名称等信息。
@@ -86,13 +94,19 @@ tag:
 在 Application.mk 文件中可以配置编译出来的 so 库所支持的 CPU 平台架构类型（如 armeabi、x86 等架构）
 ```
 
-使用 `CMake` 进行配置时，需要创建 `CMakeLists.txt` 配置文件
+##### 1.1.2.2 使用 `CMake` 构建
+
+> 参考：[CMake](/zkq/android/ndk/cmake.html)
+
+使用 `CMake` 进行构建时，需要创建 `CMakeLists.txt` 配置文件
 
 ```:no-line-numbers
 在 CMakeLists.txt 文件中，可以配置编译 so 库时所需要的源文件，以及生成的 so 库的名称等信息
 
 即 CMakeLists.txt 文件的作用就相当于 Android.mk 文件
 ```
+
+##### 1.1.2.3 在 `build.gradle` 中配置
 
 使用 `build.gradle` 进行配置时：
 

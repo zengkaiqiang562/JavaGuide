@@ -161,8 +161,8 @@ export const sidebarConfig = defineSidebarConfig({
             prefix: "ndk/",
             children: [
                 "jni",
+                "ndk-build",
                 "cmake",
-                "androidmk",
             ],
         },
         {
@@ -227,6 +227,8 @@ export const sidebarConfig = defineSidebarConfig({
             children: [
                 "version-new-feature",
                 "permission",
+                "i18n",
+                "screen-compatibility",
                 "launch-google-play",
                 "message-push",
             ],
