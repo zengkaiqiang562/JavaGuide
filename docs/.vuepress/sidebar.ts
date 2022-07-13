@@ -227,8 +227,7 @@ export const sidebarConfig = defineSidebarConfig({
             children: [
                 "version-new-feature",
                 "permission",
-                "i18n",
-                "screen-compatibility",
+                "resources",
                 "launch-google-play",
                 "message-push",
             ],

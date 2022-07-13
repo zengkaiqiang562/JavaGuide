@@ -6,6 +6,8 @@ tag:
   - Android
 ---
 
+> 参考：[API 级别](https://developer.android.google.cn/guide/topics/manifest/uses-sdk-element?hl=zh-cn#ApiLevels)
+
 Android 5.0
 
 ```:no-line-numbers
