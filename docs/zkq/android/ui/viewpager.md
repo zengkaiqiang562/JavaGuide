@@ -1,5 +1,5 @@
 ---
-title: ViewPager（TODO
+title: ViewPager（TODO）
 category: 
   - UI
 tag:
@@ -23,3 +23,9 @@ tag:
 > 参考：[android 改变ViewPager切换页面时的速度](https://blog.csdn.net/u2014_lyy/article/details/46048293)
 > 
 > 参考：[禁止ViewPager的左右滑动事件](https://blog.csdn.net/loveyaozu/article/details/51889591)
+> 
+> 参考：[使用 ViewPager 在 Fragment 之间滑动](https://developer.android.google.cn/training/animation/screen-slide?hl=zh-cn)
+> 
+> 参考：[使用 ViewPager 创建包含标签页的滑动视图](https://developer.android.google.cn/guide/navigation/navigation-swipe-view?hl=zh-cn)
+> 
+> 参考：[androidx中的Fragment懒加载方案](https://www.jianshu.com/p/a34eef0e3bc9)
