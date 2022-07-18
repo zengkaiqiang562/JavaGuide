@@ -634,7 +634,25 @@ include $(BUILD_SHARED_LIBRARY)
 > 请在您指定的每个库名称前附加 `-l`。
 
 ##### 1.2.3.25 `LOCAL_SHORT_COMMANDS`
+
+当您的模块有很多源文件和/或依赖的静态或共享库时，请将此变量设置为 `true`。这样会强制构建系统将 ``@ 语法用于包含中间对象文件或链接库的归档。
+
+此功能在 `Windows` 上可能很有用，在 `Windows` 上，命令行最多只接受 `8191` 个字符，这对于复杂的项目来说可能太少。它还会影响个别源文件的编译，而且将几乎所有编译器标记都放在列表文件内。
+
+也可以在 `Application.mk` 文件中定义 `APP_SHORT_COMMANDS`，对项目中的所有模块强制实施此行为。
+
+我们不建议默认启用此功能，因为它会减慢构建速度。
+
 ##### 1.2.3.26 `LOCAL_THIN_ARCHIVE`
+
+构建静态库时，请将此变量设置为 `true`。这样会生成一个瘦归档，即一个库文件，其中不含对象文件，而只包含它通常包含的实际对象的文件路径。
+
+这对于减小构建输出的大小非常有用。但缺点是，这样的库无法移至其他位置（其中的所有路径都是相对路径）。
+
+有效值为 `true`、`false` 或空白。您可在 `Application.mk` 文件中通过 `APP_THIN_ARCHIVE` 变量来设置默认值。
+
+> 注意：在非静态库模块或预构建的静态库模块中，将会忽略此变量。
+
 ##### 1.2.3.27 `LOCAL_FILTER_ASM`
 
 ### 1.3 预构建库
@@ -698,6 +716,99 @@ include $(PREBUILT_SHARED_LIBRARY)
 ```
 
 于是，在使用预构建库的其他模块中，可以通过变量 `LOCAL_C_INCLUDES` 引入声明的头文件路径。
+
+### 1.4 `NDK` 提供的函数宏
+
+本部分介绍了 `NDK` 提供的 `GNU Make` 函数宏。
+
+使用 `$(call <function>)` 可以对其进行求值；其返回文本信息。
+
+#### 1.4.1 `my-dir`
+
+这个宏返回最后包括的 `makefile` 的路径，通常是当前 `Android.mk` 的目录。
+
+`my-di`r 可用于在 `Android.mk` 文件开头定义 `LOCAL_PATH`。例如：
+
+```makefile:no-line-numbers
+LOCAL_PATH := $(call my-dir)
+```
+
+由于 `GNU Make` 的工作方式，这个宏实际返回的是构建系统解析构建脚本时包含的最后一个 `makefile` 的路径。因此，包括其他文件后就不应调用 `my-dir`。例如：
+
+```makefile:no-line-numbers
+LOCAL_PATH := $(call my-dir)
+
+# ... declare one module
+
+include $(LOCAL_PATH)/foo/`Android.mk`
+
+LOCAL_PATH := $(call my-dir)
+
+# ... declare another module
+```
+
+> 这里的问题在于，对 `my-dir` 的第二次调用将 `LOCAL_PATH` 定义为 `$PATH/foo`，而不是 `$PATH`，因为这是其最近的 `include` 所指向的位置。
+
+在 `Android.mk` 文件中的任何其他内容后指定额外的 `include` 可避免此问题。例如：
+
+```makefile:no-line-numbers
+LOCAL_PATH := $(call my-dir)
+
+# ... declare one module
+
+LOCAL_PATH := $(call my-dir)
+
+# ... declare another module
+
+# extra includes at the end of the Android.mk file
+include $(LOCAL_PATH)/foo/Android.mk
+```
+
+如果以这种方式构造文件不可行，请将第一个 `my-dir` 调用的值保存到另一个变量中。例如：
+
+```makefile:no-line-numbers
+MY_LOCAL_PATH := $(call my-dir)
+
+LOCAL_PATH := $(MY_LOCAL_PATH)
+
+# ... declare one module
+
+include $(LOCAL_PATH)/foo/`Android.mk`
+
+LOCAL_PATH := $(MY_LOCAL_PATH)
+
+# ... declare another module
+```
+
+#### 1.4.2 `all-subdir-makefiles`
+
+返回位于当前 `my-dir` 路径所有子目录中的 `Android.mk` 文件列表。
+
+利用此函数，您可以为构建系统提供深度嵌套的源目录层次结构。
+
+> 注意：默认情况下，`NDK` 只在 `Android.mk` 文件所在的目录中查找文件。
+
+#### 1.4.3 `this-makefile`
+
+返回当前 `makefile`（构建系统从中调用函数）的路径。
+
+#### 1.4.4 `parent-makefile`
+
+返回包含树中父 `makefile` 的路径（包含当前 `makefile` 的 `makefile` 的路径）。
+
+#### 1.4.5 `grand-parent-makefile`
+
+返回包含树中祖父 `makefile` 的路径（包含当前父 `makefile` 的 `makefile` 的路径）。
+
+#### 1.4.6 `import-module`
+
+此函数用于按模块名称来查找和包含模块的 `Android.mk` 文件。典型的示例如下所示：
+
+```makefile:no-line-numbers
+$(call import-module,<name>)
+```
+
+> 在此示例中，构建系统在 `NDK_MODULE_PATH` 环境变量所引用的目录列表中查找具有 `<name>` 标记的模块，并且自动包括其 `Android.mk` 文件。
 
 ## 2. `Application.mk`
 
