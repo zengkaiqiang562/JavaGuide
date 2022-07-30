@@ -9,18 +9,16 @@
     "vite-build": "vuepress-vite build docs",
     "vite-serve": "vuepress-vite dev docs",
     "vite-clean-serve": "vuepress-vite dev docs --clean-cache",
-    
     "webpack-build": "vuepress-webpack build docs",
     "webpack-clean-serve": "vuepress-webpack dev docs --clean-cache",
     "webpack-serve": "vuepress-webpack dev docs",
-
     "docs-build": "vuepress build docs",
     "docs-clean-serve": "vuepress build docs --clean-cache",
     "docs-serve": "vuepress dev docs"
   },
   "devDependencies": {
-    "@vuepress/plugin-search": "^2.0.0-beta.38",
-    "vuepress-theme-hope": "^2.0.0-beta.36",
+    "@vuepress/plugin-search": "2.0.0-beta.38",
+    "vuepress-theme-hope": "2.0.0-beta.36",
     "vuepress-vite": "2.0.0-beta.38",
     "vuepress-webpack": "2.0.0-beta.38"
   }
