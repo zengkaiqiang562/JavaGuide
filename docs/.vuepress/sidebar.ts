@@ -3,6 +3,24 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
     // 应该把更精确的路径放置在前边
 
+    "/zkq/hnap/": [ // 湖南安派项目经历
+        {
+            text: "C407",
+            prefix: "C407/",
+            collapsable: true,
+            children: [
+                "notes", // 杂记
+                "launch-optimize", // 启动优化（耗时点分析，透明主题的解决方式）
+                "admob-sdk", // Admob 广告 SDK 集成（开屏，插页，原生，横幅）
+                "firebase-sdk", // Firebase SDK 集成（埋点处理）
+                "facebook-sdk", // Facebook SDK 集成
+                "app-signature", // app 签名 & 上传 output.zip 密钥到 Google Play 管理中心
+                "cool-or-hot-launch", // 冷启动 & 热启动的区别，以及在代码中的区分方式
+                "gradle-plugin-v7", // Android Gradle Plugin 7.0+ 的配置
+            ]
+        }
+    ],
+
     "/zkq/java/": [ // Java
         "reflect", // 反射机制
         "annotation", // 注解技术
