@@ -13,7 +13,7 @@ actions:
   # - text: 知识星球
   #   link: /about-the-author/zhishixingqiu-two-years.md
   #   type: default
-  - text: 湖南安派
+  - text: HNAP
     link: /zkq/hnap/readme.md
     type: default 
   - text: 项目经历

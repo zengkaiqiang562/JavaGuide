@@ -1,7 +1,7 @@
 ---
 title: 杂记
 category: 
-  - 湖南安派 
+  - HNAP 
 tag:
   - C407 
 ---
