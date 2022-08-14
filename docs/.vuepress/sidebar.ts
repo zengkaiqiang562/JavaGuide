@@ -132,6 +132,19 @@ export const sidebarConfig = defineSidebarConfig({
             ],
         },
         {
+            text: "绘图基础",
+            collapsable: true,
+            prefix: "basic-drawing/",
+            children: [
+                "basic-graphic-drawing", // 基本图形绘制
+                "path", // 路径
+                "text", // 文字
+                "region", // Region 区域
+                "canvas", // Canvas 画布
+                "view-primer", // 控件的使用入门
+            ],
+        },
+        {
             text: "动画",
             collapsable: true,
             prefix: "anim/",
