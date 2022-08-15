@@ -20,6 +20,14 @@ export const sidebarConfig = defineSidebarConfig({
                 "gradle-plugin-v7", // Android Gradle Plugin 7.0+ 的配置
                 "gson", // Gson
             ]
+        },
+        {
+            text: "C503",
+            prefix: "C503/",
+            collapsable: true,
+            children: [
+                "analysis-speedbooster",
+            ] 
         }
     ],
 
