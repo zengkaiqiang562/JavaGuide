@@ -10,6 +10,7 @@ export const sidebarConfig = defineSidebarConfig({
             collapsable: true,
             children: [
                 "notes", // 杂记
+                "code-proguard", // 代码混淆
                 "launch-optimize", // 启动优化（耗时点分析，透明主题的解决方式）
                 "admob-sdk", // Admob 广告 SDK 集成（开屏，插页，原生，横幅）
                 "firebase-sdk", // Firebase SDK 集成（埋点处理）
@@ -17,6 +18,7 @@ export const sidebarConfig = defineSidebarConfig({
                 "app-signature", // app 签名 & 上传 output.zip 密钥到 Google Play 管理中心
                 "cool-or-hot-launch", // 冷启动 & 热启动的区别，以及在代码中的区分方式
                 "gradle-plugin-v7", // Android Gradle Plugin 7.0+ 的配置
+                "gson", // Gson
             ]
         }
     ],
