@@ -14,6 +14,10 @@ MainActivity
 -- MainFragment（ViewPager）
 
 ---- HomeFragment
+------ ViewPager
+-------- BoostTabFragment
+-------- StorageAndRamTabFragment
+-------- AdsTabFragment
 ------ CleanJunkFragment // 垃圾文件
 ------ PhoneBoostFragment // 电话提升（手机加速的意思）
 ------ CpuCoolerFragment // CPU 散热器
@@ -26,26 +30,97 @@ MainActivity
 
 ## 2. 申请的权限
 
+> 参考：[Manifest.permission](https://developer.android.google.cn/reference/android/Manifest.permission?hl=en)
+
 ```xml:no-line-numbers
+<!-- Protection level: normal -->
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+<!-- Protection level: normal -->
 <uses-permission android:name="android.permission.INTERNET"/>
+
+<!-- Protection level: dangerous -->
+<!-- Any app that declares the WRITE_EXTERNAL_STORAGE permission is implicitly granted this permission. -->
+<!-- Also starting in API level 19, this permission is not required to read/write files  -->
+<!-- in your application-specific directories returned by Context.getExternalFilesDir(String) and Context.getExternalCacheDir(). -->
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+<!-- Protection level: normal -->
+<!-- Allows an app to use fingerprint hardware. -->
+<!-- This constant was deprecated in API level 28. -->
+<!-- Applications should request USE_BIOMETRIC instead -->
 <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+
+<!-- Protection level: normal -->
+<!-- Allows access to the vibrator. -->
 <uses-permission android:name="android.permission.VIBRATE"/>
+
+<!-- Protection level: dangerous -->
+<!-- Starting in API level 19, this permission is not required to read/write files -->
+<!-- in your application-specific directories returned by Context.getExternalFilesDir(String) and Context.getExternalCacheDir(). -->
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-<uses-permission android:name="android.permission.CLEAR_APP_CACHE"/>
+
+<!-- Protection level: signature|privileged -->
+<!-- Allows an application to clear the caches of all installed applications on the device. -->
+<uses-permission android:name="android.permission.CLEAR_APP_CACHE"/> 
+
+<!-- Protection level: normal -->
+<!-- Allows an application to find out the space used by any package. -->
 <uses-permission android:name="android.permission.GET_PACKAGE_SIZE"/>
+
+<!-- Protection level: normal -->
+<!-- Allows an application to call ActivityManager.killBackgroundProcesses(String). -->
 <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
+
+<!-- Protection level: signature|privileged|development|appop|retailDemo -->
+<!-- Allows an application to collect component usage statistics -->
+<!-- Declaring the permission implies intention to use the API and the user of the device can grant permission through the Settings application. -->
 <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"/>
+
+<!-- Protection level: normal -->
+<!-- Allows an application to receive the Intent.ACTION_BOOT_COMPLETED that is broadcast after the system finishes booting.  -->
+<!-- If you don't request this permission, you will not receive the broadcast at that time.  -->
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+<!-- Allows mounting and unmounting file systems for removable storage. -->
+<!-- Not for use by third-party applications. -->
 <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
+
+<!-- This constant was deprecated in API level 21. -->
+<!-- No longer enforced. -->
 <uses-permission android:name="android.permission.GET_TASKS"/>
+
+<!-- Protection level: signature|setup|appop|installer|pre23|development -->
+<!-- Allows an app to create windows using the type WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, shown on top of all other apps.  -->
+<!-- Very few apps should use this permission; these windows are intended for system-level interaction with the user. -->
+<!-- If the app targets API level 23 or higher, the app user must explicitly grant this permission to the app through a permission management screen.  -->
+<!-- The app requests the user's approval by sending an intent with action Settings.ACTION_MANAGE_OVERLAY_PERMISSION.  -->
+<!-- The app can check whether it has this authorization by calling Settings.canDrawOverlays(). -->
 <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+<!-- 未找到该权限 -->
 <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW"/>
+
+<!-- Don't use this permission in your app. -->
+<!-- This permission is no longer supported. -->
 <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT"/>
+
+<!-- Protection level: normal -->
+<!-- Allows an application to install a shortcut in Launcher. -->
 <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
+
+<!-- Protection level: normal -->
+<!-- Allows a regular application to use Service.startForeground. -->
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
+<!-- Protection level: normal -->
+<!-- Allows an application to request deleting packages.  -->
+<!-- Apps targeting APIs Build.VERSION_CODES.P or greater must hold this permission -->
+<!-- in order to use Intent.ACTION_UNINSTALL_PACKAGE or PackageInstaller.uninstall(VersionedPackage, IntentSender). -->
 <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
+
+<!-- Protection level: normal -->
+<!-- Allows using PowerManager WakeLocks to keep processor from sleeping or screen from dimming. -->
 <uses-permission android:name="android.permission.WAKE_LOCK"/>
 ```
 
@@ -55,9 +130,11 @@ MainActivity
 1. https://github.com/deano2390/MaterialShowcaseView  // 引导
 
 2. https://github.com/Karumi/Dexter  // 权限请求
+
+3. https://github.com/h6ah4i/android-advancedrecyclerview  // item 可折叠的 RecyclerView
 ```
 
-## 4. HomeFragment
+## 4. `HomeFragment`
 
 四个选项的点击事件：
 
@@ -262,6 +339,7 @@ public static void a(Activity activity, int i) {
 ```
 
 ```java:no-line-numbers
+/* HomeFragment.java */
 public boolean s() {
     if (VERSION.SDK_INT < 21) { // API 21 是 Android 5.0
         return true;
@@ -286,13 +364,15 @@ public boolean s() {
 ```
 
 ```java:no-line-numbers
+/* com.bsoft.cleanmaster.fragment.n1.java */
 public void b(Fragment fragment) { // 将 fragment 添加到 View 容器（R.id.main_layout）中
     requireActivity().o().b().b(R.id.main_layout, fragment).a(fragment.getClass().getSimpleName()).f();
 }
 ```
 
 ```java:no-line-numbers
-public void u() {
+/* HomeFragment.java */
+public void u() { // 如果还没有允许用户访问 UsageStatsManager（即 s() 方法返回 false），则走这里，弹窗提示用户去开启访问权限
     androidx.appcompat.app.c.a aVar = new androidx.appcompat.app.c.a(this.f4384d, R.style.AlertDialogTheme);
     StringBuilder sb = new StringBuilder();
     sb.append(getString(R.string.for_android_5));
@@ -304,7 +384,7 @@ public void u() {
 }
 ```
 
-```java
+```java:no-line-numbers
 /* com.bsoft.cleanmaster.fragment.m0.java */
 public final class m0 implements OnClickListener {
 
@@ -412,6 +492,7 @@ public class a extends b implements OnClickListener { // a 应该是一个 Dialo
 ### 4.2 点击电话提升（手机加速）
 
 ```java:no-line-numbers
+/* HomeFragment.java */
 @OnClick({2131296517})
 public void doPhoneBoost() { // 点击 电话提升（手机加速）
     if (s()) {
@@ -425,6 +506,7 @@ public void doPhoneBoost() { // 点击 电话提升（手机加速）
 ### 4.3 点击 `CPU` 散热器 
 
 ```java:no-line-numbers
+/* HomeFragment.java */
 @OnClick({2131296515})
 public void doCpuCooler() {
     if (s()) {
@@ -433,12 +515,19 @@ public void doCpuCooler() {
         u();
     }
 }
+```
 
+```java:no-line-numbers
+/* com.bsoft.cleanmaster.fragment.n1.java */
+public void a(Fragment fragment) { // 将 fragment 添加到 View 容器（R.id.main_layout）中
+    requireActivity().o().b().a(R.id.main_layout, fragment).a(fragment.getClass().getSimpleName()).f();
+}
 ```
 
 ### 4.4 点击省电
 
 ```java:no-line-numbers
+/* HomeFragment.java */
 @OnClick({2131296514})
 public void doBatterySaver() {
     if (s()) {
@@ -448,6 +537,592 @@ public void doBatterySaver() {
     }
 }
 ```
+
+## 5. `StorageAndRamTabFragment`
+
+```java:no-line-numbers
+/* StorageAndRamTabFragment.java */
+public void r() {
+    long d2 = com.bsoft.cleanmaster.util.g.d(getContext()); // 总内存
+    long c2 = com.bsoft.cleanmaster.util.g.c(getContext()); // 可用内存
+
+    // m.f4931e = "optimize_phone_boost"
+    if (com.bsoft.cleanmaster.util.l.b(getContext(), com.bsoft.cleanmaster.util.m.f4931e)) { // 判断上次进行手机加速的时间到现在是否在 3min 之内
+        c2 += com.bsoft.cleanmaster.util.l.c(getContext()); // 如果上次在 3min 内进行了手机加速，则可用内存加上上次手机加速时释放的内存大小
+    }
+    double d3 = d2 - c2; // 已使用内存 = 总内存 - 可用内存
+    Double.isNaN(d3);
+    double d4 = d2;
+    Double.isNaN(d4);
+    int round = (int) Math.round((d3 * 100.0d) / d4); // 可用内存占总内存的百分比
+    if (round < 25) {
+        round = (int) ((Math.random() * 25.0d) + 25.0d); // 作假！当可用内存小于 25% 时，取[25%, 50%]范围内的值作为可用内存的百分比
+    }
+    ValueAnimator ofInt = ValueAnimator.ofInt(0, round); // 以可用内存百分比 为圆形进度条设置动画
+    ofInt.setDuration(1000L);
+    ofInt.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.bsoft.cleanmaster.fragment.g1
+        @Override // android.animation.ValueAnimator.AnimatorUpdateListener
+        public final void onAnimationUpdate(ValueAnimator valueAnimator) {
+            StorageAndRamTabFragment.this.a(valueAnimator); // 设置 RAM 的圆形进度条
+        }
+    });
+    ofInt.start();
+    long e2 = com.bsoft.cleanmaster.util.g.e() + com.bsoft.cleanmaster.util.g.d(); // 内部存储 + 外部存储 的总容量
+    double c3 = e2 - (com.bsoft.cleanmaster.util.g.c() + com.bsoft.cleanmaster.util.g.b()); // 已使用容量 = 总容量 - （内部存储 + 外部存储 的可用容量）
+    Double.isNaN(c3);
+    double d5 = e2;
+    Double.isNaN(d5);
+    ValueAnimator ofInt2 = ValueAnimator.ofInt(0, (int) Math.round((c3 * 100.0d) / d5)); // 已使用容量占总容量的百分比
+    ofInt2.setDuration(1000L);
+    ofInt2.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.bsoft.cleanmaster.fragment.h1
+        @Override // android.animation.ValueAnimator.AnimatorUpdateListener
+        public final void onAnimationUpdate(ValueAnimator valueAnimator) {
+            StorageAndRamTabFragment.this.b(valueAnimator); // 设置 存储 的圆形进度条
+        }
+    });
+    ofInt2.start();
+}
+
+public /* synthetic */ void a(ValueAnimator valueAnimator) {
+    this.ramProgress.setProgress(((Integer) valueAnimator.getAnimatedValue()).intValue());
+    TextView textView = this.textRamPer;
+    textView.setText(valueAnimator.getAnimatedValue() + "%");
+}
+
+public /* synthetic */ void b(ValueAnimator valueAnimator) {
+    this.storageProgress.setProgress(((Integer) valueAnimator.getAnimatedValue()).intValue());
+    TextView textView = this.textStoragePer;
+    textView.setText(valueAnimator.getAnimatedValue() + "%");
+}
+```
+
+### 5.1 `RAM` 内存百分比
+
+```java:no-line-numbers
+/* com.bsoft.cleanmaster.util.g.java */
+public static long d(Context context) {
+    ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+    ((ActivityManager) context.getSystemService("activity")).getMemoryInfo(memoryInfo);
+    return memoryInfo.totalMem; // 总内存
+}
+
+public static long c(Context context) {
+    ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+    ((ActivityManager) context.getSystemService("activity")).getMemoryInfo(memoryInfo);
+    return memoryInfo.availMem; // 可用内存
+}
+```
+
+```java:no-line-numbers
+/* com.bsoft.cleanmaster.util.l.java */
+public static boolean b(Context context, String str) {
+    // 判断当前时间与 SP 中存储的 key 为 str 的时间是否小于 180000ms（即 3 min）
+    // str 为 optimize_phone_boost 时表示上次手机加速的时间？
+    return System.currentTimeMillis() - d(context).getLong(str, 0L) < m.s;
+}
+
+public static long c(Context context) { 
+    return d(context).getLong(h.f4920e, 0L); // 获取 SP 中保存的上次进行 optimized_memory_size（内存优化） 时释放的内存大小
+}
+```
+
+### 5.2 存储百分比
+
+```java:no-line-numbers
+/* com.bsoft.cleanmaster.util.g.java */
+import android.os.StatFs;
+
+public static long e() { // 内部 /data 中的总容量
+    StatFs statFs = new StatFs(Environment.getDataDirectory().getPath());
+    return statFs.getBlockCount() * statFs.getBlockSize();
+}
+
+public static long d() { // 外部 /sdcard 中的总容量
+    if (a()) {
+        StatFs statFs = new StatFs(Environment.getExternalStorageDirectory().getPath());
+        return statFs.getBlockCount() * statFs.getBlockSize();
+    }
+    return 0L;
+}
+
+public static long c() { // 内部 /data 中的可用容量
+    StatFs statFs = new StatFs(Environment.getDataDirectory().getPath());
+    return statFs.getAvailableBlocks() * statFs.getBlockSize();
+}
+
+public static long b() { // 外部 /sdcard 中的可用容量
+    if (a()) {
+        StatFs statFs = new StatFs(Environment.getExternalStorageDirectory().getPath());
+        return statFs.getAvailableBlocks() * statFs.getBlockSize();
+    }
+    return 0L;
+}
+
+private static boolean a() {
+    return Environment.getExternalStorageState().equals("mounted"); // 外部 /sdcard 是否已挂载
+}
+```
+
+
+### `UI` 
+
+![](./images/analysis-speedbooster/07.png)
+
+## 6. `BoostTabFragment`
+
+```java:no-line-numbers
+/* BoostTabFragment.java */
+@OnClick({R.id.btn_boost})
+public void doBoost() {
+    if (r()) {
+        // 当具有 访问 UsageStatsManager 的权限时，播放火箭向右上方飞出的动画，在动画播放完成后，显示 PhoneBoostFragment，也就是点击 电话提升 时显示的界面
+        Animation loadAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.rocket_translate2);
+        loadAnimation.setAnimationListener(new a());
+        this.imageRocket.startAnimation(loadAnimation);
+        return;
+    }
+    s();
+}
+
+// 相当于 HomeFragment.java 中的 s() 方法，判断是否具有访问 UsageStatsManager 的权限
+public boolean r() {
+    if (Build.VERSION.SDK_INT >= 21) { // 当前版本 >= Android 5.0
+        try {
+            PackageManager packageManager = getActivity().getPackageManager();
+            if (packageManager == null) {
+                return false;
+            }
+            ApplicationInfo applicationInfo = packageManager.getApplicationInfo(getActivity().getPackageName(), 0);
+            return ((AppOpsManager) getActivity().getSystemService("appops")).checkOpNoThrow("android:get_usage_stats", applicationInfo.uid, applicationInfo.packageName) == 0;
+        } catch (PackageManager.NameNotFoundException unused) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// 如果还没有允许用户访问 UsageStatsManager（即 r() 方法返回 false），则走这里，弹窗提示用户去开启访问权限
+// 相当于 HomeFragment.java 中的 u() 方法
+private void s() {
+    c.a aVar = new c.a(this.f4719d, R.style.AlertDialogTheme);
+    aVar.mo146a(getString(R.string.for_android_5) + getString(R.string.request_permit_usage)).mo148a(false).mo161c(getString(R.string.permit), new DialogInterface.OnClickListener() { // from class: com.bsoft.cleanmaster.fragment.j
+        @Override // android.content.DialogInterface.OnClickListener
+        public final void onClick(DialogInterface dialogInterface, int i) {
+            BoostTabFragment.this.a(dialogInterface, i);
+        }
+    }).mo153b(17039360, k.f4706d).c();
+}
+
+class a implements Animation.AnimationListener {
+
+    @Override
+    public void onAnimationEnd(Animation animation) { // 动画结束后显示 PhoneBoostFragment
+        BoostTabFragment.this.getActivity().o().b().b(R.id.main_layout, new PhoneBoostFragment()).a((String) null).f();
+    }
+}
+```
+
+### `UI`
+
+![](./images/analysis-speedbooster/08.png)
+
+## 7. `CleanJunkFragment`
+
+> 点击 `HomeFragment` 中的垃圾文件进入此界面
+
+```java:no-line-numbers
+/* CleanJunkFragment.java */
+@Override // com.bsoft.cleanmaster.fragment.n1
+protected void a(View view) {
+    if (Build.VERSION.SDK_INT >= 21) {
+        requireActivity().getWindow().setStatusBarColor(androidx.core.content.c.a(this.f4719d, (int) R.color.colorAccent));
+    }
+    this.mToolbar.setNavigationIcon(R.drawable.ic_back);
+    this.mToolbar.setNavigationOnClickListener(new View.OnClickListener() { // from class: com.bsoft.cleanmaster.fragment.z
+        @Override // android.view.View.OnClickListener
+        public final void onClick(View view2) {
+            CleanJunkFragment.this.b(view2);
+        }
+    });
+    this.f4625e = AnimationUtils.loadAnimation(this.f4719d, R.anim.junk_scan); // 雷达扫描动画（在 CleanJunkService 的回调方法中开始动画）
+    t();
+    if (com.bsoft.cleanmaster.util.l.b(this.f4719d, com.bsoft.cleanmaster.util.m.f4930d)) {
+        new Handler().postDelayed(new Runnable() { // from class: com.bsoft.cleanmaster.fragment.a0
+            @Override // java.lang.Runnable
+            public final void run() {
+                CleanJunkFragment.this.r(); // 返回键回到 HomeFragment，解绑 CleanJunkService
+            }
+        }, 2000L);
+        return;
+    }
+    this.g = new ArrayList();
+    this.g.add(new com.bsoft.cleanmaster.i.e(1, getString(R.string.system_cache), false)); // 系统缓存
+    this.g.add(new com.bsoft.cleanmaster.i.e(2, getString(R.string.apk_clean), false)); // 已过时的APK文件
+    this.g.add(new com.bsoft.cleanmaster.i.e(4, getString(R.string.log_clean), false)); // 日志文件
+    this.g.add(new com.bsoft.cleanmaster.i.e(3, getString(R.string.tmp_clean), false)); // 临时文件
+
+    // RecyclerViewExpandableItemManager 来自开源项目 android-advancedrecyclerview，item可折叠的RecyclerView
+    RecyclerViewExpandableItemManager recyclerViewExpandableItemManager = new RecyclerViewExpandableItemManager(null);
+    this.h = new JunkAdapter(this.f4719d, recyclerViewExpandableItemManager, this.g);
+    this.h.a(new b()); // 设置 JunkAdapter 的回调监听
+    this.mRecyclerView.setLayoutManager(new LinearLayoutManager(this.f4719d));
+    this.mRecyclerView.setAdapter(recyclerViewExpandableItemManager.a(this.h));
+    ((androidx.recyclerview.widget.a0) this.mRecyclerView.getItemAnimator()).a(false);
+    recyclerViewExpandableItemManager.a(this.mRecyclerView);
+    Context context = this.f4719d;
+
+    // 绑定 CleanJunkService 服务，this.j 为 ServiceConnection 对象
+    context.bindService(new Intent(context, CleanJunkService.class), this.j, 1);
+}
+```
+
+```java:no-line-numbers
+/* CleanJunkFragment.java */
+class b implements JunkAdapter.a { // JunkAdapter 的回调监听
+    b() {
+    }
+    @Override // com.bsoft.cleanmaster.adapter.JunkAdapter.a
+    public void a() {
+        boolean z;
+        Iterator it = CleanJunkFragment.this.g.iterator();
+        while (true) {
+            if (!it.hasNext()) {
+                z = false;
+                break;
+            } else if (((com.bsoft.cleanmaster.i.e) it.next()).f4813e) {
+                z = true;
+                break;
+            }
+        }
+        if (z) {
+            CleanJunkFragment.this.btnClean.setVisibility(0);
+        } else {
+            CleanJunkFragment.this.btnClean.setVisibility(4);
+        }
+    }
+
+    @Override // com.bsoft.cleanmaster.adapter.JunkAdapter.a
+    @SuppressLint({"DefaultLocale"})
+    public void a(long j, boolean z) { // 参数 j 表示扫描到（或已清理）的垃圾文件大小
+        if (z) {
+            CleanJunkFragment.this.k += j; // 扫描到的
+        } else {
+            CleanJunkFragment.this.k -= j; // 已清理的
+        }
+
+        // 对象 b2 中封装了扫描动的垃圾文件所占的内存大小，以及单位
+        com.bsoft.cleanmaster.i.i b2 = com.bsoft.cleanmaster.util.n.b(CleanJunkFragment.this.k);
+        // 设置扫描时，雷达扫描动画中的已扫描到（或已清理 ）的垃圾文件的实时大小
+        CleanJunkFragment.this.textJunkSize.setText(String.format("%.1f", Float.valueOf(b2.f4822a)));
+        CleanJunkFragment.this.textUnitSize.setText(b2.f4823b);
+    }
+}
+```
+
+```java:no-line-numbers
+/* com.bsoft.cleanmaster.util.n.java */
+public static com.bsoft.cleanmaster.i.i b(long j) {
+    com.bsoft.cleanmaster.i.i iVar = new com.bsoft.cleanmaster.i.i();
+    if (j >= 1073741824) {
+        iVar.f4823b = "GB";
+        iVar.f4822a = ((float) j) / ((float) 1073741824);
+    } else if (j >= 1048576) {
+        iVar.f4823b = "MB";
+        iVar.f4822a = ((float) j) / ((float) 1048576);
+    } else if (j >= 1024) {
+        iVar.f4823b = "KB";
+        iVar.f4822a = ((float) j) / ((float) 1024);
+    } else {
+        iVar.f4823b = "B";
+        iVar.f4822a = (float) j;
+    }
+    return iVar;
+}
+```
+
+```java:no-line-numbers
+/* CleanJunkFragment.java */
+private ServiceConnection j = new a();
+
+class a implements ServiceConnection {
+    a() {
+    }
+
+    @Override // android.content.ServiceConnection
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        CleanJunkFragment.this.f = ((CleanJunkService.c) iBinder).a(); // this.f 就是 CleanJunkService 对象
+        CleanJunkFragment.this.f.a(CleanJunkFragment.this);
+        CleanJunkFragment.this.f.b();
+        CleanJunkFragment.this.i = true;
+    }
+
+    @Override // android.content.ServiceConnection
+    public void onServiceDisconnected(ComponentName componentName) {
+        CleanJunkFragment.this.f.a((CleanJunkService.d) null);
+        CleanJunkFragment.this.f = null;
+        CleanJunkFragment.this.i = false;
+    }
+}
+```
+
+```java:no-line-numbers
+/* CleanJunkService.java */
+public class c extends Binder {
+    public c() {
+    }
+
+    public CleanJunkService a() {
+        return CleanJunkService.this;
+    }
+}
+
+public void a(d dVar) {
+    this.f = dVar;
+}
+
+public interface d { // CleanJunkFragment 实现了 CleanJunkService 中的回调接口类 d
+    void a(Context context);
+    void a(Context context, long j);
+    void a(Context context, String str, int i, String str2);
+    void a(Context context, List<com.bsoft.cleanmaster.i.e> list);
+    void b(Context context);
+}
+```
+
+```java:no-line-numbers
+/* CleanJunkService.java */
+public void b() { // 在 CleanJunkFragment 中回调 onServiceConnected 方法时，会调用该方法
+    new e().execute(new Void[0]); // 开始执行 AsyncTask 中的任务
+}
+```
+
+```java:no-line-numbers
+/* CleanJunkService.java */
+// com.bsoft.cleanmaster.i.e 是扫描结果数据的实体类
+private class e extends AsyncTask<Void, String, List<com.bsoft.cleanmaster.i.e>> {
+    private List<com.bsoft.cleanmaster.i.e> f4848a;
+
+    private int f4849b;
+
+    private com.bsoft.cleanmaster.i.e f4850c;
+    private com.bsoft.cleanmaster.i.e f4851d;
+    private com.bsoft.cleanmaster.i.e f4852e;
+
+    public class a extends IPackageStatsObserver.Stub {
+        final /* synthetic */ List f4853d;
+        final /* synthetic */ CountDownLatch f4854e;
+
+        a(List list, CountDownLatch countDownLatch) {
+            this.f4853d = list;
+            this.f4854e = countDownLatch;
+        }
+
+        @Override // android.content.pm.IPackageStatsObserver
+        public void onGetStatsCompleted(PackageStats packageStats, boolean z) {
+
+            synchronized (this.f4853d) {
+                String str = packageStats.packageName;
+                if (!packageStats.packageName.equals(CleanJunkService.this.getPackageName()) && z && packageStats.cacheSize > 0) {
+                    try {
+                        this.f4853d.add(new com.bsoft.cleanmaster.i.f(e.a(e.this), str, CleanJunkService.this.getPackageManager().getApplicationLabel(CleanJunkService.this.getPackageManager().getApplicationInfo(str, 128)).toString(), CleanJunkService.this.getPackageManager().getApplicationIcon(str), packageStats.cacheSize));
+                        CleanJunkService.this.h += packageStats.cacheSize;
+                        CleanJunkService.this.g += packageStats.cacheSize;
+                    } catch (PackageManager.NameNotFoundException e2) {
+                        e2.printStackTrace();
+                    }
+                }
+                e.this.publishProgress(str, String.valueOf(1), n.a(CleanJunkService.this.h));
+            }
+
+            synchronized (this.f4854e) {
+                this.f4854e.countDown();
+            }
+        }
+    }
+
+    private e() {
+        this.f4848a = new ArrayList();
+        this.f4849b = 0;
+    }
+
+    static /* synthetic */ int a(e eVar) {
+        int i = eVar.f4849b;
+        eVar.f4849b = i + 1;
+        return i;
+    }
+
+    @Override // android.os.AsyncTask
+    protected void onPreExecute() {
+        this.f4850c = new com.bsoft.cleanmaster.i.e(2, CleanJunkService.this.getString(R.string.apk_clean)); // 已过时的APK文件
+        this.f4851d = new com.bsoft.cleanmaster.i.e(4, CleanJunkService.this.getString(R.string.log_clean)); // 日志文件
+        this.f4852e = new com.bsoft.cleanmaster.i.e(3, CleanJunkService.this.getString(R.string.tmp_clean)); // 临时文件
+        if (CleanJunkService.this.f != null) {
+            CleanJunkService.this.f.a(CleanJunkService.this); // 回调方法，传给 CleanJunkFragment
+        }
+    }
+
+    @Override // android.os.AsyncTask
+    public List<com.bsoft.cleanmaster.i.e> doInBackground(Void... voidArr) {
+        CleanJunkService.this.g = 0L;
+        CleanJunkService.this.h = 0L;
+        Intent intent = new Intent("android.intent.action.MAIN", (Uri) null);
+        intent.addCategory("android.intent.category.LAUNCHER");
+        List<ResolveInfo> queryIntentActivities = CleanJunkService.this.getPackageManager().queryIntentActivities(intent, 0);
+        CountDownLatch countDownLatch = new CountDownLatch(queryIntentActivities.size());
+        ArrayList arrayList = new ArrayList();
+        if (Build.VERSION.SDK_INT >= 26) { // 版本 >= Android 8.0
+            for (ResolveInfo resolveInfo : queryIntentActivities) {
+                String str = resolveInfo.activityInfo.packageName;
+                if (!str.equals(CleanJunkService.this.getPackageName())) { // 过滤当前 app
+                    try {
+                        // 访问 StorageStatsManager 需要 "android.permission.PACKAGE_USAGE_STATS" 权限（不需要动态申请）
+                        // "storagestats" => Context.STORAGE_STATS_SERVICE
+                        StorageStats queryStatsForPackage = ((StorageStatsManager) CleanJunkService.this.getSystemService("storagestats")).queryStatsForPackage(StorageManager.UUID_DEFAULT, str, Process.myUserHandle());
+                        int i = this.f4849b;
+                        this.f4849b = i + 1;
+                        // com.bsoft.cleanmaster.i.f 是系统缓存下的 app item 项的实体类
+                        // 该实体类中封装了 (索引，包名，app名称，app图标，app的缓存大小)
+                        arrayList.add(new com.bsoft.cleanmaster.i.f(i, str, CleanJunkService.this.getPackageManager().getApplicationLabel(CleanJunkService.this.getPackageManager().getApplicationInfo(str, 128)).toString(), CleanJunkService.this.getPackageManager().getApplicationIcon(str), queryStatsForPackage.getCacheBytes()));
+                        CleanJunkService.this.h += queryStatsForPackage.getCacheBytes(); // 累计所有 app 的缓存大小，保存在 CleanJunkService.this.h 变量中
+                        CleanJunkService.this.g += queryStatsForPackage.getCacheBytes(); // 累计所有 app 的缓存大小，保存在 CleanJunkService.this.g 变量中
+                    } catch (PackageManager.NameNotFoundException e2) {
+                        e2.printStackTrace();
+                    } catch (IOException e3) {
+                        e3.printStackTrace();
+                    }
+
+                    // 累计扫描到的缓存作为更新的进度，调用静态方法 n.a(CleanJunkService.this.h) 格式化显示 累计的缓存大小
+                    publishProgress(str, String.valueOf(1), n.a(CleanJunkService.this.h));
+                }
+            }
+        } else {
+            try {
+                Iterator<ResolveInfo> it = queryIntentActivities.iterator();
+                while (it.hasNext()) {
+                    CleanJunkService.this.f4841d.invoke(CleanJunkService.this.getPackageManager(), it.next().activityInfo.packageName, new a(arrayList, countDownLatch));
+                }
+                countDownLatch.await();
+            } catch (IllegalAccessException | InterruptedException | InvocationTargetException e4) {
+                e4.printStackTrace();
+            }
+        }
+        Collections.sort(arrayList);
+        this.f4848a.add(new com.bsoft.cleanmaster.i.e(1, CleanJunkService.this.getString(R.string.system_cache), CleanJunkService.this.a(), arrayList));
+        File externalStorageDirectory = Environment.getExternalStorageDirectory();
+        if (externalStorageDirectory != null) {
+            a(externalStorageDirectory, 0);
+        }
+        this.f4848a.add(this.f4850c);
+        this.f4848a.add(this.f4851d);
+        this.f4848a.add(this.f4852e);
+        return this.f4848a;
+    }
+
+    @Override // android.os.AsyncTask
+    public void onProgressUpdate(String... strArr) {
+        if (CleanJunkService.this.f != null) {
+            // 回调给 CleanJunkFragment，回调方法：a(上下文, 当前扫描到的包名, 固定值1, 扫描到的app的缓存大小)
+            CleanJunkService.this.f.a(CleanJunkService.this, strArr[0], Integer.parseInt(strArr[1]), strArr[2]);
+        }
+    }
+
+    @Override // android.os.AsyncTask
+    public void onPostExecute(List<com.bsoft.cleanmaster.i.e> list) {
+        if (CleanJunkService.this.f != null) {
+            for (com.bsoft.cleanmaster.i.e eVar : list) {
+                if (eVar.f4811c == 0) {
+                    eVar.f4813e = false;
+                }
+            }
+            CleanJunkService.this.f.a(CleanJunkService.this, list);
+        }
+    }
+    
+    private void a(File file, int i) {
+        File[] listFiles;
+        if (file == null || !file.exists() || (listFiles = file.listFiles()) == null) {
+            return;
+        }
+        for (File file2 : listFiles) {
+            if (file2.isFile()) {
+                String name = file2.getName();
+                com.bsoft.cleanmaster.i.f fVar = null;
+                if (name.endsWith(".apk")) {
+                    int i2 = this.f4849b;
+                    this.f4849b = i2 + 1;
+                    fVar = new com.bsoft.cleanmaster.i.f(i2, 1, name, file2.getAbsolutePath(), file2.length());
+                    this.f4850c.f4812d.add(fVar);
+                    this.f4850c.f4811c += fVar.f;
+                    publishProgress(file2.getAbsolutePath(), String.valueOf(2), n.a(this.f4850c.f4811c));
+                } else if (name.endsWith(".log")) {
+                    int i3 = this.f4849b;
+                    this.f4849b = i3 + 1;
+                    fVar = new com.bsoft.cleanmaster.i.f(i3, 3, name, file2.getAbsolutePath(), file2.length());
+                    this.f4851d.f4812d.add(fVar);
+                    this.f4851d.f4811c += fVar.f;
+                    publishProgress(file2.getAbsolutePath(), String.valueOf(4), n.a(this.f4851d.f4811c + this.f4852e.f4811c));
+                } else if (name.endsWith(".tmp") || name.endsWith(".temp")) {
+                    int i4 = this.f4849b;
+                    this.f4849b = i4 + 1;
+                    fVar = new com.bsoft.cleanmaster.i.f(i4, 2, name, file2.getAbsolutePath(), file2.length());
+                    this.f4852e.f4812d.add(fVar);
+                    this.f4852e.f4811c += fVar.f;
+                    publishProgress(file2.getAbsolutePath(), String.valueOf(4), n.a(this.f4851d.f4811c + this.f4852e.f4811c));
+                }
+                if (fVar != null) {
+                    CleanJunkService.this.g += fVar.f;
+                }
+            } else {
+                a(file2, i + 1);
+            }
+        }
+    }
+}
+```
+
+```java:no-line-numbers
+/* CleanJunkFragment.java */
+@Override // com.bsoft.cleanmaster.service.CleanJunkService.d
+public void a(Context context) { // 在 CleanJunkService 中的 AsyncTask 的 onPreExecute() 方法中回调（AsyncTask 在 Service 绑定成功就开始执行了）
+    this.imageScanning.startAnimation(this.f4625e); // 开始雷达扫描动画
+}
+
+@Override // com.bsoft.cleanmaster.service.CleanJunkService.d
+@SuppressLint({"DefaultLocale"})
+public void a(Context context, String str, int i, String str2) { // CleanJunkService 中 AsyncTask 每扫描到一个 app 调用一次
+    this.textStatus.setText(str); // str 是当前扫描到的 app 包名
+    CleanJunkService cleanJunkService = this.f;
+    // cleanJunkService.a() 返回累计的缓存大小
+    com.bsoft.cleanmaster.i.i b2 = com.bsoft.cleanmaster.util.n.b(cleanJunkService != null ? cleanJunkService.a() : 0L);
+    this.textJunkSize.setText(String.format("%.1f", Float.valueOf(b2.f4822a))); // 实时更新已扫描到的累计的缓存大小
+    this.textUnitSize.setText(b2.f4823b);
+}
+
+@Override // com.bsoft.cleanmaster.service.CleanJunkService.d
+public void a(Context context, List<com.bsoft.cleanmaster.i.e> list) {
+    a(list);
+}
+
+@Override // com.bsoft.cleanmaster.service.CleanJunkService.d
+public void a(Context context, final long j) {
+    Handler handler = new Handler();
+    com.bsoft.cleanmaster.util.l.e(context, com.bsoft.cleanmaster.util.m.f4930d);
+    handler.postDelayed(new Runnable() { // from class: com.bsoft.cleanmaster.fragment.y
+        @Override // java.lang.Runnable
+        public final void run() {
+            CleanJunkFragment.this.a(j);
+        }
+    }, 1000L);
+}
+
+@Override // com.bsoft.cleanmaster.service.CleanJunkService.d
+public void b(Context context) {
+}
+```
+
+### `UI`
+
+![](./images/analysis-speedbooster/09.png)
 
 ## 参考
 
