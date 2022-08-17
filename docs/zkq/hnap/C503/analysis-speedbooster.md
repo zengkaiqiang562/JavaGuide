@@ -931,11 +931,11 @@ private class e extends AsyncTask<Void, String, List<com.bsoft.cleanmaster.i.e>>
                         e2.printStackTrace();
                     }
                 }
-                e.this.publishProgress(str, String.valueOf(1), n.a(CleanJunkService.this.h));
+                e.this.publishProgress(str, String.valueOf(1), n.a(CleanJunkService.this.h)); // 版本 < 8.0 时在这里实时显示每个扫描到的 app 的缓存大小
             }
 
             synchronized (this.f4854e) {
-                this.f4854e.countDown();
+                this.f4854e.countDown(); // 通过 CountDownLatch 进行计数，当每个扫描到的 app 都回调后，唤醒 CountDownLatch.await() 所在线程
             }
         }
     }
@@ -995,26 +995,35 @@ private class e extends AsyncTask<Void, String, List<com.bsoft.cleanmaster.i.e>>
                     publishProgress(str, String.valueOf(1), n.a(CleanJunkService.this.h));
                 }
             }
-        } else {
+        } else { // 版本 < Android 8.0 的扫描方式
             try {
                 Iterator<ResolveInfo> it = queryIntentActivities.iterator();
                 while (it.hasNext()) {
+                    // CleanJunkService.this.f4841d 在 CleanJunkService 的 onCreate 方法中赋值，反射调用 PackageManager 的 getPackageSizeInfo 方法
+                    // CleanJunkService.this.f4841d = getPackageManager().getClass().getMethod("getPackageSizeInfo", String.class, IPackageStatsObserver.class);
+                    // new 出来的 a 继承自 IPackageStatsObserver.Stub
+                    // 调用 getPackageSizeInfo 方法，通过 IPackageStatsObserver 的回调方法 onGetStatsCompleted 返回当前遍历的 app 的缓存大小
                     CleanJunkService.this.f4841d.invoke(CleanJunkService.this.getPackageManager(), it.next().activityInfo.packageName, new a(arrayList, countDownLatch));
                 }
-                countDownLatch.await();
+                countDownLatch.await(); // 等待 IPackageStatsObserver 中的 onGetStatsCompleted 方法对每个扫描到的 app 都回调之后再唤醒
             } catch (IllegalAccessException | InterruptedException | InvocationTargetException e4) {
                 e4.printStackTrace();
             }
         }
-        Collections.sort(arrayList);
+        Collections.sort(arrayList); // arrayList 中存储 com.bsoft.cleanmaster.i.f 实体类对象，按照 app 的缓存大小，从大到小排序
+
+        // this.f4848a 是返回给 CleanJunkFragment 的结果集，集合中保存 com.bsoft.cleanmaster.i.e 实体类
+        // 封装 系统缓存 arrayList 到com.bsoft.cleanmaster.i.e 实体中，并将该封装了系统缓存的实体类对象添加到结果集
         this.f4848a.add(new com.bsoft.cleanmaster.i.e(1, CleanJunkService.this.getString(R.string.system_cache), CleanJunkService.this.a(), arrayList));
+
+        // 从外部存储中扫描 已过时的APK文件、日志文件、临时文件
         File externalStorageDirectory = Environment.getExternalStorageDirectory();
         if (externalStorageDirectory != null) {
             a(externalStorageDirectory, 0);
         }
-        this.f4848a.add(this.f4850c);
-        this.f4848a.add(this.f4851d);
-        this.f4848a.add(this.f4852e);
+        this.f4848a.add(this.f4850c); // 将扫描到的已过时的APK文件 封装在 this.f4850c 对象中，并将该对象添加到结果集
+        this.f4848a.add(this.f4851d); // 将扫描到的日志文件 封装在 this.f4851d 对象中，并将该对象添加到结果集
+        this.f4848a.add(this.f4852e); // 将扫描到的临时文件 封装在 this.f4852e 对象中，并将该对象添加到结果集
         return this.f4848a;
     }
 
@@ -1034,7 +1043,7 @@ private class e extends AsyncTask<Void, String, List<com.bsoft.cleanmaster.i.e>>
                     eVar.f4813e = false;
                 }
             }
-            CleanJunkService.this.f.a(CleanJunkService.this, list);
+            CleanJunkService.this.f.a(CleanJunkService.this, list); // 将所有的扫描后的结果集返回给 CleanJunkFragment
         }
     }
     
@@ -1047,33 +1056,33 @@ private class e extends AsyncTask<Void, String, List<com.bsoft.cleanmaster.i.e>>
             if (file2.isFile()) {
                 String name = file2.getName();
                 com.bsoft.cleanmaster.i.f fVar = null;
-                if (name.endsWith(".apk")) {
+                if (name.endsWith(".apk")) { // 已过时的APK文件
                     int i2 = this.f4849b;
                     this.f4849b = i2 + 1;
-                    fVar = new com.bsoft.cleanmaster.i.f(i2, 1, name, file2.getAbsolutePath(), file2.length());
-                    this.f4850c.f4812d.add(fVar);
-                    this.f4850c.f4811c += fVar.f;
-                    publishProgress(file2.getAbsolutePath(), String.valueOf(2), n.a(this.f4850c.f4811c));
-                } else if (name.endsWith(".log")) {
+                    fVar = new com.bsoft.cleanmaster.i.f(i2, 1, name, file2.getAbsolutePath(), file2.length()); // 封装当前遍历到的已过时的apk文件的信息
+                    this.f4850c.f4812d.add(fVar); // 将当前遍历到的apk文件信息添加到结果集元素中的一个集合中
+                    this.f4850c.f4811c += fVar.f; // 累计所有遍历到的apk文件的总大小
+                    publishProgress(file2.getAbsolutePath(), String.valueOf(2), n.a(this.f4850c.f4811c)); // 实时更新 UI，显示当前的扫描信息
+                } else if (name.endsWith(".log")) { // 日志文件
                     int i3 = this.f4849b;
                     this.f4849b = i3 + 1;
-                    fVar = new com.bsoft.cleanmaster.i.f(i3, 3, name, file2.getAbsolutePath(), file2.length());
+                    fVar = new com.bsoft.cleanmaster.i.f(i3, 3, name, file2.getAbsolutePath(), file2.length()); // 封装当前遍历到的日志文件的信息
                     this.f4851d.f4812d.add(fVar);
-                    this.f4851d.f4811c += fVar.f;
-                    publishProgress(file2.getAbsolutePath(), String.valueOf(4), n.a(this.f4851d.f4811c + this.f4852e.f4811c));
-                } else if (name.endsWith(".tmp") || name.endsWith(".temp")) {
+                    this.f4851d.f4811c += fVar.f; // 累计所有遍历到的日志文件的总大小
+                    publishProgress(file2.getAbsolutePath(), String.valueOf(4), n.a(this.f4851d.f4811c + this.f4852e.f4811c)); // 实时更新 UI，显示当前的扫描信息
+                } else if (name.endsWith(".tmp") || name.endsWith(".temp")) { // 临时文件
                     int i4 = this.f4849b;
                     this.f4849b = i4 + 1;
-                    fVar = new com.bsoft.cleanmaster.i.f(i4, 2, name, file2.getAbsolutePath(), file2.length());
+                    fVar = new com.bsoft.cleanmaster.i.f(i4, 2, name, file2.getAbsolutePath(), file2.length()); // 封装当前遍历到的临时文件的信息
                     this.f4852e.f4812d.add(fVar);
-                    this.f4852e.f4811c += fVar.f;
-                    publishProgress(file2.getAbsolutePath(), String.valueOf(4), n.a(this.f4851d.f4811c + this.f4852e.f4811c));
+                    this.f4852e.f4811c += fVar.f; // 累计所有遍历到的apk文件的总大小
+                    publishProgress(file2.getAbsolutePath(), String.valueOf(4), n.a(this.f4851d.f4811c + this.f4852e.f4811c)); // 实时更新 UI，显示当前的扫描信息
                 }
                 if (fVar != null) {
-                    CleanJunkService.this.g += fVar.f;
+                    CleanJunkService.this.g += fVar.f; // 累计总的垃圾文件的大小（包括扫描到的所有app的缓存大小）
                 }
             } else {
-                a(file2, i + 1);
+                a(file2, i + 1); // 递归遍历外部存储
             }
         }
     }
@@ -1117,6 +1126,207 @@ public void a(Context context, final long j) {
 
 @Override // com.bsoft.cleanmaster.service.CleanJunkService.d
 public void b(Context context) {
+}
+```
+
+### 点击清理按钮
+
+```java:no-line-numbers
+/* CleanJunkFragment.java */
+@OnClick({R.id.btn_clear})
+public void doClearJunk() {
+    if (Build.VERSION.SDK_INT >= 21) {
+        requireActivity().getWindow().setStatusBarColor(androidx.core.content.c.a(this.f4719d, (int) R.color.colorPrimaryDark));
+    }
+    this.mToolbar.setBackgroundColor(androidx.core.content.c.a(this.f4719d, (int) R.color.colorPrimary));
+    this.mConstraintLayout.findViewById(R.id.text_suggested).setVisibility(8);
+    this.mConstraintLayout.findViewById(R.id.view).setVisibility(8);
+    this.mRecyclerView.setVisibility(8);
+    this.btnClean.setVisibility(8);
+    CleanJunkService cleanJunkService = this.f;
+    if (cleanJunkService != null && cleanJunkService.a() > 0) {
+        androidx.constraintlayout.widget.d dVar = new androidx.constraintlayout.widget.d();
+        dVar.a(this.f4719d, R.layout.fragment_junk_cleaning);
+        AutoTransition autoTransition = new AutoTransition();
+        autoTransition.mo100a((Transition.h) new d()); // 类 d 实现了过渡动画的监听器 TransitionListener
+        androidx.transition.w.a(this.mConstraintLayout, autoTransition);
+        dVar.b(this.mConstraintLayout);
+        this.textStatus.setText(R.string.msg_cleaning);
+        this.textStatus.setTextColor(androidx.core.content.c.a(this.f4719d, (int) R.color.white80));
+        this.textJunkSize.setTextSize(0, getResources().getDimension(R.dimen.font_size_huge));
+        this.textUnitSize.setTextSize(0, getResources().getDimension(R.dimen.font_size_large));
+        this.textStatus.setTextSize(0, getResources().getDimension(R.dimen.font_size_standard));
+        this.imageCleaning.startAnimation(AnimationUtils.loadAnimation(this.f4719d, R.anim.junk_clean));
+        this.imageCleaning.setVisibility(0);
+        return;
+    }
+    s();
+}
+```
+
+```java:no-line-numbers
+/* CleanJunkFragment.java */
+class d implements Transition.h {
+    d() {
+    }
+
+    @Override // androidx.transition.Transition.h
+    public void a(@androidx.annotation.h0 Transition transition) {
+    }
+
+    @Override // androidx.transition.Transition.h
+    public void b(@androidx.annotation.h0 Transition transition) {
+    }
+
+    @Override // androidx.transition.Transition.h
+    public void c(@androidx.annotation.h0 Transition transition) {
+        // CleanJunkFragment.this.f 是 CleanJunkService
+        // CleanJunkFragment.this.g 是 CleanJunkService 返回给 CleanJunkFragment 的垃圾结果集（包括系统缓存，已过时的apk文件，日志文件，临时文件）
+        CleanJunkFragment.this.f.a(CleanJunkFragment.this.g);
+    }
+
+    @Override // androidx.transition.Transition.h
+    public void d(@androidx.annotation.h0 Transition transition) {
+    }
+
+    @Override // androidx.transition.Transition.h
+    public void e(@androidx.annotation.h0 Transition transition) {
+    }
+}
+```
+
+```java:no-line-numbers
+/* CleanJunkService.java */
+public void a(List<com.bsoft.cleanmaster.i.e> list) { // 点击清理，开启 CleanJunkService 中的 AsyncTask 子类 b 
+    new b(list).execute(new Void[0]);
+}
+```
+
+```java:no-line-numbers
+/* CleanJunkService.java */
+private class b extends AsyncTask<Void, Void, Long> {
+
+    private List<com.bsoft.cleanmaster.i.e> f4843a;
+
+    public class a extends IPackageDataObserver.Stub {
+        final /* synthetic */ CountDownLatch f4845d;
+
+        a(CountDownLatch countDownLatch) {
+            this.f4845d = countDownLatch;
+        }
+
+        @Override // android.content.pm.IPackageDataObserver
+        public void onRemoveCompleted(String str, boolean z) {
+            this.f4845d.countDown();
+        }
+    }
+
+    b(List<com.bsoft.cleanmaster.i.e> list) {
+        this.f4843a = list; // 扫描到的垃圾结果集（包括系统缓存，已过时的apk文件，日志文件，临时文件）
+    }
+
+    @Override // android.os.AsyncTask
+    public Long doInBackground(Void... voidArr) {
+        File[] listFiles;
+        long j = CleanJunkService.this.h;
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        StatFs statFs = new StatFs(Environment.getDataDirectory().getAbsolutePath());
+
+        try {
+            if (Build.VERSION.SDK_INT < 23) { // 版本 < Android 6.0
+                // this.f4842e 在 CleanJunkService 的 onCreate 方法中赋值
+                // this.f4842e = getPackageManager().getClass().getMethod("freeStorageAndNotify", Long.TYPE, IPackageDataObserver.class);
+                // Android 6.0 以下才可以反射调用 freeStorageAndNotify 清理 内部 /data 缓存下的 app 缓存文件
+                CleanJunkService.this.f4842e.invoke(CleanJunkService.this.getPackageManager(), Long.valueOf(statFs.getBlockCount() * statFs.getBlockSize()), new a(countDownLatch));
+            } else {
+                countDownLatch.countDown();
+            }
+
+            // 清理外部存储中的 Android/data/<包名>/cache 路径下的 app 缓存
+            File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data");
+            String str = file.getAbsolutePath() + "/%s/cache";
+            if (file.isDirectory() && (listFiles = file.listFiles()) != null) {
+                int length = listFiles.length;
+                for (int i = 0; i < length; i++) {
+                    a(new File(String.format(str, listFiles[i].getName())), true);
+                }
+            }
+            countDownLatch.await();
+        } catch (IllegalAccessException | InterruptedException | InvocationTargetException e2) {
+            e2.printStackTrace();
+        }
+
+        for (int i2 = 1; i2 < this.f4843a.size(); i2++) {
+            for (com.bsoft.cleanmaster.i.f fVar : this.f4843a.get(i2).f4812d) {
+                int i3 = fVar.i;
+                if (i3 == 1 || i3 == 2 || i3 == 3) {
+                    File file2 = new File(fVar.h); // 当 fVar 中封装的是系统缓存时，fVar.h 没有赋值，因此这里清除的是 过时的apk文件，日志文件，临时文件。
+                    if (fVar.o && file2.exists() && file2.delete()) {
+                        j += fVar.f; // j 中之前只是累计了系统缓存的大小，这里将清除的 过时的apk文件，日志文件，临时文件 都累计进来了。
+                    }
+                }
+            }
+        }
+        return Long.valueOf(j);
+    }
+
+    @Override // android.os.AsyncTask
+    protected void onPreExecute() {
+        if (CleanJunkService.this.f != null) {
+            CleanJunkService.this.f.b(CleanJunkService.this);
+        }
+    }
+
+    private boolean a(File file, boolean z) { // 递归遍历 file 文件夹下的文件并删除
+        File[] listFiles;
+        if (file == null || !file.exists()) {
+            return true;
+        }
+        if (z && !file.isDirectory()) {
+            return true;
+        }
+        if (file.isDirectory() && (listFiles = file.listFiles()) != null) {
+            for (File file2 : listFiles) {
+                if (!a(file2, false)) {
+                    return false;
+                }
+            }
+        }
+        return file.delete();
+    }
+
+    @Override // android.os.AsyncTask
+    /* renamed from: a */
+    public void onPostExecute(Long l) {
+        CleanJunkService.this.g = 0L;
+        CleanJunkService.this.h = 0L;
+        if (CleanJunkService.this.f != null) {
+            CleanJunkService.this.f.a(CleanJunkService.this, l.longValue()); // 回调给 CleanJunkService， l 中保存了所有清理了的垃圾文件大小（包括app缓存大小）
+        }
+    }
+}
+```
+
+```java:no-line-numbers
+/* CleanJunkFragment.java */
+@Override // com.bsoft.cleanmaster.service.CleanJunkService.d
+public void a(Context context, final long j) { // CleanJunkService 中清理 AsyncTask 结束后的回调，参数 j 是已清理的垃圾文件总大小（包括app缓存大小）
+    Handler handler = new Handler();
+    com.bsoft.cleanmaster.util.l.e(context, com.bsoft.cleanmaster.util.m.f4930d); // 将清理完成的当前系统时间缓存在 SP 中（key 为 "optimize_junk_files"）
+    handler.postDelayed(new Runnable() { // from class: com.bsoft.cleanmaster.fragment.y
+        {
+            CleanJunkFragment.this = this;
+        }
+        @Override // java.lang.Runnable
+        public final void run() {
+            CleanJunkFragment.this.a(j);
+        }
+    }, 1000L);
+}
+
+public /* synthetic */ void a(long j) {
+    this.k = j; // this.k 是已清理的垃圾文件总大小（包括app缓存大小）
+    s(); // 更新 UI
 }
 ```
 
