@@ -132,6 +132,8 @@ MainActivity
 2. https://github.com/Karumi/Dexter  // 权限请求
 
 3. https://github.com/h6ah4i/android-advancedrecyclerview  // item 可折叠的 RecyclerView
+
+4. https://github.com/Chainfire/libsuperuser  // 在 PhoneBoostService 中扫描 app 时用到此开源项目执行脚本命令
 ```
 
 ## 4. `HomeFragment`
@@ -1333,6 +1335,214 @@ public /* synthetic */ void a(long j) {
 ### `UI`
 
 ![](./images/analysis-speedbooster/09.png)
+
+## 8. `PhoneBoostFragment`
+
+```java:no-line-numbers
+/* PhoneBoostFragment.java */
+public void a(View view) {
+    this.mToolbar.setNavigationIcon((int) R.drawable.ic_back);
+    this.mToolbar.setNavigationOnClickListener(new s0(this));
+    u();
+    this.k = l.b(this.f4384d, m.f4596e);
+    this.f = new CleanMemoryAdapter(this.f4321e); // 列表Adapter，this.f4321e 是集合，一个元素中封装一个 app 的信息
+    this.f.a(new v0(this));
+    this.mRecyclerView.setLayoutManager(new LinearLayoutManager(this.f4384d));
+    this.mRecyclerView.setAdapter(this.f);
+    this.mConstraintLayout.findViewById(R.id.ic_loading).startAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.rocket_translate)); // 进入 PhoneBoostFragment 时先显示 载入中... 动画
+
+    // 绑定 PhoneBoostService，this.i 是实现了 ServiceConnection 接口的内部类 a 的实例
+    requireActivity().bindService(new Intent(getActivity(), PhoneBoostService.class), this.i, 1); 
+    Context context = this.f4384d;
+    String str = m.j;
+    if (!l.a(context, str)) { // 从 SP 中判断是否设置了创建过快捷图标的标记
+        // 这段代码是创建桌面快捷图标，需要权限 com.android.launcher.permission.INSTALL_SHORTCUT
+        // 参考：https://blog.csdn.net/zhuxingchong/article/details/80980781
+        Intent intent = new Intent(getActivity(), BoostShortcutActivity.class);
+        Intent intent2 = new Intent();
+        intent2.setAction("com.android.launcher.action.INSTALL_SHORTCUT");
+        intent2.putExtra("android.intent.extra.shortcut.INTENT", intent);
+        intent2.putExtra("android.intent.extra.shortcut.NAME", getString(R.string.boost));
+        intent2.putExtra("android.intent.extra.shortcut.ICON_RESOURCE", ShortcutIconResource.fromContext(this.f4384d, R.drawable.ic_shortcut_boost));
+        intent2.putExtra("duplicate", false);
+        requireActivity().sendBroadcast(intent2);
+        l.c(this.f4384d, str); // 设置创建过快捷图标的标记
+    }
+}
+```
+
+```java:no-line-numbers
+/* PhoneBoostFragment.java */
+class a implements ServiceConnection {
+    a() {
+    }
+
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        // PhoneBoostFragment.this.g 就是 PhoneBoostService
+        PhoneBoostFragment.this.g = ((com.bsoft.cleanmaster.service.PhoneBoostService.c) iBinder).a();
+        // PhoneBoostFragment 实现了 PhoneBoostService 中的回调接口 PhoneBoostService.b
+        PhoneBoostFragment.this.g.a((com.bsoft.cleanmaster.service.PhoneBoostService.b) PhoneBoostFragment.this);
+        PhoneBoostFragment.this.g.b();
+        PhoneBoostFragment.this.h = true;
+    }
+
+    public void onServiceDisconnected(ComponentName componentName) {
+        PhoneBoostFragment.this.g.a((com.bsoft.cleanmaster.service.PhoneBoostService.b) null);
+        PhoneBoostFragment.this.g = null;
+        PhoneBoostFragment.this.h = false;
+    }
+}
+```
+
+```java:no-line-numbers
+/* PhoneBoostService.java */
+public interface b { // PhoneBoostFragment 实现了该回调接口
+    void a(Context context, int i, int i2);
+    void a(Context context, long j);
+    void a(Context context, List<com.bsoft.cleanmaster.i.c> list);
+}
+```
+
+```java:no-line-numbers
+/* PhoneBoostService.java */
+public void b() {
+    new d().execute(new Void[0]); // Service 绑定成功执行 AsyncTask
+}
+
+private class d extends AsyncTask<Void, Integer, List<com.bsoft.cleanmaster.i.c>> {
+    private d() {
+    }
+
+    public List<com.bsoft.cleanmaster.i.c> doInBackground(Void... voidArr) {
+        return k.e();
+    }
+
+    public void onProgressUpdate(Integer... numArr) {
+        if (PhoneBoostService.this.f4526d != null) {
+            PhoneBoostService.this.f4526d.a(PhoneBoostService.this, numArr[0].intValue(), numArr[1].intValue());
+        }
+    }
+
+    public void onPostExecute(List<com.bsoft.cleanmaster.i.c> list) {
+        if (PhoneBoostService.this.f4526d != null) {
+            PhoneBoostService.this.f4526d.a((Context) PhoneBoostService.this, list);
+        }
+    }
+}
+```
+
+```java:no-line-numbers
+/* com.bsoft.cleanmaster.util.k.java */
+public static List<c> e() {
+    if (f4591b == null) {
+        f4591b = MyApplication.b().getPackageManager();
+    }
+    if (f4590a == null) {
+        f4590a = (ActivityManager) MyApplication.b().getSystemService("activity");
+    }
+    ArrayList arrayList = new ArrayList();
+    try {
+        List b2 = b();
+        if (b2.size() == 0) {
+            b2 = c();
+        }
+        if (b2.size() > 0) {
+            Intent intent = new Intent("android.intent.action.MAIN", null);
+            intent.addCategory("android.intent.category.LAUNCHER");
+            // 在 Android 11 及以上调用 PackageManager 的 queryIntentActivities 方法时，
+            // 只有部分其他 app 对当前 app 可见，在 Android 11 以下，全部其他 app 对当前 app 可见，
+            // 如果想在 Android 11 及以上使全部其他 app 对当前 app 可见，需要申请权限 android.permission.QUERY_ALL_PACKAGES
+            // 参考：https://developer.android.google.cn/training/basics/intents/package-visibility
+            for (ResolveInfo resolveInfo : f4591b.queryIntentActivities(intent, 0)) {
+                a a2 = a(b2, resolveInfo.activityInfo.packageName);
+                if (a2 != null) {
+                    int[] iArr = new int[a2.f4464b.size()];
+                    for (int i = 0; i < a2.f4464b.size(); i++) {
+                        iArr[i] = ((Integer) a2.f4464b.get(i)).intValue();
+                    }
+                    MemoryInfo[] processMemoryInfo = f4590a.getProcessMemoryInfo(iArr); // iArr 是进程 pid 的数组
+                    long j = 0;
+                    if (processMemoryInfo != null) {
+                        for (MemoryInfo totalPrivateDirty : processMemoryInfo) {
+                            j += (long) (totalPrivateDirty.getTotalPrivateDirty() * 1024);
+                        }
+                    }
+                    if (j > 0 || VERSION.SDK_INT >= 26) {
+                        c cVar = new c();
+                        cVar.a((String) resolveInfo.loadLabel(f4591b));
+                        cVar.b(resolveInfo.activityInfo.packageName);
+                        cVar.a(resolveInfo.loadIcon(f4591b));
+                        cVar.a(j);
+                        cVar.a(true);
+                        arrayList.add(cVar);
+                    }
+                }
+            }
+        }
+    } catch (Exception e2) {
+        e2.printStackTrace();
+    }
+    return arrayList;
+}
+
+private static List<a> b() {
+    String packageName = MyApplication.b().getPackageName();
+    LinkedHashMap linkedHashMap = new LinkedHashMap();
+    for (Process process : ProcessManager.b()) {
+        String f = process.f();
+        if (!f.equals(packageName)) {
+            a aVar = (a) linkedHashMap.get(f);
+            if (aVar == null) {
+                aVar = new a(f);
+                linkedHashMap.put(f, aVar);
+            }
+            aVar.a(process.h);
+        }
+    }
+    return new ArrayList(linkedHashMap.values());
+}
+```
+
+```java:no-line-numbers
+/* com.bsoft.cleanmaster.util.ProcessManager.java */
+public static List<Process> b() {
+    ArrayList arrayList = new ArrayList();
+    List<String> a2 = h.a("toolbox ps -p -P -x -c");
+    int myPid = android.os.Process.myPid();
+    for (String str : a2) {
+        try {
+            Process process = new Process(str);
+            if (process.r.matches(f4551a) && process.j != myPid && !process.f4554e.equals("toolbox")) {
+                arrayList.add(process);
+            }
+        } catch (Exception unused) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Failed parsing line ");
+            sb.append(str);
+            Log.d(f4552b, sb.toString());
+        }
+    }
+    return arrayList;
+}
+
+```
+
+```java:no-line-numbers
+/* PhoneBoostFragment.java */
+public void a(Context context, int i2, int i3) {
+}
+
+public void a(Context context, long j2) {
+}
+
+public void a(Context context, List<com.bsoft.cleanmaster.i.c> list) {
+    a(list);
+}
+```
+
+### `UI`
+
+![](./images/analysis-speedbooster/10.png)
 
 ## 参考
 
