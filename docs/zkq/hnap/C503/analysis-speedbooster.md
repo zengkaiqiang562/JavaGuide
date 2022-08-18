@@ -1443,7 +1443,7 @@ public static List<c> e() {
     ArrayList arrayList = new ArrayList();
     try {
         List b2 = b();
-        if (b2.size() == 0) {
+        if (b2.size() == 0) { // 如果执行 ps -p -P -x -c 命令获取不到进程信息，则调用 c() 方法获取进程信息
             b2 = c();
         }
         if (b2.size() > 0) {
@@ -1454,6 +1454,7 @@ public static List<c> e() {
             // 如果想在 Android 11 及以上使全部其他 app 对当前 app 可见，需要申请权限 android.permission.QUERY_ALL_PACKAGES
             // 参考：https://developer.android.google.cn/training/basics/intents/package-visibility
             for (ResolveInfo resolveInfo : f4591b.queryIntentActivities(intent, 0)) {
+                // 从进程集合 b2 中找到与当前遍历到的包名对应的进程信息 a2
                 a a2 = a(b2, resolveInfo.activityInfo.packageName);
                 if (a2 != null) {
                     int[] iArr = new int[a2.f4464b.size()];
@@ -1488,6 +1489,7 @@ public static List<c> e() {
 private static List<a> b() {
     String packageName = MyApplication.b().getPackageName();
     LinkedHashMap linkedHashMap = new LinkedHashMap();
+    // Process 是 ProcessManager 的内部类，封装了进程信息
     for (Process process : ProcessManager.b()) {
         String f = process.f();
         if (!f.equals(packageName)) {
@@ -1511,6 +1513,8 @@ public static List<Process> b() {
     int myPid = android.os.Process.myPid();
     for (String str : a2) {
         try {
+            // 执行 ps -p -P -x -c 命令，得到所有的进程信息，
+            // 每个 str 表示一条进程信息，传给 Process，从 str 中解析出进程信息封装在 Process 中
             Process process = new Process(str);
             if (process.r.matches(f4551a) && process.j != myPid && !process.f4554e.equals("toolbox")) {
                 arrayList.add(process);
@@ -1523,6 +1527,43 @@ public static List<Process> b() {
         }
     }
     return arrayList;
+}
+```
+
+```java:no-line-numbers
+/* com.bsoft.cleanmaster.util.k.java */
+private static List<com.bsoft.cleanmaster.i.a> c() {
+    String packageName = MyApplication.b().getPackageName();
+    LinkedHashMap linkedHashMap = new LinkedHashMap();
+    if (Build.VERSION.SDK_INT < 26) { // 版本 < Android 8.0
+        for (ActivityManager.RunningServiceInfo runningServiceInfo : f4925a.getRunningServices(CropImageView.L)) {
+            String packageName2 = runningServiceInfo.service.getPackageName();
+            if (!packageName2.equals(packageName)) {
+                com.bsoft.cleanmaster.i.a aVar = (com.bsoft.cleanmaster.i.a) linkedHashMap.get(packageName2);
+                if (aVar == null) {
+                    aVar = new com.bsoft.cleanmaster.i.a(packageName2);
+                    linkedHashMap.put(packageName2, aVar);
+                }
+                aVar.a(runningServiceInfo.pid);
+            }
+        }
+    } else {
+        try {
+            long currentTimeMillis = System.currentTimeMillis();
+            List<UsageStats> queryUsageStats = ((UsageStatsManager) MyApplication.b().getSystemService("usagestats")).queryUsageStats(0, currentTimeMillis - 100000000, currentTimeMillis);
+            if (queryUsageStats != null && queryUsageStats.size() > 0) {
+                for (UsageStats usageStats : queryUsageStats) {
+                    String packageName3 = usageStats.getPackageName();
+                    if (!packageName3.equals(packageName) && ((com.bsoft.cleanmaster.i.a) linkedHashMap.get(packageName3)) == null) {
+                        linkedHashMap.put(packageName3, new com.bsoft.cleanmaster.i.a(packageName3));
+                    }
+                }
+            }
+        } catch (Exception e2) {
+            e2.printStackTrace();
+        }
+    }
+    return new ArrayList(linkedHashMap.values());
 }
 
 ```
