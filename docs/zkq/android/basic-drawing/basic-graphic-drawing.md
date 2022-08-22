@@ -267,9 +267,123 @@ canvas.drawLines(pts, 2, 4, paint);
 
 ### 3.4 画点
 
+```java:no-line-numbers
+/* Canvas.java */
+public void drawPoint(float x, float y, Paint paint)
+```
+
+**示例代码：**
+
+```java:no-line-numbers
+Paint paint=new Paint(); 
+paint.setColor(Color.RED); 
+paint.setStrokeWidth(15); 
+canvas.drawPoint(100, 100, paint);
+```
+
+> 在 `(100, 100)` 位置画一个点。
+> 
+> 注意：点的大小只与 `paint.setStrokeWidth(width)` 有关，而与 `paint.setStyle(style)` 无关。
+
 ### 3.5 画多个点
 
+```java:no-line-numbers
+/* Canvas.java */
+public void drawPoints(float[] pts, Paint paint)
+public void drawPoints(float[] pts, int offset, int count, Paint paint)
+```
+
+```:no-line-numbers
+pts：点的集合，集合中每两个数值表示一个点，集合数值个数必须是 2 的整数倍，形如： {x1, y1, x2, y2, x3, y3, ...}
+offset：集合中跳过的数值个数。注意不是点的个数！一个点有两个数值。
+count：参与绘制的数值个数，指 pts 数组中数值的个数，而不是点的个数。
+```
+
+**示例代码：**
+
+```java:no-line-numbers
+Paint paint=new Paint(); 
+paint.setColor(Color.RED); 
+paint.setStrokeWidth(25); 
+
+// 4 个点：(10,10)、(100,100)、(200,200) 和 (400,400)
+float[] pts={10,10,100,100,200,200,400,400}; 
+
+// 跳过前两个数值，即第一个点的横、纵坐标，画出后面 4 个数值代表的点，即第二、三个点，第四个点没画。
+canvas.drawPoints(pts, 2, 4, paint);
+```
+
+**效果图：**
+
+![](./images/basic-graphic-drawing/07.png)
+
 ### 3.6 矩形工具类 `RectF`、`Rect` & 画矩形
+
+这两个类都是矩形工具类，根据 `4` 个点构造出一个矩形结构。`RectF` 与 `Rect` 中的方法、成员变量完全一样，唯一不同的是：
+
+1. `RectF` 是用来保存 `float` 类型数值的矩形结构的；
+   
+2. `Rect` 是用来保存 `int` 类型数值的矩形结构的。
+
+**`RectF` 的构造函数如下：**
+
+```java:no-line-numbers
+public RectF() 
+public RectF(float left, float top, float right, float bottom) // 最常用
+public RectF(RectF r) 
+public RectF(Rect r)
+```
+
+**`Rect` 的构造函数如下：**
+
+```java:no-line-numbers
+public Rect() 
+public Rect(int left, int top, int right, int bottom) // 最常用
+public Rect(Rect r)
+```
+
+构造一个矩形结构有如下两种方式：
+
+1. 直接构造：
+
+    ```java:no-line-numbers
+    Rect rect = new Rect(10,10,100,100);
+    ```
+
+2. 间接构造：
+
+    ```java:no-line-numbers
+    Rect rect = new Rect(); 
+    rect.set(10,10,100,100);
+    ```
+
+**`Canvas` 提供如下方法用来绘制矩形：**
+
+```java:no-line-numbers
+/* Canvas.java */
+public void drawRect(float left, float top, float right, float bottom, Paint paint) 
+public void drawRect(RectF rect, Paint paint)
+public void drawRect(Rect r, Paint paint)
+```
+
+**示例代码：**
+
+```java:no-line-numbers
+Paint paint=new Paint(); 
+paint.setColor(Color.RED); 
+paint.setStyle(Paint.Style.STROKE); 
+paint.setStrokeWidth(15); 
+
+canvas.drawRect(10, 10, 100, 100, paint); 
+
+paint.setStyle(Paint.Style.FILL); 
+RectF rect = new RectF(210f, 10f, 300f, 100f); 
+canvas.drawRect(rect, paint);
+```
+
+**效果图：**
+
+![](./images/basic-graphic-drawing/08.png)
 
 ### 3.7 画圆角矩形
 
