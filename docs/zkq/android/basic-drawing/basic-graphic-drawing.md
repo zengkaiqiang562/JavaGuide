@@ -387,12 +387,166 @@ canvas.drawRect(rect, paint);
 
 ### 3.7 画圆角矩形
 
+```java:no-line-numbers
+/* Canvas.java */
+public void drawRoundRect(RectF rect, float rx, float ry, Paint paint)
+```
+
+```:no-line-numbers
+RectF rect：要绘制的矩形。
+float rx：生成圆角的椭圆的 X 轴半径。
+float ry：生成圆角的椭圆的 Y 轴半径。
+```
+
+使用过 `<shape>` 标签的读者应该知道：`Android` 在生成矩形的圆角时，其实利用的是椭圆。
+
+`<shape>` 标签 `4` 个角都可以设置生成圆角的椭圆，它生成圆角矩形的原理如下图所示：
+
+![](./images/basic-graphic-drawing/09.png)
+
+可见，**圆角矩形的圆角其实是由椭圆的一角形成的**。
+
+与 `<shape>` 标签不同的是，`drawRoundRect()` 函数不能针对每个角设置对应的椭圆，而只能统一设置 `4` 个角对应的椭圆。
+
+**示例代码：**
+
+```java:no-line-numbers
+Paint paint=new Paint(); 
+paint.setColor(Color.RED); 
+paint.setStyle(Style.FILL); 
+paint.setStrokeWidth(15); 
+ 
+RectF rect = new RectF(100, 10, 300, 100); 
+canvas.drawRoundRect(rect, 20, 10, paint);
+```
+
+**效果图：**
+
+![](./images/basic-graphic-drawing/10.png)
+
 ### 3.8 画圆
+
+```java:no-line-numbers
+/* Canvas.java */
+void drawCircle(float cx, float cy, float radius, Paint paint)
+```
+
+```:no-line-numbers
+float cx：圆心点的 X 轴坐标。 
+float cy：圆心点的 Y 轴坐标。
+float radius：圆的半径。
+```
+
+**效果图：**
+
+![](./images/basic-graphic-drawing/11.png)
 
 ### 3.9 画椭圆
 
+椭圆是根据矩形生成的，以矩形的长为椭圆的 `X` 轴，以矩形的宽为椭圆的 `Y` 轴。
+
+```java:no-line-numbers
+/* Canvas.java */
+void drawOval(RectF oval, Paint paint)
+```
+
+```:no-line-numbers
+RectF oval：用来生成椭圆的矩形。
+```
+
+**示例代码：**
+
+```java:no-line-numbers
+Paint paint=new Paint(); 
+paint.setColor(Color.RED); 
+paint.setStyle(Paint.Style.STROKE); 
+paint.setStrokeWidth(5); 
+
+RectF rect = new RectF(100, 10, 300, 100); 
+canvas.drawRect(rect, paint); 
+
+paint.setColor(Color.GREEN);//更改画笔颜色 
+canvas.drawOval(rect, paint);//根据同一个矩形画椭圆
+```
+
+> 针对同一个矩形，先把它的矩形区域画出来，然后再把根据这个矩形生成的椭圆画出来，就可以很好地理解根据矩形所生成的椭圆与矩形的关系了。
+
+**效果图：**
+
+![](./images/basic-graphic-drawing/12.png)
+
 ### 3.10 画弧
 
+弧是椭圆的一部分，而椭圆是根据矩形来生成的，所以弧也是根据矩形来生成的。
+
+```java:no-line-numbers
+/* Canvas.java */
+void drawArc(RectF oval, float startAngle, float sweepAngle, boolean useCenter, Paint paint)
+```
+
+```:no-line-numbers
+RectF oval：生成椭圆的矩形。
+float startAngle：弧开始的角度，以 X 轴正方向为 0°。 
+float sweepAngle：弧持续的角度。
+boolean useCenter：是否有弧的两边。为 true 时，表示带有两边；为 false 时，只有一条弧。
+```
+
+**示例代码：**
+
+1. 将画笔设置为描边：
+
+    ```java:no-line-numbers
+    Paint paint=new Paint(); 
+    paint.setColor(Color.RED); 
+    paint.setStyle(Paint.Style.STROKE); 
+    paint.setStrokeWidth(5); 
+
+    //带两边
+    RectF rect1 = new RectF(10, 10, 100, 100); 
+    canvas.drawArc(rect1, 0, 90, true, paint); 
+
+    //不带两边
+    RectF rect2 = new RectF(110, 10, 200, 100); 
+    canvas.drawArc(rect2, 0, 90, false, paint);
+    ```
+
+    ![](./images/basic-graphic-drawing/13.png)
+
+2. 将画笔设置为填充：
+
+    ```java:no-line-numbers
+    // 1 中代码不变，只需要将 paint 的样式设置为 FILL 即可。
+    paint.setStyle(Style.FILL);
+    ```
+
+    ![](./images/basic-graphic-drawing/14.png)
+
+> 从效果图中可以看出：当画笔设为填充模式时，填充区域只限于圆弧的起始点和终点所形成的区域，并且：
+> 
+> 1. 如果带有两边时，会将两边及圆弧内部全部填充；
+> 
+> 2. 如果没有两边，则只填充圆弧部分。
+
 ## 4. `Rect` 与 `RectF`
+
+### 4.1 判断是否包含点、矩形
+
+#### 4.1.1 判断是否包含点
+
+#### 4.1.2 判断是否包含某个矩形
+
+### 4.2 判断两个矩形是否相交
+
+#### 4.2.1 静态方法判断是否相交
+
+#### 4.2.2 成员方法判断是否相交
+
+#### 4.2.3 判断相交并返回结果
+
+### 4.3 合并
+
+#### 4.3.1 合并两个矩形
+
+#### 4.3.2 合并矩形与某个点
 
 ## 5. `Color`
