@@ -529,24 +529,281 @@ boolean useCenter：是否有弧的两边。为 true 时，表示带有两边；
 
 ## 4. `Rect` 与 `RectF`
 
+由于 `Rect`、`RectF` 所具有的函数是相同的，只是保存的数值类型不同，所以下面就以 `Rect` 为例来进行讲解。
+
 ### 4.1 判断是否包含点、矩形
 
 #### 4.1.1 判断是否包含点
 
+```java:no-line-numbers
+/* Rect.java */
+boolean contains(int x, int y)
+```
+
+```:no-line-numbers
+该函数用于判断某个点是否在当前矩形中。如果在，则返回 true；如果不在，则返回 false。
+参数 (x,y) 就是当前要判断的点的坐标。
+```
+
+> 利用这个函数，可以定义一个很简单的控件：
+> 
+> 绘制一个矩形，当手指在这个矩形区域内时，矩形变为绿色；否则是红色的。
+
 #### 4.1.2 判断是否包含某个矩形
+
+```java:no-line-numbers
+/* Rect.java */
+Boolean contains(int left, int top, int right, int bottom) 
+boolean contains(Rect r)
+```
+
+```:no-line-numbers
+根据矩形的 4 个点或者一个 Rect 矩形对象来判断这个矩形是否在当前的矩形区域内。
+```
 
 ### 4.2 判断两个矩形是否相交
 
 #### 4.2.1 静态方法判断是否相交
 
+```java:no-line-numbers
+/* Rect.java */
+static boolean intersects(Rect a, Rect b)
+```
+
+```:no-line-numbers
+这是 Rect 类的一个静态方法，用来判断参数中所传入的两个 Rect 矩形是否相交。
+如果相交则返回 true，否则返回 false。
+```
+
 #### 4.2.2 成员方法判断是否相交
 
+```java:no-line-numbers
+/* Rect.java */
+boolean intersects(int left, int top, int right, int bottom)
+```
+
 #### 4.2.3 判断相交并返回结果
+
+```java:no-line-numbers
+/* Rect.java */
+boolean intersect(int left, int top, int right, int bottom) 
+boolean intersect(Rect r)
+```
+
+```:no-line-numbers
+这两个成员方法与 intersects() 方法的区别是：
+不仅会返回是否相交的结果，而且会把相交部分的矩形赋给当前 Rect 对象。
+如果两个矩形不相交，则当前 Rect 对象的值不变。
+```
+
+**示例代码：**
+
+```java:no-line-numbers
+Rect rect_1 = new Rect(10, 10, 200, 200); 
+
+Boolean result_1 = rect_1.intersects(190, 10, 250, 200); 
+printResult(result_1,rect_1); 
+
+Boolean result_2 = rect_1.intersect(210, 10, 250, 200); 
+printResult(result_2, rect_1); 
+
+Boolean result_3 = rect_1.intersect(190, 10, 250, 200); 
+printResult(result_3,rect_1);
+
+
+private void printResult(Boolean result, Rect rect) { 
+    Log.d("qijian", rect.toShortString() + " result:" + result); 
+}
+```
+
+在上面的示例中，分别使用 `intersects()` 和 `intersect()` 函数来判断是否与指定矩形相交，并将判断相交的对象 `rect_1` 的边角打印出来。
+
+日志如下：
+
+![](./images/basic-graphic-drawing/15.png)
+
+很明显：
+
+```:no-line-numbers
+1. intersects() 函数只是判断是否相交，并不会改变原矩形 rect_1 的值；
+2. 当 intersect() 函数判断的两个矩形不相交时，也不会改变 rect_1 的值；
+3. 只有当两个矩形相交时，intersect() 函数才会把结果赋给 rect_1。
+```
+
 
 ### 4.3 合并
 
 #### 4.3.1 合并两个矩形
 
+合并两个矩形的意思就是将两个矩形合并成一个矩形，即：
+
+```:no-line-numbers
+无论这两个矩形是否相交，取两个矩形最小左上角点作为结果矩形的左上角点，取两个矩形最大右下角点作为结果矩形的右下角点。
+如果要合并的两个矩形有一方为空，则将有值的一方作为最终结果。
+```
+
+```java:no-line-numbers
+/* Rect.java */
+public void union(int left, int top, int right, int bottom) 
+public void union(Rect r)
+```
+
+```:no-line-numbers
+同样根据参数是矩形的 4 个点还是一个 Rect 对象分为两个构造函数。
+合并的结果将会被赋给当前的 rect 变量。
+```
+
+**示例代码：**
+
+```java:no-line-numbers
+Paint paint = new Paint(); 
+paint.setStyle(Paint.Style.STROKE); 
+Rect rect_1 = new Rect(10,10,20,20); 
+Rect rect_2 = new Rect(100,100,110,110); 
+
+//分别画出源矩形 rect_1、rect_2 
+paint.setColor(Color.RED); 
+canvas.drawRect(rect_1,paint); 
+paint.setColor(Color.GREEN); 
+canvas.drawRect(rect_2,paint);
+
+//画出合并之后的结果 rect_1 
+paint.setColor(Color.YELLOW); 
+rect_1.union(rect_2); 
+canvas.drawRect(rect_1,paint);
+```
+
+上述代码构造了两个不相交的矩形，先分别画出它们各自所在的位置，然后通过 `union()` 函数合并，并将合并结果画出来。
+
+**效果如下图所示：**
+
+![](./images/basic-graphic-drawing/16.png)
+
+> 从结果图中可以看出，两个小矩形在合并以后，取两个矩形的最小左上角点作为结果矩形的左上角点，取两个矩形的最大右下角点作为结果矩形的右下角点。
+
 #### 4.3.2 合并矩形与某个点
 
+```java:no-line-numbers
+/* Rect.java */
+public void union(int x, int y)
+```
+
+```:no-line-numbers
+先判断当前矩形与目标合并点的关系，
+如果不相交，则根据目标点 (x,y) 的位置，将目标点设置为当前矩形的左上角点或者右下角点。
+如果当前矩形是一个空矩形，则最后的结果矩形为 ([0,0],[x,y])，即结果矩形的左上角点为 [0,0]，右下角点为 [x,y]。
+```
+
+**示例代码：**
+
+```java:no-line-numbers
+Rect rect_1 = new Rect(10, 10, 20, 20); 
+rect_1.union(100,100); 
+printResult(rect_1); 
+
+rect_1 = new Rect(); 
+rect_1.union(100,100); 
+printResult(rect_1);
+
+private void printResult(Rect rect) { 
+    Log.d("qijian", rect.toShortString()); 
+}
+```
+
+在上述代码中，先将与指定矩形不相交的点与矩形合并，然后将矩形置空，再与同一个点相交。
+
+日志如下：
+
+![](./images/basic-graphic-drawing/17.png)
+
+结果很容易理解，当与指定矩形合并时，根据当前点的位置，将该点设为矩形的右下角点；当点与空矩形相交时，结果为 `([0,0],[x,y])`。
+
 ## 5. `Color`
+
+`Color` 是 `Android` 中与颜色处理有关的类。
+
+### 5.1 常量颜色
+
+`Color` 定义了很多常量的颜色值，我们可以直接使用。
+
+```java:no-line-numbers
+/* Color.java */
+int BLACK 
+int BLUE 
+int CYAN 
+int DKGRAY 
+int GRAY 
+int GREEN 
+int LTGRAY 
+int MAGENTA 
+int RED 
+int TRANSPARENT 
+int WHITE 
+int YELLOW
+```
+
+```
+可以通过 Color.XXX 来直接使用这些颜色，比如红色，在代码中可以直接使用 Color.RED。
+```
+
+### 5.2 构造颜色
+
+#### 5.2.1 带有透明度的颜色
+
+```java:no-line-numbers
+/* Color.java */
+static int argb(int alpha, int red, int green, int blue)
+```
+
+```:no-line-numbers
+这个函数允许我们分别传入 A、R、G、B 4 个色彩分量，然后合并成一个色彩。
+其中，alpha、red、green、blue 4 个色彩分量的取值范围都是 0～255。
+```
+
+`Color.argb()` 函数的具体实现源码如下：
+
+```java:no-line-numbers
+/* Color.java */
+public static int argb(int alpha, int red, int green, int blue) { 
+    return (alpha << 24) | (red << 16) | (green << 8) | blue; 
+}
+```
+
+> 在读代码时，有时会看到直接利用 `(alpha << 24) | (red << 16) | (green << 8) | blue` 来合成对应颜色值的情况，
+> 
+> 其实跟我们使用 `Color.argb()` 函数来合成的结果是一样的。
+
+#### 5.2.2 不带透明度的颜色
+
+```java:no-line-numbers
+/* Color.java */
+static int rgb(int red, int green, int blue)
+```
+
+```:no-line-numbers
+其实跟上面的构造函数是一样的，只是不允许指定 alpha 值，alpha 值取 255（完全不透明）。
+```
+
+### 5.3 提取颜色分量
+
+我们不仅能通过 `Color` 类来合并颜色分量，而且能从一个颜色中提取出指定的颜色分量。
+
+```java:no-line-numbers
+/* Color.java */
+static int alpha(int color) 
+static int red(int color) 
+static int green(int color) 
+static int blue(int color)
+```
+
+```:no-line-numbers
+通过上面的 4 个函数提取出对应的 A、R、G、B 颜色分量。
+```
+
+## 6. 注意事项
+
+在示例中创建 `Paint` 对象和其他对象时都是在 `onDraw()` 函数中实现的，其实这在现实代码中是不被允许的。
+
+因为当需要重绘时就会调用 `onDraw()` 函数，所以在 `onDraw()` 函数中创建的变量会一直被重复创建，这样会引起频繁的程序 `GC`（回收内存），进而引起程序卡顿。这里之所以这样做，是因为可以提高代码的可读性。
+
+大家一定要记住，**在 `onDraw()` 函数中不能创建变量！** 一般在自定义控件的构造函数中创建变量，即在初始化时一次性创建。
