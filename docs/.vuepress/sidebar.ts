@@ -3,6 +3,73 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
     // 应该把更精确的路径放置在前边
 
+    "/zkq/web/": [ // web前端
+        {
+            text: "阶段一：前端开发基础",
+            prefix: "_1_web-dev-basic/",
+            collapsable: true,
+            children: [
+                "_1_html", // 前端基础-HTML
+                "_2_css", // 前端基础-CSS
+                "_3_html5_css3", // HTML5+CSS3
+                "_4_pinyougou_project" // 品优购项目
+            ]
+        },
+        {
+            text: "阶段二：移动Web网页开发",
+            prefix: "_2_mobile_web_dev/",
+            collapsable: true,
+            children: [
+                "_1_html5_css3_advance", // html5 + css3 进阶
+                "_2_mobile_web_flow_layout", // 移动web开发_流式布局
+                "_3_mobile_web_flex_layout", // 移动web开发_flex布局
+                "_4_mobile_web_rem_layout", // 移动web开发_rem布局
+                "_5_mobile_web_reactive_layout" // 移动web开发_响应式布局
+            ]
+        },
+        {
+            text: "阶段三：JavaScript 网页编程",
+            prefix: "_3_javascript_program/",
+            collapsable: true,
+            children: [
+                "_1_javascript_basic", // JavaScript 基础
+                "_2_web_apis", // Web APIs
+                "_3_jquery", // jQuery
+                "_4_data_visable", // 数据可视化
+                "_5_javascript_advance", // JavaScript 高级
+            ]
+        },
+        {
+            text: "阶段四：前后端交互",
+            prefix: "_4_web_backend_interact/",
+            collapsable: true,
+            children: [
+                "_1_ajax", // ajax
+                "_2_git_github", // git + github
+                "_3_node_js", // node.js
+                "_4_big_event_project", // 大事件项目
+            ]
+        },
+        {
+            text: "阶段五：Vue.js项目实战开发",
+            prefix: "_5_vue_dev/",
+            collapsable: true,
+            children: []
+        },
+        {
+            text: "阶段六：微信小程序",
+            prefix: "_6_wx_applet/",
+            collapsable: true,
+            children: []
+        },
+        {
+            text: "阶段七：React项目实战",
+            prefix: "_7_react_dev/",
+            collapsable: true,
+            children: []
+        },
+    ],
+
     "/zkq/hnap/": [ // 湖南安派项目经历
         {
             text: "C407",

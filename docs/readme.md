@@ -25,6 +25,9 @@ actions:
   - text: Android
     link: /zkq/android/readme.md
     type: default 
+  - text: Web
+    link: /zkq/web/readme.md
+    type: default 
   - text: 开源框架
     link: /zkq/third-party-open-project/readme.md
     type: default 
