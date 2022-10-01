@@ -28,6 +28,9 @@ actions:
   - text: Web
     link: /zkq/web/readme.md
     type: default 
+  - text: Linux
+    link: /zkq/linux/readme.md
+    type: default 
   - text: 开源框架
     link: /zkq/third-party-open-project/readme.md
     type: default 

@@ -3,6 +3,54 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
     // 应该把更精确的路径放置在前边
 
+    "/zkq/linux/": [ // web前端
+        {
+            text: "阶段一：基础阶段",
+            prefix: "_1_basic/",
+            collapsable: true,
+            children: [
+                "_03_shell_bash_trait", // 03-老男孩linux76期-命令行-shell-bash特点
+                "_04_linux_file_manage", // 04-老男孩linux76期-linux文件管理
+                "_05_linux_basic_cmd", // 05-老男孩linux76期-linux基础命令
+                "_06_linux_core_cmd", // 06-老男孩Linux76期-Linux知识点梳理与复习
+                "_07_linux_swordsmen_cmd", // 07-老男孩Linux76期-三剑客命令-文件属性
+                "_08_vim", // 08-老男孩Linux76期-文件编辑vi-vim
+                "_14_find_compress" // 14-老男孩Linux76期-find与压缩
+            ]
+        },
+        {
+            text: "阶段二：综合架构",
+            prefix: "_2_comprehensive/",
+            collapsable: true,
+            children: [
+            ]
+        },
+        {
+            text: "阶段三：Shell & 三剑客",
+            prefix: "_3_shell_swordsmen/",
+            collapsable: true,
+            children: [
+                "_01_shell", // shell 脚本
+                "_02_regx", // 正则表达式
+                "_03_grep_sed_awk" // 三剑客
+            ]
+        },
+        {
+            text: "阶段四：Zabbix & LVS",
+            prefix: "_4_zabbix_lvs/",
+            collapsable: true,
+            children: [
+            ]
+        },
+        {
+            text: "阶段五：DevOps-Git-Jenkins",
+            prefix: "_5_devops_git_jenkins/",
+            collapsable: true,
+            children: [
+            ]
+        },
+    ],
+
     "/zkq/web/": [ // web前端
         {
             text: "阶段一：前端开发基础",
