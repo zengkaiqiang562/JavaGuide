@@ -583,7 +583,7 @@ Password: your_token
 还需要加上 `<item name="android:windowBackground">@drawable/bg_launch</item>`，其中背景图片为一个透明的 `shape` 图。
 
 ```xml:no-line-numbers
-<!-- res/values/styles.xml -->
+<!-- res/values/styles.xml  -->
 
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
