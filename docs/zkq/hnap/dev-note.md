@@ -576,7 +576,7 @@ Password: your_token
 
 **Step 2. 给启动 Activity 配置主题样式**
 
-**注意：** 
+**注意：**
 
 在有的手机上，只是设置 `<item name="android:windowIsTranslucent">true</item>` 无法实现透明主题，
 
