@@ -684,3 +684,86 @@ private void fetchGoogleAdvertID() {
     }
 }
 ```
+
+## 16. 在一台设备上管理多个不同 `GitHub` 账号的仓库
+
+> 参考：[彻底解决github push failed问题（remote: Permission to userA/repo.git denied to userB）](https://blog.csdn.net/weixin_38214171/article/details/95080746)
+> 
+> 参考：[git clone private repo remote: Repository not found. | git新电脑上clone私有库](https://blog.csdn.net/qazwsxrx/article/details/125554433)
+> 
+> 参考：[Git配置credential helper](https://blog.csdn.net/wzy901213/article/details/84334163)
+
+**`Mac` 上管理多个不同 `GitHub` 账号的仓库时，可能会出现如下问题：**
+
+```sh:no-line-numbers
+zkqcom@zkqcomdeMac-mini JavaGuide % git push
+remote: Permission to zengkaiqiang562/JavaGuide.git denied to HarrietCeda.
+fatal: unable to access 'https://github.com/zengkaiqiang562/JavaGuide.git/': The requested URL returned error: 403
+```
+
+出现以上问题的原因是 `Mac` 上存在一个 `HarrietCeda` 账号下的 `FlashVPN` 仓库，和一个 `zengkaiqiang562` 账号下的 `JavaGuide` 仓库，
+而 `Mac` 的钥匙访问串中只为 `HarrietCeda` 保存了 `GitHub` 账号密码，所以当在 `zengkaiqiang562` 账号下的 `JavaGuide` 仓库中执行 `git push` 命令时，默认就会使用钥匙访问串中的 `HarrietCeda` 账号来访问 `zengkaiqiang562` 账号下的 `JavaGuide` 仓库，从而报错：
+
+```:no-line-numbers
+Permission to zengkaiqiang562/JavaGuide.git denied to HarrietCeda.
+```
+
+**另一个问题如下：**
+
+```sh:no-line-numbers
+zkqcom@zkqcomdeMac-mini FlashVPN % git push
+remote: Repository not found.
+fatal: repository 'https://github.com/HarrietCeda/FlashVPN.git/' not found
+```
+
+出现以上问题的原因是在解决上一个问题时，将 `Mac` 的钥匙访问串中为 `HarrietCeda` 保存的 `GitHub` 账号密码给删除了，并且由于 `HarrietCeda` 账号下的 `FlashVPN` 仓库是私有的（`Private`），从而 `Git` 无法在 `GitHub` 上找到私有仓库 `FlashVPN` 了。
+
+**解决方式：**
+
+将这两个仓库的 `https` 地址都改成 `https://<账号名>@github.com/<账号名>/<仓库名>.git/` 的形式。
+
+已 `FalshVPN` 为例，编辑 `FalshVPN` 仓库下的 `.git/config` 文件，
+
+将第 `9` 行的 `https://github.com/HarrietCeda/FlashVPN.git/` 改为 `https://HarrietCeda@github.com/HarrietCeda/FlashVPN.git`
+
+```sh:no-line-numbers
+zkqcom@zkqcomdeMac-mini FlashVPN % vim .git/config    
+```
+
+![](./images/dev-note/21.png)
+
+于是，执行 `git push` 访问远程仓库时就会要求重新输入密码。
+
+以同样的方式修改 `zengkaiqiang562` 账号下的 `JavaGuide` 仓库关联的远程 `GitHub` 仓库地址即可。
+
+于是，在 `Mac` 的钥匙访问串中，就会为这两个 `GitHub` 账号分别生成对应的钥匙串项目，如下图所示：
+
+![](./images/dev-note/22.png)
+
+**通过 `Credential Helper` 保存密码**
+
+可以通过 `Credential Helper` 保存 `Git` 仓库的密码，避免每次访问远程仓库时都要求输入密码。
+
+以 `FlashVPN` 为例，执行如下指令：
+
+```sh:no-line-numbers
+zkqcom@zkqcomdeMac-mini FlashVPN % git config --local credential.helper store
+zkqcom@zkqcomdeMac-mini FlashVPN % git config --local --list                 
+...
+user.name=HarrietCeda
+user.email=HarrietCeda@outlook.com
+credential.helper=store
+zkqcom@zkqcomdeMac-mini FlashVPN % 
+```
+
+> 因为存在多个 `GitHub` 账号下的仓库，所以使用选项 `--local` 单独的为一个仓库进行配置。
+
+设置了 `credential.helper=store` 之后，在执行 `git push` 命令访问远程仓库并输入密码后，就会把密码保存在 `~/.git-credentials` 文件中。
+
+```sh:no-line-numbers
+zkqcom@zkqcomdeMac-mini FlashVPN % cat ~/.git-credentials   
+https://HarrietCeda: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@github.com
+https://zengkaiqiang562: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@github.com
+```
+
+> 以上为 `HarrietCeda` 和 `zengkaiqiang562` 这两个账号保存了密码（密码就是 `token`，一个账号的所有仓库可以共用一个 `token` 作为密码）。
