@@ -11,8 +11,7 @@ export const sidebarConfig = defineSidebarConfig({
             children: [
                 "_03_shell_bash_trait", // 03-老男孩linux76期-命令行-shell-bash特点
                 "_04_linux_file_manage", // 04-老男孩linux76期-linux文件管理
-                "_05_linux_basic_cmd", // 05-老男孩linux76期-linux基础命令
-                "_06_linux_core_cmd", // 06-老男孩Linux76期-Linux知识点梳理与复习
+                "_05_linux_basic_cmd", // 05-老男孩linux76期-linux基础命令（05、06）
                 "_07_linux_swordsmen_cmd", // 07-老男孩Linux76期-三剑客命令-文件属性
                 "_08_vim", // 08-老男孩Linux76期-文件编辑vi-vim
                 "_14_find_compress" // 14-老男孩Linux76期-find与压缩
