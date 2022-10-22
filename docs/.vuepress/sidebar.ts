@@ -3,7 +3,7 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
     // 应该把更精确的路径放置在前边
 
-    "/zkq/linux/": [ // web前端
+    "/zkq/linux/": [ // Linux运维
         {
             text: "阶段一：基础阶段",
             prefix: "_1_basic/",
@@ -118,6 +118,7 @@ export const sidebarConfig = defineSidebarConfig({
     ],
 
     "/zkq/hnap/": [ // 湖南安派项目经历
+        "dev-note", // 开发笔记
         {
             text: "C407",
             prefix: "C407/",
