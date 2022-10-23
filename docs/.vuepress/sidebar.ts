@@ -3,6 +3,28 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
     // 应该把更精确的路径放置在前边
 
+    "/zkq/gradle/": [ // Gradle 3.0 自动化项目构建技术精讲+实战
+        "_01_introduce", // Gradle 快速入门
+        {
+            text: "Gradle核心语法",
+            prefix: "_02_grammar/",
+            collapsable: true,
+            children: [
+                "_01_basic", // 基础语法
+                "_02_closure", // 闭包讲解
+                "_03_datastructure", // 数据结构（List、Map、Range）
+                "_04_oop", // 面向对象（类、接口、Trait、元编程）
+            ]
+        },
+       "_03_advance", // Gradle 高级用法实战（json操作、xml文件操作、普通文件操作）
+       "_04_lifecycle", // Gradle生命周期探索
+       "_05_project", // Project详解与实战
+       "_06_task", // Task详解与实战
+       "_07_settings_sourcesets", // Setting类 & SourceSets 类
+       "_08_plugin", // Plugin 插件
+       "_09_other", // 其他（Gradle 持续集成与打包）
+    ],
+
     "/zkq/linux/": [ // Linux运维
         {
             text: "阶段一：基础阶段",

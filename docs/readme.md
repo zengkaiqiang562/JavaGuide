@@ -25,6 +25,9 @@ actions:
   - text: Android
     link: /zkq/android/readme.md
     type: default 
+  - text: Gradle
+    link: /zkq/gradle/readme.md
+    type: default
   - text: Web
     link: /zkq/web/readme.md
     type: default 
