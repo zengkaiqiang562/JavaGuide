@@ -125,7 +125,7 @@ String str.multiply(Number)
 ```
 
 ```:no-line-numbers
-作用：将 Number个 调用字符串str 拼接成一个字符串返回，如："hello".multiply(2) 返回 "hellohello"
+作用：将 Number 个调用字符串 str 拼接成一个字符串返回，如："hello".multiply(2) 返回 "hellohello"
 ```
 
 ![](./images/_02_closure/07.png)
@@ -204,7 +204,7 @@ boolean str.every(Closure)
 
 ![](./images/_02_closure/10.png)
 
-#### 2.2.8 返回与字符串中字符关联的集合：`collect(Closure)`
+#### 2.2.8 返回根据字符串中字符转换成的集合：`collect(Closure)`
 
 ```groovy:no-line-numbers
 List str.collect(Closure)
