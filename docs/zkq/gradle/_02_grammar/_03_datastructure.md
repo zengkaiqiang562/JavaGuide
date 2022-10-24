@@ -561,20 +561,195 @@ interface Range<T extends Comparable> extends List<T>
 
 ### 3.2 `Range` 的三个实现类：`IntRange`、`ObjectRange`、`EmptyRange`
 
+**`IntRange`**
+
+```groovy:no-line-numbers
+class IntRange extends AbstractList<Integer> implements Range<Integer>
+```
+
+**`ObjectRange`**
+
+```groovy:no-line-numbers
+class ObjectRange extends AbstractList implements Range
+```
+
+**`EmptyRange`**
+
+```groovy:no-line-numbers
+class EmptyRange extends AbstractList implements Range
+```
+
 ### 3.3 `Range` 的定义
 
 **注意：**
 
-采用 `from..to` 的形式定义的 `Range` 的范围是 `[from, to]`，即包含 `to`；
+1. 采用 `from..to` 的形式定义的 `Range` 的范围是 `[from, to]`，即包含 `to`；
 
-采用 `from..<to` 的形式定义的 Range 的范围是 `[from, to)`，即不包含 `to`。
+2. 采用 `from..<to` 的形式定义的 Range 的范围是 `[from, to)`，即不包含 `to`。
 
 #### 3.3.1 `IntRange` 的定义
 
+```groovy:no-line-numbers
+def range = from..to 
+```
+
+```:no-line-numbers
+range 的元素范围是 [from, to]，其中元素 from 和元素 to 都是 int 整型。
+```
+
 #### 3.3.2 `ObjectRange` 的定义
 
+```groovy:no-line-numbers
+def range = from..to
+```
+
+```:no-line-numbers
+range 的元素范围是 [from, to]，其中元素 from 和元素 to 都是除整型之外的其他类型，如：浮点型、字符串或自定义类型。
+```
+
+**注意：**
+
+1. 当自定类型作为 `Range` 的元素时：
+
+    ```:no-line-numbers
+    1. 自定义类 T 需要继承接口 Comparable<T>，并重写 "int compareTo(T t)" 方法；
+    2. 自定义类 T 中还需要定义 "T next()" 方法，该方法会通过反射在 ObjectRange 中调用；
+    3. 自定义类 T 中还需要定义 "T previous()" 方法，该方法会通过反射在 ObjectRange 中调用。
+    ```
+
+2. 对于 `GString` 和 `String` 类型的字符串：
+
+    ```:no-line-numbers
+    1. GString 和 String 都继承了接口 Comparable；
+    2. 并且 next 和 previous 方法由 StringGroovyMethods 类提供。
+    ```
+
+3. 对于 `int` 整型之外其他数字：
+
+    ```:no-line-numbers
+    1. 都会自动装箱成对应的数字类型；
+    2. 数字类型都继承了接口 Comparable；
+    3. 并且 next 和 previous 方法由 DefaultGroovyMethods 类提供。
+    ```
+
+4. `ObjectRange` 重写了 `List` 的 `contains` 方法；
+   
+5. `ObjectRange` 中的元素只要实现了 `Comparable` 接口即可，不需要重写 `equals` 方法。
+
 #### 3.3.3 `EmptyRange` 的定义
+
+```groovy:no-line-numbers
+def range = from..<from
+```
+
+```:no-line-numbers
+其中元素 from 可以是任意类型。
+```
 
 #### 3.3.4 示例代码
 
 ![](./images/_03_datastructure/16.png)
+
+### 3.4 `Range` 中访问元素的操作
+
+**注意：**
+    1. Range容器中的元素是通过对 端点值from进行计算得到的，计算的元素值不超过端点值to
+        可能存在 Range容器中不包含元素为端点to的情况
+
+    2. ObjectRange中重写了List的contains方法
+        Range中的元素只要实现了 Comparable接口即可，不需要重写 equals方法
+
+#### 3.4.1 获取范围 `[from, to]` 的端点值：`range.to`、`range.from`
+
+```groovy:no-line-numbers
+def from = range.from
+def to = range.to
+```
+
+#### 3.4.2 通过下标运算符获取指定索引处的元素：`range[index]`
+
+```groovy:no-line-numbers
+def element = range[index]
+```
+
+#### 3.4.3 判断 `Range` 中是否包含指定元素：`range.contains(element)`
+
+```groovy:no-line-numbers
+range.contains(element) // 返回布尔值
+```
+
+#### 3.4.4 注意：可能存在 `Range` 中不包含元素为端点 `to` 的情况
+
+`Range` 容器中的元素是通过对端点值 `from` 进行计算得到的，计算的元素值不超过端点值 `to`。
+
+因此，可能存在 `Range` 容器中不包含元素为端点 `to` 的情况。
+
+#### 3.4.5 示例代码
+
+![](./images/_03_datastructure/17.png)
+
+### 3.5 `Range` 的遍历：`each(self, closure)`
+
+因为 `Range` 继承自 `List`，所以遍历 `List` 的方式同样适用于 `Range`。
+
+```groovy:no-line-numbers
+static <T> List<T> each(List<T> self, Closure closure)
+```
+
+> 另外，也可以使用 `for-in` 循环遍历 `Range`。
+
+#### 3.5.1 建议：在 `Groovy` 中，能使用闭包的就尽量使用闭包
+
+在 `Groovy` 中，能使用闭包的就尽量使用闭包，所以不推荐使用 `for-in` 循环遍历 `Range`。
+
+#### 3.5.2 示例代码
+
+![](./images/_03_datastructure/18.png)
+
+### 3.6 `Range` 在 `switch` 语句中的使用（`Range` 最常用的场景）
+
+在 `Java` 中，为了判断输入值是否在某个范围内，只能通过 `if-else` 语句结合关系运算符和逻辑运算符来进行判断，如：
+
+```java:no-line-numbers
+if (number >= 0 && number < 60) { 
+
+} else if(number >=60 && number < 70) { 
+
+} ...
+```
+
+但是在 `Groovy` 中，通过 `Range` 我们可以使用 `switch-case` 语句实现上面的代码，如：
+
+```groovy:no-line-numbers
+switch(number) {
+    case 0..<60: // 范围 [0, 60)
+        break
+    case 60..<70: // 范围 [60, 70)
+        break
+    ...
+}
+```
+
+> 以上就是 `Range` 最常用的场景。
+
+#### 3.6.1 示例代码
+
+![](./images/_03_datastructure/19.png)
+
+#### 3.6.2 使用 `def` 定义不固定返回值类型的函数
+
+如上代码所示，可以使用 `def` 来定义一个不固定返回值类型的函数：
+
+```:no-line-numbers
+def 函数名(形参列表) {
+    // 函数体
+}
+```
+
+```:no-line-numbers
+不需要给出函数的具体返回值类型，函数体中最后一条语句的执行结果作为返回值，
+所以最后一条语句的执行结果是什么类型，def 定义的函数的返回值就是什么类型，
+如果最后一条语句执行后没有结果值，那么 def 定义的函数返回 null。
+
+其实，def 定义的函数的返回值类型就是 Object，从而可以使用多态接收任意类型的返回结果。
+```
