@@ -70,8 +70,153 @@ String formatJsonStr = JsonOutput.prettyPrint(jsonStr);
 
 `XmlSlurper` 中通过 `NodeChildren` 类型的迭代器来访问 `xml` 数据中的子节点。同级的同名节点使用一个与节点同名的 `NodeChildren` 迭代器来访问，通过 "`nodeChildren[index]`" 来访问指定索引处的子节点。特别地，当同级下的同名节点只有一个时，访问 `nodeChildren` 就相当于访问 `nodeChildren[0]`。
 
-### 2.2 生成 `xml` 格式数据
+于是，从根节点开始，可以通过如下的方式访问到 `xml` 数据中任意位置的节点：
+
+```:no-line-numbers
+root.level_1_nodeChildren[index].level_2_nodeChildren[index]. ... .level_n_nodeChildren[index]
+```
+
+通过 `nodeChild.text()` 访问双标签节点包裹的内容。
+
+通过 `nodeChild.@attrName` 访问节点的属性。
+
+`NodeChild` 和 `NodeChildren` 都继承自 `GPathResult`。
+
+#### 2.1.1 示例代码一
+
+![](./images/_03_advance/04.png)
+
+#### 2.1.2 示例代码二：深度遍历（`depthFirst()`）
+
+案例：获取作者为李刚的所有书的书名。
+
+有两种方式：
+
+1. 从 `books` 节点开始，调用 `DefaultGroovyMethods` 提供 `each` 方法进行遍历。
+
+    ![](./images/_03_advance/05.png)
+
+2. 调用 `depthFirst` 方法，从根节点开始依次遍历所有节点（深度遍历）。
+
+    > 调用 `gPathResult.depthFirst()` 时，还可以写成 `gPathResult.'**'`
+
+    ![](./images/_03_advance/06.png)
+
+#### 2.1.3 示例代码三：广度遍历（`children()`）
+
+与深度遍历 `depthFirst()` 相对于的还有广度遍历 `children()`，即：
+
+1. 深度遍历表示遍历各级的所有子节点；
+
+2. 广度遍历表示只遍历下一级的各个子节点。
+
+> 调用 `gPathResult.children()` 时，还可以写成 `gPathResult.'*'`
+
+![](./images/_03_advance/07.png)
+
+### 2.2 生成 `xml` 格式数据：`MarkerupBuilder`
+
+使用 `MarkerupBuilder` 生成 `xml` 格式字符串的代码流程如下：
+
+```groovy:no-line-numbers
+def sw = new StringWriter() // StringWriter extends Writer
+def xmlBuilder = new MarkupBuilder(sw) // 创建用于生成 xml 数据的构建器 MarkupBuilder
+
+//使用 xmlBuilder.rootNodeName 定义名为 rootNodeName 的根节点 
+xmlBuilder.rootNodeName(attrName1: 'attrValue1', attrName2: 'attrValue2', ...) { // 根节点下的 {} 中定义一级子节点
+
+    leve_1_NodeName1(attrName1: 'attrValue1', attrName2: 'attrValue2', ...) { // 一级节点下的 {} 中定义二级子节点
+
+        leve_2_NodeName1(attrName1: 'attrValue1', attrName2: 'attrValue2', ...) { // 二级节点下的 {} 中定义三级子节点
+    
+            /**
+             * 以此类推，层层定义各级子节点
+             */        
+    
+        }
+
+        leve_2_NodeName2(attrName1: 'attrValue1', attrName2: 'attrValue2', ...) {...}
+
+        // 对于只包含内容的双标签节点，'contentValue' 表示其所包含的内容
+        leve_2_NodeName3(attrName1: 'attrValue1', attrName2: 'attrValue2', ..., 'contentValue')
+        ...
+    }
+
+    leve_1_NodeName2(attrName1: 'attrValue1', attrName2: 'attrValue2', ...) {...}
+    leve_1_NodeName3(attrName1: 'attrValue1', attrName2: 'attrValue2', ...) {...}
+    ...
+}
+
+//xml 数据都写入到了 StringWriter 中
+println sw
+```
+
+**示例代码：**
+
+![](./images/_03_advance/08.png)
 
 ### 2.3 将实体类转换为 `xml` 数据
 
+**示例代码：**
+
+![](./images/_03_advance/09.png)
+
 ## 3. 普通文件操作
+
+### 3.1 `Groovy` 操作普通文件的方式
+
+所有在 `Java` 中对文件的处理类，在 `Groovy` 中都可以使用。
+
+另外，`Groovy` 提供了 `ResourceGroovyMethods` 类，扩展了很多更加快捷和强大的方法。
+
+### 3.2 通过 `ResourceGroovyMethods` 提供的 `API` 操作文件
+
+`java.io.File` 对象可以通过调用 `ResourceGroovyMethods` 提供的相关 `API` 来操作文件。
+
+#### 3.2.1 遍历文本文件的每行内容：`each(self, closure)`
+
+```groovy:no-line-numbers
+static <T> T eachLine(File self, Closure<T> closure) throws IOException
+```
+
+#### 3.2.2 以字符串的形式获取文本文件的所有内容：`getText(file)`
+
+```groovy:no-line-numbers
+static String getText(File file) throws IOException
+```
+
+#### 3.2.3 以集合的形式获取文本文件的所有内容：`readLines(file)`
+
+```groovy:no-line-numbers
+static List<String> readLines(File file) throws IOException
+```
+
+> 注意：集合中的一个元素表示一行内容。
+
+#### 3.2.4 示例代码一
+
+![](./images/_03_advance/10.png)
+
+#### 3.2.5 读文件：`withReader(file, closure)`
+
+```groovy:no-line-numbers
+static <T> T withReader(File file, Closure<T> closure) throws IOException
+```
+
+#### 3.2.6 写文件：`withWriter(file, closure)`
+
+```groovy:no-line-numbers
+static <T> T withWriter(File file, Closure<T> closure)
+```
+
+#### 3.2.7 示例代码二
+
+![](./images/_03_advance/11.png)
+
+
+
+### 3.3 对象的持久化存储
+
+**示例代码：**
+
+![](./images/_03_advance/12.png)
