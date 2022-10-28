@@ -5,3 +5,548 @@ category:
 tag:
   - gradle
 ---
+
+## 1. `Project` 概述
+
+### 1.1 每个 `Module` 都是一个 `Project`（子 `Project`）
+
+一个通过 `Gradle` 构建的 `Android` 项目中，除了项目本身是一个 `Project`（根 `Project`）外，
+
+项目中的每个 `Module` 也是一个 `Project`（子 `Project`）。
+
+### 1.2 遍历 `Android` 项目中的所有 `Project`：`gradlew projects`
+
+执行命令 "`gradlew projects`"（其中 `projects` 是一个 `Task` 的名称）可以遍历出 `Android` 项目中的所有 `Project`。
+
+![](./images/_05_project/01.png)
+
+### 1.3 一个 `build.gradle` 文件表示一个 `Project`
+
+每个 `Project` 中都包含有一个 `build.gradle` 文件。
+
+如果删除了 `Project` 文件夹下的 `build.gradle` 文件，那么这个 `Project` 文件夹就是一个普通的文件夹，不会被识别为 `Project`。
+
+也就是说，一个 `build.gradle` 文件表示一个 `Project`。
+
+### 1.4 根 `Project` 的作用：管理子 `Project`
+
+根 `Project` 的作用主要是用来管理子 `Project`。
+
+### 1.5 子 `Project` 的作用：生成构建产物
+
+子 `Project` 的作用就是用来生成构建产物的，如：
+
+1. `app` 模块作为子 `Project` 生成 `apk` 文件；
+
+2. 其他模块作为子 `Project` 生成 `aar` 库文件。
+
+## 2. `Project` 的 `API` 组成
+
+`Project` 的 `API` 可以分为六大部分。
+
+![](./images/_05_project/02.png)
+
+### 2.1 `Gradle` 生命周期 `API`
+
+参考：[Gradle 生命周期的监听回调](/zkq/gradle/_04_lifecycle.html#_2-2-gradle-生命周期的监听回调)
+
+### 2.2 `Project` 相关的 `API`
+
+提供了操作父 `Project`，管理子 `Project` 的功能。
+
+#### 2.2.1 `build.gradle` 文件中编写的代码相当于 `Project` 类中的代码
+
+在学习 `Groovy` 时，我们在 `Groovy` 脚本文件中编写的代码经过编译后会生成字节码文件。
+
+字节码文件中 `Groovy` 脚本文件名做为一个类，继承自 `Script`。也就是说，在 `Groovy` 脚本文件中的代码其实就是在 `Script` 类中编写代码，可以访问到 `Script` 类的 `API`（如 `println` 方法就是 `Script` 类提供的）。
+
+类似的，在 `Gradle` 中，`build.gradle` 文件也会经过编译生成字节码文件，`build.gradle` 文件中的代码其实就是在 `Project` 类中编写的代码。
+
+也就是说，**在 `build.gradle` 文件中可以访问到 `Project` 类的 `API`**。
+
+#### 2.2.2 `build.gradle `文件中编写的代码都是在配置阶段执行
+
+所有在 `build.gradle` 文件中编写的代码，都是在配置阶段执行的。
+
+> 如何使代码在执行阶段执行，在讲解 `Task` 时进行讲解。
+
+#### 2.2.3 `Project` 类提供的 `API`
+
+##### 2.2.3.1 获取所有 `Project`：`getAllprojects()`
+
+```groovy:no-line-numbers
+Set<Project> getAllprojects()
+```
+
+```:no-line-numbers
+遍历项目中的所有 Project（包括根 Project 和各个子 Project）
+```
+
+![](./images/_05_project/03.png)
+
+##### 2.2.3.2 获取所有子 `Project`：`getSubprojects()`
+
+```groovy:no-line-numbers
+Set<Project> getSubprojects()
+```
+
+```:no-line-numbers
+遍历调用该方法的 build.gradle 所对应的 Project 下的所有子 Project
+```
+
+![](./images/_05_project/04.png)
+
+##### 2.2.3.3 获取父 `Project`：`getParent()`
+
+```groovy:no-line-numbers
+Project getParent()
+```
+
+```:no-line-numbers
+返回调用该方法的 build.gradle 所对应的 Project 的父 Project。
+如果 build.gradle 所对应的 Project 是根 Project，那么该方法返回 null。
+```
+
+![](./images/_05_project/05.png)
+
+##### 2.2.3.4 获取根 `Project`：`getRootProject()`
+
+```groovy:no-line-numbers
+Project getRootProject()
+```
+
+```:no-line-numbers
+返回项目的根 Project，不管在哪个 build.gradle 中调用，都不会返回 null。
+```
+
+![](./images/_05_project/06.png)
+
+##### 2.2.3.5 获取指定 `Project` 并对其进行配置：`project(path, closure)`
+
+```groovy:no-line-numbers
+Project project(String path, Closure configureClosure)
+```
+
+```:no-line-numbers
+1. 参数 path 用来指定一个 Project，当 path 为相对路径时，表示调用该方法的 build.gradle 所对应的 Project 目录下的相对路径。即：
+    如果在根 Project 的 build.gradle 中调用 project('app') {...}
+    那么 'app' 表示 "./app/"，而 "./app/" 文件夹表示子 Project(app)。
+
+2. 参数闭包 configureClosure 作用是用来对参数 path 指定的 Project 进行配置，需注意：
+    1. 闭包的参数传入 path 指定的 Project 对象；
+    2. 闭包的 delegate 属性指定的委托对象 也就是 path 指定的 Project 对象；
+    3. 因为该闭包的委托策略 resolveStrategy=2，即 OWNER_ONLY，
+       而闭包的 owner 属性指定的 Project 也就是 path 指定的 Project（但不是同一个对象）
+       所以，在闭包中访问的属性和方法，就是在访问 path指定的Project 的属性和方法
+
+3. 返回参数 path 指定的 Project。
+
+4. 使用该 project(path.closure) 方法，可以在根 Project 的 build.gradle 中，实现对子 Project 的配置。
+    但通常，我们不会以这种方式去处理对子 Project 的所有配置，还是应该以在子 Project 的 build.gradle 中配置为主。
+
+5. Project project(String path) throws UnknownProjectException; // 该重载方法仅用于返回参数 path 指定的 Project
+```
+
+![](./images/_05_project/07.png)
+
+##### 2.2.3.6 遍历所有 `Project` 并进行配置：`allprojects(closure)`
+
+```groovy:no-line-numbers
+void allprojects(Closure configureClosure)
+```
+
+```:no-line-numbers
+1. 作用：遍历当前 build.gradle 对应的 Project 下的所有子 Project（包含当前 build.gradle 对应的 Project）。
+
+2. 参数闭包 configureClosure 接收一个 Project 类型的参数，表示当前遍历到的 Project。
+
+3. project(path, closure) 方法是对参数 path 指定的 Project 进行配置处理
+    allprojects(closure) 方法是对当前 Project 和当前 Project 下的所有子 Project 进行配置处理。
+
+4. 因为在 allprojects 方法内部每次遍历调用该实参闭包时，闭包的委托策略都是 resolveStrategy=2，即 Closure.OWNER_ONLY，
+    而每次遍历调用该实参闭包时，闭包的 owner 属性指定为当前遍历到的 Project，
+    所以每次遍历调用该实参闭包时，在闭包中访问的属性和方法就是在访问当前遍历到的 Project 中的属性和方法。
+```
+
+![](./images/_05_project/08.png)
+
+##### 2.2.3.7 遍历所有子 `Project` 并进行配置：`subprojects(closure)`
+
+```groovy:no-line-numbers
+void subprojects(Closure configureClosure)
+```
+
+```:no-line-numbers
+subprojects(closure) 和 allprojects(closure) 的唯一区别在于：
+1. allprojects 会遍历到当前 build.gradle 对应的 Project；
+2. subprojects 不会遍历到当前 build.gradle 对应的 Project。
+```
+
+![](./images/_05_project/09.png)
+
+### 2.3 `Task` 相关的 `API`
+
+提供了新增 `Task`，使用 `Project` 中已有 `Task` 的功能。
+
+### 2.4 属性相关的 `API`
+
+除了操作 `Gradle` 本身提供的属性外，还可以为 `Project` 添加新的属性。
+
+#### 2.4.1 `Project` 类默认提供的属性
+
+##### 2.4.1.1 `DEFAULT_BUILD_FILE`
+
+```groovy:no-line-numbers
+String DEFAULT_BUILD_FILE = "build.gradle"
+```
+
+```:no-line-numbers
+该属性指定了 Project 的构建脚本文件名默认为 build.gradle
+```
+
+##### 2.4.1.2 `PATH_SEPARATOR`
+
+```groovy:no-line-numbers
+String PATH_SEPARATOR = ":"
+```
+
+```:no-line-numbers
+该属性指定了 Project 路径名和 Task 路径名的层级分隔符为冒号 ":"
+相当于普通文件系统中的路径分隔符 "/"
+```
+
+##### 2.4.1.3 `DEFAULT_BUILD_DIR_NAME`
+
+```groovy:no-line-numbers
+String DEFAULT_BUILD_DIR_NAME = "build"
+```
+
+```:no-line-numbers
+该属性指定了对 Project 进行构建后输出目录为 build 目录。
+即：对根 Project 和各个子 Project 进行构建后，都会在每个 Project 文件夹下生成一个 build 目录。
+```
+
+##### 2.4.1.4 `GRADLE_PROPERTIES`
+
+```groovy:no-line-numbers
+String GRADLE_PROPERTIES = "gradle.properties"
+```
+
+```:no-line-numbers
+该属性指定了用于对 Gradle 的属性进行配置的默认文件为 gradle.properties
+```
+
+#### 2.4.2 分析 `ext` 扩展属性的内部实现
+
+`build.gradle` 文件对应的 `Project` 对象的类是 `DefaultProject` 子类：
+
+```:no-line-numbers
+1. 是通过 org.gradle.testfixtures.internal.ProjectBuilderImpl 类提供的 createProject 和 createChildProject 方法动态创建出来的；
+2. 是 org.gradle.api.internal.project.DefaultProject 的子类。
+
+参考：
+1. org.gradle.testfixtures.internal.ProjectBuilderImpl
+2. org.gradle.api.internal.AsmBackedClassGenerator
+   动态创建的 DefaultProject 子类就是在 AsmBackedClassGenerator 的静态内部类 ClassBuilderImpl 中完成的。
+```
+
+动态创建 `DefaultProject` 子类时会动态定义 `invokeMethod` 方法：
+
+```:no-line-numbers
+1. invokeMethod 方法内部则是调用了 DefaultProject 的 getAsDynamicObject().invokeMethod 方法，即:
+
+    public Object invokeMethod(String name, Object params) { 
+        return getAsDynamicObject().invokeMethod(name, (Object[])params); 
+    }
+
+    参考：org.gradle.api.internal.AsmBackedClassGenerator.ClassBuilderImpl#addDynamicMethods
+
+2. getAsDynamicObject() 方法返回的是一个 org.gradle.api.internal.ExtensibleDynamicObject 类对象
+
+    ExtensibleDynamicObject 的继承结构图如下：
+        DynamicObject
+        --AbstractDynamicObject
+        ----CompositeDynamicObject
+        ------MixInClosurePropertiesAsMethodsDynamicObject
+        --------ExtensibleDynamicObject    
+```
+
+也就是说，调用 `Project` 类的 `invokeMethod` 方法，其实就是在调用 `ExtensibleDynamicObject` 类的 `invokeMethod` 方法：
+
+```:no-line-numbers
+ExtensibleDynamicObject 类提供的 invokeMethod 方法在父类 AbstractDynamicObject 中定义：
+
+    @Override
+    public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
+        DynamicInvokeResult result = tryInvokeMethod(name, arguments);
+        if (result.isFound()) {
+            return result.getValue();
+        }
+        throw methodMissingException(name, arguments);
+    }
+```
+
+也就是说，调用 `ExtensibleDynamicObject` 类的 `invokeMethod` 方法，其实就是在调用 `tryInvokeMethod` 方法，其中：
+
+```:no-line-numbers
+1. tryInvokeMethod 方法在 CompositeDynamicObject 和 MixInClosurePropertiesAsMethodsDynamicObject 中都进行了重写；
+2. 在 CompositeDynamicObject 类重写的 tryInvokeMethod 方法中，会遍历 DynamicObject[] 数组，
+   并调用每个 DynamicObject 类的 tryInvokeMethod 方法：
+
+    @Override
+    public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+        for (DynamicObject object : objects) {
+            DynamicInvokeResult result = object.tryInvokeMethod(name, arguments);
+            if (result.isFound()) {
+                return result;
+            }
+        }
+        return DynamicInvokeResult.notFound();
+    }
+```
+
+也就是说，调用 `ExtensibleDynamicObject` 的 `tryInvokeMethod` 方法，其实就是在调用 `DynamicObject` 的 `tryInvokeMethod` 方法。
+
+```:no-line-numbers
+其中，DynamicObject[] 数组 objects 会在 ExtensibleDynamicObject 类的构造方法中通过调用 updateDelegates() 方法进行设置。
+
+在 ExtensibleDynamicObject.updateDelegates() 方法中，
+会把 convention.getExtensionsAsDynamicObject() 返回的 DynamicObject 子类对象放到 objects 中。
+
+在 ExtensibleDynamicObject 的构造方法中，成员属性 convention = new DefaultConvention(instantiator)，
+也就是说，convention.getExtensionsAsDynamicObject() 返回的 DynamicObject 对象要在 DefaultConvention 类中找。
+
+在 DefaultConvention 类中，有如下代码：
+
+    public class DefaultConvention implements Convention, ExtensionContainerInternal {
+        ...
+        DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
+        ...
+        @Override
+        public DynamicObject getExtensionsAsDynamicObject() {
+           return extensionsDynamicObject;
+        }
+        ...
+        private class ExtensionsDynamicObject extends AbstractDynamicObject {
+            ...
+            @Override
+            public DynamicInvokeResult tryInvokeMethod(String name, Object... args) {
+                if (isConfigureExtensionMethod(name, args)) {
+                    return DynamicInvokeResult.found(configureExtension(name, args));
+                }
+                ...
+            }
+        }
+    } 
+
+也就是说：
+1. DefaultConvention.getExtensionsAsDynamicObject() 返回
+   DynamicObject 的子类 DefaultConvention.ExtensionsDynamicObject 创建的对象；
+2. DefaultConvention.ExtensionsDynamicObject 中重写了 tryInvokeMethod 方法。
+```
+
+也就是说，调用 `DynamicObject` 的 `tryInvokeMethod` 方法，其实就是在调用 `DefaultConvention.ExtensionsDynamicObject` 的 `tryInvokeMethod` 方法。
+
+```:no-line-numbers
+在 DefaultConvention.ExtensionsDynamicObject.tryInvokeMethod 方法中，isConfigureExtensionMethod(name, args) 用于判断：
+1. 名为 name 的方法的参数列表 args 是否只有一个 Closure 类型的闭包参数；
+2. 名为 name 的方法是否已经注册到 DefaultConvention 的成员属性 extensionsStorage 中。
+
+在 DefaultConvention 中有如下代码：
+
+    public class DefaultConvention implements Convention, ExtensionContainerInternal {
+        ...
+        TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
+        ExtensionsStorage extensionsStorage = new ExtensionsStorage();
+        ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
+
+        public DefaultConvention(Instantiator instantiator) {
+            this.instantiator = instantiator;
+            //其中，ExtraPropertiesExtension.EXTENSION_NAME = "ext"
+            //即：add(EXTRA_PROPERTIES_EXTENSION_TYPE, "ext", extraProperties)
+            add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
+        }
+
+        @Override
+        public <T> void add(TypeOf<T> publicType, String name, T extension) {
+            extensionsStorage.add(publicType, name, extension);
+        }
+    }
+
+也就是说，在 DefaultConvention 的构造方法中，就已经把方法 "ext" 注册到 DefaultConvention 的成员属性 extensionsStorage 中了。
+
+注意：
+在注册时，为方法 "ext" 绑定了一个 DefaultExtraPropertiesExtension 对象 extraProperties，
+这个 extraProperties 对象，就是调用 ext(closure) 方法时，传给闭包 closure 的唯一参数。
+```
+
+在 `DefaultConvention.ExtensionsDynamicObject.tryInvokeMethod` 方法中调用的 `configureExtension(name, args)` 方法在 `DefaultConvention` 中的定义如下：
+
+```groovy:no-line-numbers
+private Object configureExtension(String name, Object[] args) {
+    Closure closure = (Closure) args[0];
+    Action<Object> action = ConfigureUtil.configureUsing(closure);
+    return extensionsStorage.configureExtension(name, action);
+}
+```
+
+```:no-line-numbers
+其中：
+1. ConfigureUtil.configureUsing 方法的作用就是将闭包 closure 封装在 Action 中；
+2. ExtensionsStorage.configureExtension(name, action) 方法的作用就是：
+    1. 执行 action.execute 方法（最终会调用闭包 closure）；
+    2. 将注册方法 "ext" 时绑定的 extraProperties 对象作为 ext(closure) 方法中闭包 closure 的唯一参数；
+    3. 创建 ConfigureDelegate 类型的委托对象作为闭包的 owner，并设置闭包的委托策略为 Closure.OWNER_ONLY。
+
+注意：
+ConfigureDelegate 委托对象其实也是一个代理，其内部封装了 _owner 和 _delegate 两个属性，
+对于在 build.gradle 中调用的 ext(closure) 方法：
+1. _owner = DynamicObjectUtil.asDynamicObject(closure.getOwner());
+   因为 ext(closure) 在 build.gradle 中调用，所以 closure.getOwner() 返回 Project 对象，
+   又因为 DefaultProject 实现了 DynamicObjectAware 接口，
+   所以 DynamicObjectUtil.asDynamicObject(closure.getOwner()) 返回的是 DefaultProject.getAsDynamicObject()，
+   也就是说，_owner 就是依赖了 DefaultConvention的ExtensibleDynamicObject 对象；
+
+2. _delegate = DynamicObjectUtil.asDynamicObject(extraProperties);
+   查看源码可知，_delegate 是一个封装了 extraProperties 的 BeanDynamicObject 对象。
+
+ConfigureDelegate 内部的委托流程就是：
+先使用 _delegate 处理闭包 closure 中的属性和方法，_delegate 处理不了的，再使用 _owner 处理。
+
+也就是说，ext(closure) 方法调用时，闭包 closure 中可以直接访问 BeanDynamicObject 和 ExtensibleDynamicObject 中的属性和方法。
+```
+
+**综上得出如下结论：**
+
+```:no-line-numbers
+在 build.gradle 中编写 ext{...} ，就是调用动态生成的 Project 子类中的 invokeMethod 方法来执行未定义的 ext(closure) 方法，其中：
+1. 闭包 closure 接收 DefaultExtraPropertiesExtension 类型的对象作为唯一参数；
+2. 闭包 closure 中可以直接访问 BeanDynamicObject 和 ExtensibleDynamicObject 中的属性和方法。
+```
+
+**注意：**
+
+```:no-line-numbers
+1. 注册到 DefaultConvention.extensionsStorage 中的标识符 "ext" 即是一个方法，也是一个属性：
+    1. 当在 build.gradle 中编写 ext{...} 时，最终调用到 DefaultConvention.ExtensionsDynamicObject.tryInvokeMethod 方法，
+       此时 ext 是一个方法，闭包作为方法参数。
+    2. 当在 build.gradle 中编写 this.ext.extAttrName 时，最终调用到 DefaultConvention.ExtensionsDynamicObject.tryGetProperty，
+       此时 ext 是一个属性，指定注册 "ext" 时绑定的 extraProperties 对象。
+
+    也就是说，在 ext{...} 中扩展的属性，可以在 ext{...} 之外通过 this.ext 访问到。
+    当然，为 Project 扩展的属性也可以在 build.gradle 中直接访问到。
+
+2. 另外还需要注意，通过 ext{...} 为 Project 扩展的属性是可以被子 Project 继承的。
+```
+
+#### 2.4.3 为 `Project` 扩展新的属性
+
+在 `build.gradle` 中可以调用 `ext(closure)` 方法为 `Project` 扩展属性。语法如下：
+
+```groovy:no-line-numbers
+ext {
+    extAttrName1 = extAttrValue1
+    extAttrName2 = extAttrValue2
+    ...
+    extAttrName3 = extAttrValue3
+}
+```
+
+在当前 `Project` 中可以通过如下方式访问到扩展属性：
+
+```groovy:no-line-numbers
+// 方式 1
+this.ext.extAttrName
+
+// 方式 2
+this.extAttrName
+```
+
+在子 `Project` 中可以通过如下方式访问到父 `Project` 的扩展属性：
+
+```groovy:no-line-numbers
+this.extAttrName // this 表示子 Project
+```
+
+**注意：**
+
+```:no-line-numbers
+1. 根 Project 中扩展的属性会被子 Project 继承，是作为子 Project 的属性，但不会作为子 Project 的扩展属性；
+
+2. 为了避免当 Project 中存在于扩展属性同名的属性时所产生的冲突，建议使用扩展属性时按照定义时的 "路径" 来访问，
+   如，在根 Project 中定义的扩展属性，在子 Project 中建议这样访问：rootProject.ext.extAttrName
+
+3. 因为 Project 类提供了 getRootProject, 即提供了 rootProject 的 getter 方法，
+   所以执行 this.rootProject 就相当于调用 this.getRootProject() 方法。
+```
+
+**示例代码：**
+
+![](./images/_05_project/10.png)
+
+#### 2.4.4 扩展属性的实际案例：引入外部文件 ext.gradle 中的扩展属性
+
+**案例步骤：**
+
+```:no-line-numbers
+step1. 在单独的外部文件 ext.gradle 中定义扩展属性；
+
+step2. 在根 Project 的 build.gradle 中，通过 Project.apply(Map<String, ?> options) 方法导入外部文件 ext.gradle；
+
+    注意：
+    "from" 类型的导入方式，相当于 C/C++ 中的 #include，
+    也就是说，导入 ext.gradle 后，其中的 ext{...} 就相当于在根 Project 的 build.gradle 中定义了。
+
+step3. 在子 Project 中，为了避免同名冲突，建议通过 rootProject.ext.extAttrName 的方式来访问根 Project 中定义的扩展属性。
+```
+
+**示例代码：**
+
+![](./images/_05_project/11.png)
+
+#### 2.4.5 在 `gradle.properties` 文件中定义扩展属性
+
+在根 `Project` 下的 `gradle.properties` 文件只能定义简单的键值对属性。
+
+并且在 `gradle.properties` 中定义的属性名建议不要跟 `build.gradle` 中的属性名同名，否则可能报错。
+
+在 `gradle.properties` 中定义的键值对扩展属性，使用时属性值默认都是 `String` 类型，需要调用 `toXXX()` 转换一下。
+
+**示例代码：**
+
+![](./images/_05_project/12.png)
+
+#### 2.4.6 分析 `setting.gradle` 文件的内部实现
+
+如上代码所示：
+
+```:no-line-numbers
+1. settings.gradle 编译生成的字节码文件，是一个 SettingsScript 的子类文件；
+
+2. SettingsScript 类是一个脚本类，其中的 getScriptTarget() 返回一个目标对象 target，
+   这个目标对象 target 为 settings.gradle 文件中提供了可以使用的 API；
+
+3. 为 settings.gradle 文件中提供可以使用的 API 的目标对象 target 就是一个动态创建的 DefaultSettings 的子类。
+   也就是说，setting.gradle 文件中可以使用 DefaultSettings 提供的API；
+
+4. 查看源码，大概判断是使用 AsmBackedClassGenerator 来动态创建 DefaultSettings 的子类的。
+   这与动态创建 DefaultProject 的子类所使用的生成器一样。在 AsmBackedClassGenerator 中，
+   可以看到创建 DefaultSettings 子类时所动态生成的一些 API，这些动态生成的 API 也可以在该 settings.gradle 中使用。
+
+参考：
+org.gradle.initialization.SettingsScript
+org.gradle.initialization.DefaultSettings // implements Settings
+org.gradle.api.initialization.Settings
+org.gradle.initialization.SettingsFactory
+org.gradle.internal.service.scopes.BuildScopeServices
+org.gradle.api.internal.ClassGeneratorBackedInstantiator
+org.gradle.api.internal.AsmBackedClassGenerator
+```
+
+### 2.5 文件（`file`）相关的 `API`
+
+主要是用来处理 `Project` 下的一些文件
+
+### 2.6 其他 `API`
+
+为 `Project` 添加依赖，添加配置，如何引入外部文件。
