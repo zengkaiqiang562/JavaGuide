@@ -545,7 +545,191 @@ org.gradle.api.internal.AsmBackedClassGenerator
 
 ### 2.5 文件（`file`）相关的 `API`
 
-主要是用来处理 `Project` 下的一些文件
+主要是用来处理 `Project` 下的一些文件。
+
+#### 2.5.1 `Project` 类提供的获取路径相关的 `API`
+
+##### 2.5.1.1 获取表示根 `Project` 文件夹：`getRootDir()`
+
+```groovy:no-line-numbers
+File getRootDir()
+```
+
+```:no-line-numbers
+返回表示根 Project 文件夹的 File 对象。
+```
+
+##### 2.5.1.2 获取表示当前 `Project` 的 `build` 文件夹：`getBuildDir()`
+
+```groovy:no-line-numbers
+File getBuildDir()
+```
+
+```:no-line-numbers
+返回表示当前 build.gradle 所对应的 Project 的 build 文件夹的 File 对象。
+```
+
+##### 2.5.1.3 获取表示当前 `Project` 的文件夹：`getProjectDir()`
+
+```groovy:no-line-numbers
+File getProjectDir()
+```
+
+```:no-line-numbers
+返回表示当前 build.gradle 所对应的 Project 文件夹的 File 对象。
+```
+
+##### 2.5.1.3 示例代码
+
+![](./images/_05_project/13.png)
+
+#### 2.5.2 `Project` 类提供的文件操作相关的 `API`
+
+##### 2.5.2.1 获取相对于当前 `Project` 的某个 `path` 路径：`file(path)`
+
+```groovy:no-line-numbers
+File file(Object path)
+```
+
+```:no-line-numbers
+返回相对于当前 Project 的 path 路径所表示的 File 对象。
+```
+
+##### 2.5.2.2 获取相对于当前 `Project` 的某些 `path` 路径：`files(paths)`
+
+```groovy:no-line-numbers
+ConfigurableFileCollection files(Object... paths)
+```
+
+```:no-line-numbers
+1. 返回 paths 数组指定的多个 File 对象的集合；
+2. ConfigurableFileCollection 继承自 FileCollection；
+3. 可以通过 FileCollection.getFiles() 可以返回 File 对象构成的 Set 集合。
+```
+
+##### 2.5.2.3 示例代码
+
+![](./images/_05_project/14.png)
+
+##### 2.5.2.4 文件拷贝：`copy(closure)`
+
+```groovy:no-line-numbers
+WorkResult copy(Closure closure)
+```
+
+```:no-line-numbers
+作用：
+1. 在实参闭包 closure 中，通过调用 CopySpec 提供的 API 完成文件的拷贝操作。
+
+注意：
+1. 调用 copy(closure) 方法时，实参闭包传入的参数是 CopySpec 的子类对象
+2. 实参闭包的委托策略机制是 OWNER_ONLY
+3. 实参闭包的 owner 是 ConfigureDelegate 类对象
+4. ConfigureDelegate 中的 _delegate 是封装了 CopySpec 的 BeanDynamicObject 对象。
+    由此可知，实参闭包中可以访问到 CopySpec 提供的 API
+5. 在 copy 方法的实参闭包中，可以调用 CopySpec 提供的如下API进行文件拷贝：
+    1. CopySpec from(Object... sourcePaths); 
+        指定拷贝的源文件。
+        参数可以是源文件的路径字符串，也可以是源文件的 File 对象，
+        源文件以路径字符串表示时，可以是绝对路径，也可以是相对于当前 Project 的路径。
+    2. CopySpec into(Object destPath); 
+        指定拷贝输出的目标文件夹。
+        参数可以是目标文件的路径字符串，也可以是目标文件夹的 File 对象，
+        目标文件以路径字符串表示时，可以是绝对路径，也可以是相对于当前 Project 的路径。
+    3. CopySpec exclude(Closure excludeSpec); 
+        排除不想拷贝的文件。
+    4. CopySpec rename(Closure closure); 
+        对拷贝后的文件进行重命名。
+        闭包传入拷贝的文件名，闭包的返回值就是重命名的文件名。
+6. 在调用方法时，如果只有一个参数，那么可以省略括号 "()"
+```
+
+##### 2.5.2.5 示例代码
+
+![](./images/_05_project/15.png)
+
+#### 2.5.3 `Project` 类提供的文件树的操作
+
+##### 2.5.3.1 什么是文件树
+
+`Gradle` 中，可以将根 `Project` 文件夹下的所有文件（包括根 `Project` 文件夹）看成是一棵文件树（相当于树结构）。
+
+其中根 `Project` 文件夹作为根节点。并且，根 `Project` 文件夹下的每个文件夹也都可以作为一棵文件树。
+
+`Gradle` 中用 `ConfigurableFileTree` 表示一棵文件树。
+
+##### 2.5.3.2 文件树 `ConfigurableFileTree` 提供的常用 `API`
+
+###### 2.5.3.2.1 设置文件树的根节点：`setDir(dir)`
+
+```groovy:no-line-numbers
+ConfigurableFileTree setDir(Object dir)
+```
+
+```:no-line-numbers
+设置作为文件树的根节点的文件夹路径。可以是相对于当前 Project 的相对路径。
+```
+
+###### 2.5.3.2.2 设置文件树中需要排除的文件：`setExcludes(excludes)`
+
+```groovy:no-line-numbers
+PatternFilterable setExcludes(Iterable<String> excludes)
+```
+
+```:no-line-numbers
+设置文件树中需要排除的文件，参数表示排除文件的集合。
+```
+
+###### 2.5.3.2.3 设置文件树中需要导入的文件：`setIncludes(includes)`
+
+```groovy:no-line-numbers
+PatternFilterable setIncludes(Iterable<String> includes)
+```
+
+```:no-line-numbers
+设置文件树中需要导入的文件，参数表示导入文件的集合。
+```
+
+###### 2.5.3.2.4 遍历文件树：`visit(closure)`
+
+```groovy:no-line-numbers
+FileTree visit(Closure visitor)
+```
+
+```:no-line-numbers
+遍历文件树。
+实参闭包传入封装了当前遍历到的文件对象的 FileTreeElement 子类对象，
+FileTreeElement 提供了 getFile() 方法来获取当前遍历到的 File 对象。
+```
+
+##### 2.5.3.3 构建文件树：`fileTree`
+
+`Project` 类提供如下方法构建一棵文件树：
+
+**方法一**
+
+```groovy:no-line-numbers
+ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure)
+```
+
+```:no-line-numbers
+baseDir: 设置作为文件树的根节点的文件夹路径，可以是相对于当前 Project 的相对路径；
+configureClosure: 对文件树进行配置，闭包中可以访问 ConfigurableFileTree 提供的 API。
+```
+
+**方法二**
+
+```groovy:no-line-numbers
+ConfigurableFileTree fileTree(Map<String, ?> args)
+```
+
+```:no-line-numbers
+args: 用于配置文件树的键值对属性 Map，其中 ConfigurableFileTree 提供的 setXxx 方法的参数作为属性值，xxx 作为属性名。
+```
+
+##### 2.5.3.4 示例代码
+
+![](./images/_05_project/16.png)
 
 ### 2.6 其他 `API`
 
