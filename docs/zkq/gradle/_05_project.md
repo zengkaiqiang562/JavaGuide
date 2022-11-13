@@ -731,6 +731,343 @@ args: 用于配置文件树的键值对属性 Map，其中 ConfigurableFileTree 
 
 ![](./images/_05_project/16.png)
 
-### 2.6 其他 `API`
+### 2.6 依赖相关的 `API`
 
-为 `Project` 添加依赖，添加配置，如何引入外部文件。
+项目中的依赖配置主要可分为 3 大类：
+
+1. 配置依赖仓库；
+
+2. 配置 `Gradle` 构建工程时依赖的 `Gradle` 插件；
+
+3. 配置应用程序编译时依赖的第三方库。
+
+#### 2.6.1 配置依赖仓库
+
+仓库就是用来存放 `Gradle` 插件和第三方库的。所以，不仅要为 `Gradle` 插件配置依赖仓库；还要为第三方库配置依赖仓库。
+
+##### 2.6.1.1 配置 `Gradle` 插件的依赖仓库
+
+**Step 1.**
+
+```:no-line-numbers
+调用 Project.buildscript(closure)
+```
+
+> 注意：一般会在根 `Project` 的 `build.gradle` 中调用该方法。
+
+**Step 2.**
+
+```:no-line-numbers
+在 Project.buildscript(closure) 的实参闭包中，调用 ScriptHandler.repositories(closure)
+```
+
+**Step 3.**
+
+```:no-line-numbers
+在 ScriptHandler.repositories(closure) 的实参闭包中，调用 RepositoryHandler 提供的 API 配置 Gradle 插件的依赖仓库
+```
+
+##### 2.6.1.2 配置第三方库的依赖仓库
+
+**Step 1.**
+
+```:no-line-numbers
+调用 Project.buildscript(closure)
+```
+
+> 注意：一般会在根 `Project` 中调用 `allprojects(closure)`，遍历每个 `Project`，并调用该方法。
+
+**Step 2.**
+
+```:no-line-numbers
+在 Project.repositories(closure) 的实参闭包中，调用 RepositoryHandler 提供的 API 配置第三方库的依赖仓库
+```
+
+##### 2.6.1.3 `RepositoryHandler` 类提供的配置依赖仓库的 `API`
+
+###### 2.6.1.3.1 配置本地仓库：`flatDir(closure)`
+
+```groovy:no-line-numbers
+FlatDirectoryArtifactRepository flatDir(Closure configureClosure)
+```
+
+```:no-line-numbers
+参数闭包 configureClosure 中可以使用 FlatDirectoryArtifactRepository 提供的 API 
+```
+
+**示例代码：**
+
+```groovy:no-line-numbers
+flatDir {
+    dirs 'libs'  // 将当前 Project 下的 libs 文件夹作为本地仓库
+}
+```
+
+###### 2.6.1.3.2 配置 `maven` 仓库：`maven(closure)`
+
+```groovy:no-line-numbers
+MavenArtifactRepository maven(Closure closure)
+```
+
+```:no-line-numbers
+参数闭包 closure 中可以使用 MavenArtifactRepository 及其父类提供的 API：
+
+1. 设置 maven 仓库的 url 地址：
+    void setUrl(Object url) // MavenArtifactRepository 类提供
+
+2. 为当前配置的 maven 仓库起别名：
+    void setName(String name) // ArtifactRepository 类提供
+
+3. 设置私有 maven 仓库的认证信息：
+    void credentials(Action<? super PasswordCredentials> action) // AuthenticationSupported 类提供
+
+    调用 credentials(closure) 就相当于调用 credentials(action)
+    闭包 closure 中可以使用 PasswordCredentials 提供的 API
+    闭包 closure 中主要调用 setUsername 和 setPassword 方法设置私有 maven 仓库的认证信息（即用户名和密码）
+```
+
+**示例代码：**
+
+```groovy:no-line-numbers
+maven {
+    url 'http://mvn.cloud.alipay.com/nexus/content/repositories/releases/'
+    name 'alipay' // 为此 maven 仓库起别名，可省略
+    credentials { // 如果该 maven 仓库需要登录才能访问，需要配置用户名和密码
+        username 'mvn_read_ws'
+        password 'mrk8929'
+    }
+}
+```
+
+###### 2.6.1.3.3 配置 `mavenCentral ` 仓库：`mavenCentral()`
+
+```groovy:no-line-numbers
+MavenArtifactRepository mavenCentral()
+```
+
+相当于：
+
+```groovy:no-line-numbers
+maven {
+    url 'https://repo.maven.apache.org/maven2/'
+    name 'MavenRepo'
+}
+```
+
+###### 2.6.1.3.4 配置本地maven仓库 ：`mavenLocal()`
+
+```groovy:no-line-numbers
+MavenArtifactRepository mavenLocal()
+```
+
+###### 2.6.1.3.5 配置 jcenter仓库：`jcenter()`
+
+```groovy:no-line-numbers
+MavenArtifactRepository jcenter()
+```
+
+##### 2.6.1.4 示例代码
+
+![](./images/_05_project/17.png)
+
+#### 2.6.2 配置依赖的 `Gradle` 插件
+
+`Gradle` 本身可以理解为一个编程框架，在使用 `Gradle` 编写脚本代码时也可以使用一些第三方库，而 `Gradle` 插件可以理解为编写 Gradle 脚本代码时所需要依赖的第三方库。
+
+配置 `Gradle` 插件的步骤：
+
+**Step 1.**
+
+```:no-line-numbers
+调用 Project.buildscript(closure)
+```
+
+```:no-line-numbers
+注意：一般会在根 Project 的 build.gradle 中调用该方法。
+```
+
+**Step 2.**
+
+```:no-line-numbers
+在 Project.buildscript(closure) 的实参闭包中，调用 ScriptHandler.dependencies(closure)
+```
+
+**Step 3.**
+
+```:no-line-numbers
+在 ScriptHandler.dependencies(closure) 的实参闭包中，调用 DependencyHandler 提供的 API 配置 Gradle 插件
+```
+
+`ScriptHandler.dependencies(closure)` 中的依赖配置举例：
+
+```groovy:no-line-numbers
+classpath 'com.android.tools.build:gradle:3.4.2'
+```
+
+```:no-line-numbers
+其中：
+1. classpath 作为 configurationName；'com.android.tools.build:gradle:3.4.2' 作为 dependencyNotation
+
+2. 'com.android.tools.build:gradle:3.4.2' 表示的 Android Gradle 插件中，
+    集成了插件 'com.android.application' 和插件 'com.android.library'。
+```
+
+#### 2.6.3 配置依赖的第三方库
+
+**Step 1.**
+
+```:no-line-numbers
+调用 Project.dependencies(closure)
+```
+
+```:no-line-numbers
+注意：一般会在每个子 Project 的 build.gradle 中分别调用该方法，为每个子 Project 单独配置依赖的第三方库。
+```
+
+**Step 2.**
+
+```:no-line-numbers
+在 Project.dependencies(closure) 的实参闭包中，调用 DependencyHandler 提供的 API 配置第三方库
+```
+
+**`Project.dependencies(closure)` 中的依赖配置举例如下：**
+
+##### 2.6.3.1 导入依赖仓库中的第三方库
+
+```groovy:no-line-numbers
+implementation 'group:name:version'
+```
+
+```:no-line-numbers
+group=groupId, name=artifactId, version=versionId
+```
+
+##### 2.6.3.2 导入 1 个或多个本地 `jar` 文件
+
+```groovy:no-line-numbers
+implementation files('jarFilePath1', 'jarFilePath2', ...)
+```
+
+```:no-line-numbers
+路径是相对于当前 Project 的相对路径，如：
+implementation files('libs/name1.jar') // 导入当前 Project 下的 libs 文件夹中的 name1.jar 文件
+implementation files('libs/name1.jar', 'libs/name2.jar')
+```
+
+##### 2.6.3.3 导入当前 `Project` 下的以 `libs` 为根节点的文件树
+
+```groovy:no-line-numbers
+// 导入当前 Project 下的以 libs 为根节点的文件树
+implementation fileTree('libs')
+```
+
+```groovy:no-line-numbers
+//  导入当 前Project 下的以 libs 为根节点的文件树中以 .jar 为后缀名的所有文件
+implementation fileTree(dir: 'libs', includes: ['*.jar'])
+```
+
+```groovy:no-line-numbers
+// 导入当前 Project 下的以 libs 为根节点的文件树中不以 .jar 为后缀名的所有文件
+implementation fileTree(dir: 'libs', excludes: ['*.jar'])
+```
+
+##### 2.6.3.4 排除 `'group:name:version'` 内部的依赖
+
+```groovy:no-line-numbers
+// 排除 'group:name:version' 内部的某个依赖
+implementation ('group:name:version') {
+    exclude group: 'innerGroup', module: 'innerName'
+}
+```
+
+```groovy:no-line-numbers
+implementation ('group:name:version') {
+    // 排除 'group:name:version' 内部的所有依赖
+    // 即当前 Project 仅直接依赖 'group:name:version'，不会间接依赖其内部依赖
+    transitive = false
+}
+```
+
+##### 2.6.3.5 依赖本地的子 `Project`
+
+```groovy:no-line-numbers
+implementation project(':name') // 依赖本地的子 Project
+```
+
+##### 2.6.3.6 导入当前 `Project` 的 `libs` 文件夹下的 `aar` 库文件
+
+```groovy:no-line-numbers
+implementation(name: 'fileName', ext: 'aar')
+```
+
+```:no-line-numbers
+注意：必须在 Project.repositories(closure) 的闭包中指定当前 Project 的 libs 文件夹为依赖仓库
+
+Project.repositories {
+    ...
+    flatDir {
+        dirs 'libs'
+    }
+    ...
+}
+```
+
+##### 2.6.3.7 占位编译配置 `provided`
+
+可以使用 `provided` 代替 `compile` 或 `implementation` 导入依赖。此时，`provided` 导入的依赖库只在编译时期起作用，不会将依赖库添加到 `apk` 或 `aar` 或 `jar` 等构建产品中。
+
+使用 `provided` 的使用场景：
+
+1. 对于只在编译时期起作用的依赖库，使用 `provided` 导入，避免添加到 `apk` 中，减小 `apk` 体积。
+
+    > 举例：如果依赖库只是用于在编译时期动态生成类文件，那么可以使用 `provided` 导入这类依赖库。
+
+2. 当 `app` 模块使用的依赖库，在其他本地依赖模块中也使用到时，其他本地依赖模块中可以使用 `provided` 导入依赖库，
+
+    > 即打包时，只把 `app` 模块中的依赖库添加到 `apk` 中即可。
+
+**注意：** 能使用 `provided` 占位编译导入的依赖库，就尽量使用 `provided` 导入，这样可以减小 `apk` 体积。
+
+##### 2.6.3.8 示例代码 
+
+![](./images/_05_project/18.png)
+
+### 2.7 外部命令执行相关的 `API`
+
+`Project` 类提供的执行外部命令的 `API` 如下：
+
+```groovy:no-line-numbers
+ExecResult exec(Closure closure)
+```
+
+```:no-line-numbers
+实参闭包中可以调用 org.gradle.process.ExecSpec 提供的 API 来配置外部命令
+```
+
+**示例代码：**
+
+```:no-line-numbers
+知识点：
+
+1. 在 Project 中创建一个 Task 任务
+
+    Task task(String taskName, Closure configureClosure)
+
+    Project 类提供了如上的 task 方法，创建一个名为 taskName 的 Task 任务；
+    实参闭包中可以调用 org.gradle.api.Task 提供的 API，对 Task 任务进行配置。
+
+2. Task 类提供的用于配置 Task 任务的 API
+
+    Task doLast(Closure action)
+
+    实参闭包中的代码在 Gradle 执行阶段才会执行
+
+3. 对于可变字符串（双引号字符串），其中的 ${变量} 可简写为 $变量
+
+4. 可以在根目录下执行 gradlew taskName 命令来执行一个 Task 任务
+
+5. Windows 和 Linux 下的外部命令是不同的
+```
+
+![](./images/_05_project/19.png)
+
