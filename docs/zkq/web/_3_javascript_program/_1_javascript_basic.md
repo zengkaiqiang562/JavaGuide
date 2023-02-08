@@ -738,10 +738,1421 @@ alert(10 + num++); // 20
   
 - 开发时，大多使用后置递增/减，并且代码独占一行，例如：`num++;` 或者 `num--;`
 
-### 5.3 比较运算符
+### 5.3 比较运算符（关系运算符）
+
+概念：比较运算符（关系运算符）是两个数据进行比较时所使用的运算符，比较运算后，会返回一个布尔值（`true`/`false`）作为比较运算的结果。
+
+|**运算符名称**|**说明**|**案例**|**结果**|
+|:-|:-|:-|:-|
+|`<`|小于号|`1 < 2`|`true`|
+|`>`|大于号|`1 > 2`|`false`|
+|`>=`|大于等于号|`2 >= 2`|`true`|
+|`<=`|小于等于号|`3 <= `|`false`|
+|`==`|判等号（会转型）|`37 == 37`|`true`|
+|`!=`|不等号|`37 != 37`|`false`|
+|`===` 和 `!==`|全等和不全等（全等要求值和数据类型都一致）|`37 === '37'`|`false`|
+
+#### 5.3.1 `=`、`==`、`===` 小结
+
+|**符号**|**作用**|**用法**|
+|:-|:-|:-|
+|`=`|赋值|把右边给左边|
+|`==`|判断|判断两边的值是否相等（注意此时有隐式转换）|
+|`===`|全等|判断两边的值和数据类型是否完全相同|
+
+```js:no-line-numbers
+console.log(18 == '18');  // true
+console.log(18 === '18'); // false
+```
 
 ### 5.4 逻辑运算符
 
+概念：逻辑运算符是用来进行布尔值运算的运算符，其返回值也是布尔值。后面开发中经常用于多个条件的判断。
+
+|**逻辑运算符**|**说明**|**案例**|
+|:-|:-|:-|
+|`&&`|逻辑与，简称：与，`and`|`true && false`|
+|`\|\|`|逻辑或，简称：或，`or`|`true \|\| false`|
+|`\|`|逻辑非，简称：非，`not`|`!true`|
+
+#### 5.4.1 逻辑与：`&&`
+
+两边都是 `true` 才返回 `true`，否则返回 `false`。
+
+![](./images/_1_javascript_basic/05.png)
+
+#### 5.4.2 逻辑或：`||`
+
+两边都为 `false` 才返回 `false`，否则都为 `true`。
+
+![](./images/_1_javascript_basic/06.png)
+
+#### 5.4.3 逻辑非：`|`
+
+逻辑非（`!`）也叫作取反符，用来取一个布尔值相反的值，如 `true` 的相反值是 `false`。
+
+```js:no-line-numbers
+var isOk = !true;
+console.log(isOk); // false
+```
+
+#### 5.4.4 短路运算（逻辑中断）
+
+短路运算的原理：当有多个表达式（值）时，左边的表达式值可以确定结果时，就不再继续运算右边的表达式的值。
+
+**逻辑与**
+
+```:no-line-numbers
+语法：表达式1 && 表达式2
+
+- 如果第一个表达式的值为真，则返回表达式2 
+- 如果第一个表达式的值为假，则返回表达式1
+```
+
+```js:no-line-numbers
+console.log(123 && 456); // 456
+console.log(0 && 456); // 0
+console.log(123 && 456 && 789); // 789
+```
+
+**逻辑或**
+
+```:no-line-numbers
+语法：表达式1 || 表达式2
+
+- 如果第一个表达式的值为真，则返回表达式1
+- 如果第一个表达式的值为假，则返回表达式2
+```
+
+```js:no-line-numbers
+console.log(123 || 456); // 123
+console.log(0 || 456); // 456
+console.log(123 || 456 || 789); // 123
+```
+
 ### 5.5 赋值运算符
 
+概念：用来把数据赋值给变量的运算符。
+
+|**赋值运算符**|**说明**|**案例**|
+|:-|:-|:-|
+|`=`|直接赋值|`var usrName = '我是值';`|
+|`+=`、`-=`|加、减一个数后再赋值|`var age = 10; age += 5; // 5`|
+|`*=`、`/=`、`%=`|乘、除、取模后再赋值|`var age = 2; age *= 5; //10`|
+
+```js:no-line-numbers
+var age = 10;
+age += 5; // 相当于 age = age + 5;
+age -= 5; // 相当于 age = age - 5;
+age *= 10; // 相当于 age = age * 10;
+```
+
 ### 5.6 运算符优先级
+
+|**优先级**|**运算符**|**顺序**|
+|:-|:-|:-|
+|`1`|小括号|`()`|
+|`2`|一元运算符|`++`、`--`、`!`|
+|`3`|算术运算符|先 `*`、`/`、`%` 后 `+`、`-`|
+|`4`|关系运算符|`>`、`>=`、`<`、`<=`|
+|`5`|相等运算符|`==`、`!=`、`===`、`!==`|
+|`6`|逻辑运算符|先 `&&` 后 `\|\|`|
+|`7`|赋值运算符|`=`|
+|`8`|逗号运算符|`,`|
+
+> 一元运算符里面的逻辑非优先级很高；
+> 
+> 逻辑与比逻辑或优先级高。
+
+
+## 6. `JavaScript` 流程控制结构
+
+流程控制就是来控制我们的代码按照什么结构顺序来执行。
+
+流程控制主要有三种结构，分别是 **顺序结构**、**分支结构** 和 **循环结构**，这三种结构代表三种代码执行的顺序。
+
+![](./images/_1_javascript_basic/07.png)
+
+### 6.1 顺序结构
+
+顺序结构是程序中最简单、最基本的流程控制，它没有特定的语法结构，程序会按照代码的先后顺序，依次执行，程序中大多数的代码都是这样执行的。
+
+### 6.2 分支结构
+
+由上到下执行代码的过程中，根据不同的条件，执行不同的路径代码（执行代码多选一的过程），从而得到不同的结果。
+
+`JS` 语言提供了两种分支结构语句：
+
+- `if` 语句
+
+- `switch` 语句
+
+#### 6.2.1 `if` 语句
+
+**`if` 语句**
+
+![](./images/_1_javascript_basic/08.png)
+
+```js:no-line-numbers
+// 条件成立执行代码，否则什么也不做
+if (条件表达式) {
+    // 条件成立执行的代码语句
+}
+```
+
+```js:no-line-numbers
+var usrAge = prompt('请输入您的年龄：');
+if (usrAge >= 18) {
+    alert('您的年龄合法，欢迎来天际网吧享受学习的乐趣！');
+}
+```
+
+**`if-else` 语句（双分支语句）**
+
+![](./images/_1_javascript_basic/09.png)
+
+```js:no-line-numbers
+// 条件成立 执行 if 里面代码，否则执行else 里面的代码
+if (条件表达式) {
+    // [如果] 条件成立执行的代码
+} else {
+    // [否则] 执行的代码
+}
+```
+
+```js:no-line-numbers
+if (year % 4 == 0 && year % 100 != 0 || year % 400 == 0) {
+    alert("这个年份是闰年");
+} else { // 剩下的是平年
+    alert("这个年份是平年");
+}
+```
+
+**`if-else if` 语句（多分支语句）**
+
+![](./images/_1_javascript_basic/10.png)
+
+```js:no-line-numbers
+// 适合于检查多重条件。
+if (条件表达式1) {
+    语句1；
+} else if (条件表达式2) {
+    语句2；
+} else if (条件表达式3) {
+    语句3；
+....
+} else {
+    // 上述条件都不成立执行此处代码
+}
+```
+
+```js:no-line-numbers
+var score = prompt('请您输入分数:');
+if (score >= 90) {
+    alert('宝贝，你是我的骄傲');
+} else if (score >= 80) {
+    alert('宝贝，你已经很出色了');
+} else if (score >= 70) {
+    alert('你要继续加油喽');
+} else if (score >= 60) {
+    alert('孩子，你很危险');
+} else {
+    alert('熊孩子，我不想和你说话，我只想用鞭子和你说话');
+}
+```
+
+#### 6.2.2 三元表达式
+
+三元表达式也能做一些简单的条件选择。由三元运算符组成的式子称为三元表达式。
+
+**语法**
+
+```:no-line-numbers
+表达式1 ? 表达式2 : 表达式3;
+```
+
+```:no-line-numbers
+如果表达式1为 true ，则返回表达式2的值，
+如果表达式1为 false，则返回表达式3的值 
+
+简单理解：就类似于 if-else（双分支）的简写。
+```
+
+```js:no-line-numbers
+var time = prompt('请您输入一个 0 ~ 59 之间的一个数字');
+// 三元表达式 表达式 ？ 表达式1 ：表达式2 
+var result = time < 10 ? '0' + time : time; // 把返回值赋值给一个变量
+alert(result);
+```
+
+#### 6.2.3 `switch` 语句
+
+`switch` 语句也是多分支语句，它用于基于不同的条件来执行不同的代码。当要针对变量设置一系列的特定值的选项时，就可以使用 `switch`。
+
+```js:no-line-numbers
+switch( 表达式 ){ 
+    case value1:
+        // 表达式 等于 value1 时要执行的代码
+        break;
+    case value2:
+        // 表达式 等于 value2 时要执行的代码
+        break;
+    default:
+        // 表达式 不等于任何一个 value 时要执行的代码
+}
+```
+
+```:no-line-numbers
+- switch：开关 转换，case：小例子、选项；
+- 关键字 switch 后面括号内可以是表达式或值，通常是一个变量；
+- 关键字 case，后跟一个选项的表达式或值，后面跟一个冒号；
+- switch 表达式的值会与结构中的 case 的值做比较；
+- 如果存在匹配全等（===） ，则与该 case 关联的代码块会被执行，并在遇到 break 时停止，整个 switch 语句代码执行结束；
+- 如果所有的 case 的值都和表达式的值不匹配，则执行 default 里的代码。
+```
+
+> 注意：执行 `case` 里面的语句时，如果没有 `break`，则继续执行下一个 `case` 里面的语句。
+
+```js:no-line-numbers
+var fruit = prompt('请您输入查询的水果:');
+switch (fruit) {
+    case '苹果':
+        lert('苹果的价格是 3.5/斤');
+        reak;
+    case '榴莲':
+        alert('榴莲的价格是 35/斤');
+        break;
+    default:
+        alert('没有此水果');
+}
+```
+
+#### 6.2.4 `switch` 语句和 `if-else if` 语句的区别
+
+```:no-line-numbers
+- 一般情况下，它们两个语句可以相互替换；
+- switch...case 语句通常处理 case 为比较确定值的情况， 而 if…else… 语句更加灵活，常用于范围判断（大于、等于某个范围）；
+- switch 语句进行条件判断后直接执行到程序的条件语句，效率更高。而 if…else 语句有几种条件，就得判断多少次；
+- 当分支比较少时，if… else 语句的执行效率比 switch 语句高；
+- 当分支比较多时，switch 语句的执行效率比较高，而且结构更清晰。
+```
+
+### 6.3 循环结构
+
+在实际问题中，有许多具有规律性的重复操作，因此在程序中要完成这类操作就需要重复执行某些语句。
+
+在程序中，一组被重复执行的语句被称之为 **循环体**，能否继续重复执行，取决于循环的 **终止条件**。由循环体
+及循环的终止条件组成的语句，被称之为 **循环语句**。
+
+在 `JS` 中，主要有三种类型的循环语句：
+
+- `for` 循环
+  
+- `while` 循环
+  
+- `do...while` 循环
+
+#### 6.3.1 `for` 循环
+
+`for` 循环主要用于把某些代码循环若干次，通常跟计数有关系。
+
+**语法结构：**
+
+```:no-line-numbers
+for(初始化变量; 条件表达式; 操作表达式 ){
+    //循环体
+}
+```
+
+> **初始化变量：** 通常被用于初始化一个计数器，该表达式可以使用 `var` 关键字声明新的变量，这个变量帮我们来记录次数。
+> 
+> **条件表达式：** 用于确定每一次循环是否能被执行。如果结果是 `true` 就继续循环，否则退出循环。
+> 
+> **操作表达式：** 每次循环的最后都要执行的表达式。通常被用于更新或者递增计数器变量。当然，递减变量也是可以的。
+
+**执行过程：**
+
+```:no-line-numbers
+1. 初始化变量，初始化操作在整个 for 循环只会执行一次。
+2. 执行条件表达式，如果为 true，则执行循环体语句，否则退出循环，循环结束。
+3. 执行操作表达式，此时第一轮结束。
+4. 第二轮开始，直接去执行条件表达式（不再初始化变量），如果为 true ，则去执行循环体语句，否则退出循环。
+5. 继续执行操作表达式，第二轮结束。
+6. 后续跟第二轮一致，直至条件表达式为假，结束整个 for 循环。
+```
+
+**示例1：**
+
+```js:no-line-numbers
+for (var i = 1; i <= 100; i++) {
+    console.log('这个人今年' + i + '岁了');
+}
+```
+
+**示例2：**
+
+```js:no-line-numbers
+// for 里面是可以添加其他语句的
+for (var i = 1; i <= 100; i++) {
+    if (i == 1) {
+        console.log('这个人今年1岁了， 它出生了');
+    } else if (i == 100) {
+        console.log('这个人今年100岁了，它死了');
+    } else {
+        console.log('这个人今年' + i + '岁了');
+    } 
+}
+```
+
+**示例3：求 1-100 之间所有整数的累加和**
+
+```js:no-line-numbers
+var sum = 0;
+for (var i = 1;i <= 100; i++) {
+    sumNum += i;
+}
+console.log('1-100之间整数的和 = ' + sum);
+```
+
+**示例4：求学生成绩**
+
+```js:no-line-numbers
+var num = prompt('请输入班级总的人数:'); // num 班级总的人数
+var sum = 0; // 总成绩
+var average = 0; // 平均成绩
+for (var i = 1; i <= num; i++) {
+    var score = prompt('请输入第' + i + '个学生的成绩');
+    sum = sum + parseFloat(score); 
+}
+average = sum / num;
+alert('班级总的成绩是：' + sum);
+alert('班级总的平均成绩是：' + average);
+```
+
+**示例5：一行打印五个星星**
+
+```js:no-line-numbers
+var star = '';
+for (var i = 1; i <= 5; i++) {
+    star += '☆' 
+}
+console.log(star);
+```
+
+#### 6.3.2 双重 `for` 循环
+
+很多情况下，单层 `for` 循环并不能满足我们的需求，比如我们要打印一个 5 行 5 列的图形、打印一个倒直角三角形等，此时就可以通过循环嵌套来实现。
+
+循环嵌套是指在一个循环语句中再定义一个循环语句的语法结构，例如在 `for` 循环语句中，可以再嵌套一个 `for` 循环，这样的 `for` 循环语句我们称之为 **双重 `for` 循环**。
+
+```:no-line-numbers
+for (外循环的初始; 外循环的条件; 外循环的操作表达式) {
+    for (内循环的初始; 内循环的条件; 内循环的操作表达式) { 
+        需执行的代码; 
+    } 
+}
+```
+
+```:no-line-numbers
+- 内层循环可以看做外层循环的语句；
+- 内层循环执行的顺序也要遵循 for 循环的执行顺序 ；
+- 外层循环执行一次，内层循环要执行全部次数。
+```
+
+**示例1： 打印五行五列星星**
+
+![](./images/_1_javascript_basic/11.png)
+
+```:no-line-numbers
+核心：
+1. 内层循环负责一行打印五个星星；
+2. 外层循环负责打印五行。
+```
+
+```js:no-line-numbers
+var str = '';
+for (var i = 1; i <= 5; i++) { // 外层循环负责打印五行
+    for (var j = 1; j <= 5; j++) { // 里层循环负责一行打印五个星星
+        str = str + '★';
+    }
+    // 如果一行打印完毕5个星星就要另起一行加 \n
+    str = str + '\n';
+}
+console.log(str);
+```
+
+**示例2：打印 n 行 n 列的星星**
+
+```js:no-line-numbers
+var rows = prompt('请您输入行数:');
+var cols = prompt('请您输入列数:');
+var str = '';
+for (var i = 1; i <= rows; i++) {
+    for (var j = 1; j <= cols; j++) {
+        str = str + '★';
+    }
+    str += '\n';
+}
+console.log(str);
+```
+
+**示例3：打印倒三角形**
+
+![](./images/_1_javascript_basic/12.png)
+
+```js:no-line-numbers
+var str = '';
+for (var i = 1; i <= 10; i++) { // 外层循环控制行数
+    for (var j = i; j <= 10; j++) { // 里层循环打印的个数不一样  j = i
+        str = str + '★';
+    }
+    str += '\n';
+}
+console.log(str);
+```
+
+**示例4：九九乘法表**
+
+```js:no-line-numbers
+// 外层的 for 循环控制行数 i ，循环9次 ，可以打印 9 行  
+// 内层的 for 循环控制每行公式  j  
+// 核心算法：每一行 公式的个数正好和行数一致，j <= i;
+// 每行打印完毕，都需要重新换一行
+var str = '';
+for (var i = 1; i <= 9; i++) { // 外层循环控制行数
+    for (var j = 1; j <= i; j++) { // 里层循环控制每一行的个数  j <= i
+        // 1 × 2 = 2
+        // str = str + '★';
+        str += j + '×' + i + '=' + i * j + '\t';
+    }
+    str += '\n';
+}
+console.log(str);
+```
+
+#### 6.3.3 `while` 循环
+
+`while` 语句可以在条件表达式为真的前提下，循环执行指定的一段代码，直到表达式不为真时结束循环。
+
+**语法结构：**
+
+```:no-line-numbers
+while (条件表达式) {
+    // 循环体代码
+}
+```
+
+**执行过程：**
+
+```:no-line-numbers
+1. 先执行条件表达式，如果结果为 true，则执行循环体代码；如果为 false，则退出循环，执行后面代码；
+2. 执行循环体代码；
+3. 循环体代码执行完毕后，程序会继续判断执行条件表达式，如条件仍为true，则会继续执行循环体，直到循环条件为 false 时，整个循环过程才会结束。
+```
+
+**注意：**
+
+```:no-line-numbers
+1. 使用 while 循环时一定要注意，它必须要有退出条件，否则会成为死循环；
+2. while 循环和 for 循环的不同之处在于 while 循环可以做较为复杂的条件判断，比如判断用户名和密码。
+```
+
+**示例1：计算 1 ~ 100 之间所有整数的和**
+
+```js:no-line-numbers
+var sum = 0;
+var j = 1;
+while (j <= 100) {
+    sum += j;
+    j++
+}
+console.log(sum);
+```
+
+#### 6.3.4 `do while` 循环
+
+`do... while` 语句其实是 `while` 语句的一个变体。该循环会先执行一次代码块，然后对条件表达式进行判断，如果条件为真，就会重复执行循环体，否则退出循环。
+
+**语法结构：**
+
+```:no-line-numbers
+do {
+    // 循环体代码 - 条件表达式为 true 时重复执行循环体代码
+} while(条件表达式);
+```
+
+**执行过程：**
+
+```:no-line-numbers
+1. 先执行一次循环体代码；
+2. 再执行条件表达式，如果结果为 true，则继续执行循环体代码，如果为 false，则退出循环，继续执行后面代码。
+```
+
+**注意：**
+
+```:no-line-numbers
+先再执行循环体，再判断，我们会发现 do…while 循环语句至少会执行一次循环体代码。
+```
+
+**示例1：计算 1 ~ 100 之间所有整数的和**
+
+```js:no-line-numbers
+var sum = 0;
+var j = 1;
+do {
+    sum += j;
+    j++;
+} while (j <= 100)
+console.log(sum);
+```
+
+#### 6.3.5 `continue` & `break`
+
+**`continue` 关键字**
+
+```:no-line-numbers
+continue 关键字用于立即跳出本次循环，继续下一次循环（本次循环体中 continue 之后的代码就会少执行一次）。
+```
+
+```js:no-line-numbers
+// 求1~100 之间， 除了能被7整除之外的整数和 
+var sum = 0;
+for (var i = 1; i <= 100; i++) {
+    if (i % 7 == 0) {
+        continue;
+    }
+    sum += i;
+}
+console.log(sum);
+```
+
+**`break` 关键字**
+
+```:no-line-numbers
+break 关键字用于立即跳出整个循环（循环结束）。
+```
+
+```js:no-line-numbers
+for (var i = 1; i <= 5; i++) {
+    if (i == 3) {
+        break;
+    }
+    console.log('我正在吃第' + i + '个包子');
+}
+```
+
+## 7. 断点调试
+
+断点调试是指自己在程序的某一行设置一个断点，调试时，程序运行到这一行就会停住，然后你可以一步一步往下调试，调试过程中可以看各个变量当前的值，出错的话，调试到出错的代码行即显示错误，停下。
+
+断点调试可以帮我们观察程序的运行过程。
+
+```:no-line-numbers
+浏览器中按 F12 --> sources --> 找到需要调试的文件 --> 在程序的某一行设置断点
+```
+
+```:no-line-numbers
+Watch: 监视，通过 watch 可以监视变量的值的变化，非常的常用。
+F11: 程序单步执行，让程序一行一行的执行，这个时候，观察 watch 中变量的值的变化。
+```
+
+## 8. `JavaScript` 命名规范
+
+### 8.1 标识符命名规范
+
+```:no-line-numbers
+- 变量、函数的命名必须要有意义；
+- 变量的名称一般用名词；
+- 函数的名称一般用动词。
+```
+
+### 8.2 运算符（操作符）规范
+
+```js:no-line-numbers
+// 操作符的左右两侧各保留一个空格
+for (var i = 1; i <= 5; i++) {
+    if (i == 3) {
+        break; // 直接退出整个 for 循环，跳到整个for循环下面的语句
+    }
+    console.log('我正在吃第' + i + '个包子呢');
+}
+```
+
+### 8.3 单行注释规范
+
+```js:no-line-numbers
+for (var i = 1; i <= 5; i++) {
+    if (i == 3) {
+        break; // 单行注释前面注意有个空格
+    }
+    console.log('我正在吃第' + i + '个包子呢');
+}
+```
+
+### 8.4 其他规范
+
+![](./images/_1_javascript_basic/13.png)
+
+## 9. `JavaScript` 数组
+
+### 9.1 什么是数组
+
+数组是指一组数据的集合，其中的每个数据被称作元素，在数组中可以存放任意类型的元素。
+
+数组是一种将一组数据存储在单个变量名下的优雅方式。
+
+### 9.2 创建数组
+
+`JS` 中创建数组有两种方式：
+
+- 利用 `new` 创建数组；
+  
+- 利用数组字面量创建数组。
+
+#### 9.2.1 利用 `new` 创建数组
+
+```:no-line-numbers
+var 数组名 = new Array() ；
+var arr = new Array(); // 创建一个新的空数组
+```
+
+```:no-line-numbers
+- 这种方式暂且了解，等学完对象再看；
+- 注意 Array()，A 要大写。
+```
+
+#### 9.2.2 利用数组字面量创建数组
+
+```:no-line-numbers
+// 1. 使用数组字面量方式创建空的数组
+var 数组名 = []；
+// 2. 使用数组字面量方式创建带初始值的数组
+var 数组名 = ['小白', '小黑', '大黄', '瑞奇'];
+```
+
+```:no-line-numbers
+- 数组的字面量是方括号 [] 
+- 声明数组并赋值称为数组的初始化
+- 这种字面量方式也是我们以后最多使用的方式
+```
+
+#### 9.2.3 数组元素的类型
+
+数组中可以存放 **任意类型** 的数据，例如字符串，数字，布尔值等。
+
+```js:no-line-numbers
+var arrStus = ['小白', 12, true, 28.9];
+```
+
+### 9.3 获取数组中的元素
+
+**数组的索引**
+
+```:no-line-numbers
+索引（下标）：用来访问数组元素的序号（数组下标从 0 开始）。
+```
+
+![](./images/_1_javascript_basic/14.png)
+
+数组可以通过索引来访问、设置、修改对应的数组元素，我们可以通过 “`数组名[索引]`” 的形式来获取数组中的元素。
+
+```js:no-line-numbers
+// 定义数组
+var arrStus = [1,2,3];
+// 获取数组中的第2个元素
+alert(arrStus[1]);
+```
+
+### 9.4 数组的长度
+
+使用 “`数组名.length`” 可以访问数组元素的数量（数组长度）。
+
+```js:no-line-numbers
+var arrStus = [1,2,3];
+alert(arrStus.length); // 3
+```
+
+**注意：**
+
+```:no-line-numbers
+1. 此处数组的长度是数组元素的个数，不要和数组的索引号混淆。
+2. 当我们数组里面的元素个数发生了变化，这个 length 属性跟着一起变化。
+```
+
+### 9.5 遍历数组
+
+**遍历：** 就是把数组中的每个元素从头到尾都访问一次。
+
+我们可以通过 `for` 循环索引遍历数组中的每一项：
+
+```js:no-line-numbers
+var arr = ['red', 'green', 'blue'];
+for(var i = 0; i < arr.length; i++){
+    console.log(arrStus[i]);
+}
+```
+
+**示例1：数组求和及平均值**
+
+```js:no-line-numbers
+var arr = [2, 6, 1, 7, 4];
+var sum = 0;
+var average = 0;
+for (var i = 0; i < arr.length; i++) {
+    sum += arr[i];
+}
+average = sum / arr.length;
+console.log('这组数的和是：' + sum);
+console.log('这组数的平均值是：' + average);
+```
+
+**示例2：数组最大值**
+
+```js:no-line-numbers
+var arr = [2, 6, 1, 77, 52, 25, 7, 99];
+var max = arr[0];
+for (var i = 1; i < arr.length; i++) {
+    if (arr[i] > max) {
+        max = arr[i];
+    }
+}
+console.log('该数组里面的最大值是：' + max);
+```
+
+**示例3：数组转换为字符串**
+
+```js:no-line-numbers
+// 要求：将数组 ['red', 'green', 'blue', 'pink'] 转换为字符串，并且用 | 或其他符号分割
+// 输出：'red|green|blue|pink'
+var arr = ['red', 'green', 'blue', 'pink'];
+var str = '';
+var separator = '|'
+for (var i = 0; i < arr.length; i++) {
+    str += arr[i] + separator;
+}
+console.log(str);
+```
+
+### 9.6 数组中新增元素
+
+#### 9.6.1 通过修改 `length` 长度新增数组元素
+
+```:no-line-numbers
+- 可以通过修改 length 长度来实现数组扩容的目的；
+- length 属性是可读写的。
+```
+
+```js:no-line-numbers
+var arr = ['red', 'green', 'blue', 'pink'];
+arr.length = 7;
+console.log(arr);
+console.log(arr[4]);
+console.log(arr[5]);
+console.log(arr[6]);
+```
+
+其中索引号是 `4`，`5`，`6` 的空间没有给值，也就是声明变量未给值，默认值就是 `undefined`。
+
+![](./images/_1_javascript_basic/15.png)
+
+#### 9.6.2 通过修改数组索引新增数组元素
+
+```:no-line-numbers
+- 可以通过修改数组索引的方式追加数组元素
+- 不能直接给数组名赋值，否则会覆盖掉以前的数据
+```
+
+```js:no-line-numbers
+var arr = ['red', 'green', 'blue', 'pink'];
+arr[4] = 'hotpink';
+console.log(arr);
+arr = '有点意思';
+console.log(arr); // 不能直接给数组名赋值，否则会覆盖掉以前的数据
+```
+
+> 这种方式也是我们最常用的一种方式。
+
+**示例1：数组新增元素**
+
+```:no-line-numbers
+新建一个数组，里面存放 10 个整数（1~10）
+核心原理：使用循环来追加数组。
+1. 声明一个空数组 arr。
+2. 循环中的计数器 i  可以作为数组元素存入。
+3. 由于数组的索引号是从 0 开始的， 因此计数器从 0 开始更合适，存入的数组元素要 +1。
+```
+
+```js:no-line-numbers
+var arr = []; // 声明一个空数组
+for (var i = 0; i < 100; i++) {
+    // arr = i; 不要直接给数组名赋值 否则以前的元素都没了
+    arr[i] = i + 1;
+}
+console.log(arr);
+```
+
+**示例2：筛选数组**
+
+```:no-line-numbers
+将数组 [2, 0, 6, 1, 77, 0, 52, 0, 25, 7] 中大于等于 10 的元素选出来，放入新数组。
+1. 声明一个新的数组用于存放新数据newArr。
+2. 遍历原来的旧数组，找出大于等于 10 的元素。
+3. 依次追加给新数组 newArr。
+```
+
+```js:no-line-numbers
+// 方法1
+var arr = [2, 0, 6, 1, 77, 0, 52, 0, 25, 7];
+var newArr = [];
+var j = 0;
+for (var i = 0; i < arr.length; i++) {
+    if (arr[i] >= 10) {
+        // 新数组索引号应该从0开始 依次递增
+        newArr[j] = arr[i];
+        j++;
+    }
+}
+console.log(newArr);
+```
+
+```js:no-line-numbers
+// 方法2 
+var arr = [2, 0, 6, 1, 77, 0, 52, 0, 25, 7];
+var newArr = [];
+// 刚开始 newArr.length 就是 0
+for (var i = 0; i < arr.length; i++) {
+    if (arr[i] >= 10) {
+        // 新数组索引号应该从0开始 依次递增
+        newArr[newArr.length] = arr[i];
+    }
+}
+console.log(newArr);
+```
+
+### 9.7 数组案例
+
+#### 9.7.1  删除指定数组元素
+
+```:no-line-numbers
+将数组[2, 0, 6, 1, 77, 0, 52, 0, 25, 7]中的 0 去掉后，形成一个不包含 0 的新数组。
+1. 需要一个新数组用于存放筛选之后的数据。
+2. 遍历原来的数组，把不是 0 的数据添加到新数组里面（此时要注意采用数组名 + 索引的格式接收数据）。
+3. 新数组里面的个数，用 length 不断累加。
+```
+
+```js:no-line-numbers
+var arr = [2, 0, 6, 1, 77, 0, 52, 0, 25, 7];
+var newArr = [];
+for (var i = 0; i < arr.length; i++) {
+    if (arr[i] != 0) {
+        newArr[newArr.length] = arr[i];
+    }
+}
+console.log(newArr);
+```
+
+#### 9.7.2 翻转数组
+
+```:no-line-numbers
+将数组 ['red', 'green', 'blue', 'pink', 'purple'] 的内容反过来存放
+1. 声明一个新数组 newArr
+2. 把旧数组索引号第 4 个取过来（arr.length - 1)，给新数组索引号第 0 个元素（newArr.length）
+3. 我们采取递减的方式 i--
+```
+
+```js:no-line-numbers
+var arr = ['red', 'green', 'blue', 'pink', 'purple', 'hotpink'];
+var newArr = [];
+for (var i = arr.length - 1; i >= 0; i--) {
+    newArr[newArr.length] = arr[i]
+}
+console.log(newArr);
+```
+
+#### 9.7.3 交换两个变量
+
+```js:no-line-numbers
+var num1 = 'pink';
+var num2 = 'yellow';
+var temp;
+temp = num1;
+num1 = num2;
+num2 = temp;
+console.log(num1, num2);
+```
+
+#### 9.7.4 冒泡排序
+
+```:no-line-numbers
+冒泡排序：是一种算法，把一系列的数据按照一定的顺序进行排列显示（从小到大或从大到小）。
+```
+
+```js:no-line-numbers
+var arr = [4, 1, 2, 3, 5];
+for (var i = 0; i <= arr.length - 1; i++) { // 外层循环管趟数 
+    for (var j = 0; j <= arr.length - i - 1; j++) { // 里面的循环管 每一趟的交换次数
+        // 内部交换2个变量的值 前一个和后面一个数组元素相比较
+        if (arr[j] < arr[j + 1]) {
+            var temp = arr[j];
+            arr[j] = arr[j + 1];
+            arr[j + 1] = temp;
+        }
+    }
+}
+console.log(arr);
+```
+
+## 10. `JavaScript` 函数
+
+### 10.1 什么是函数
+
+函数：就是封装了一段可被重复调用执行的代码块。通过此代码块可以实现大量代码的重复使用。
+
+> 虽然 `for` 循环语句也能实现一些简单的重复操作，但是比较具有局限性。
+
+### 10.2 函数的使用
+
+函数在使用时分为两步：声明函数和调用函数。
+
+#### 10.2.1 声明函数
+
+```:no-line-numbers
+// 声明函数
+function 函数名() {
+    //函数体代码
+}
+```
+
+```:no-line-numbers
+- function 是声明函数的关键字，必须小写；
+- 由于函数一般是为了实现某个功能才定义的，所以通常我们将函数名命名为动词，比如 getSum。
+```
+
+#### 10.2.2 调用函数
+
+```:no-line-numbers
+// 调用函数
+函数名(); // 通过调用函数名来执行函数体代码
+```
+
+```:no-line-numbers
+- 调用的时候千万不要忘记添加小括号。
+- 口诀：函数不调用，自己不执行。
+```
+
+> 注意：声明函数本身并不会执行代码，只有调用函数时才会执行函数体代码。
+
+#### 10.2.1 函数的封装
+
+函数的封装是把一个或者多个功能通过函数的方式封装起来，对外只提供一个简单的函数接口。
+
+**示例：**
+
+```js:no-line-numbers
+/* 
+    计算1-100之间值的函数
+*/
+// 声明函数
+function getSum(){
+    var sumNum = 0;// 准备一个变量，保存数字和
+    for (var i = 1; i <= 100; i++) {
+        sumNum += i;// 把每个数值 都累加 到变量中
+    }
+    alert(sumNum);
+}
+
+// 调用函数
+getSum();
+```
+
+### 10.3 函数的参数
+
+#### 10.3.1 形参 & 实参
+
+在声明函数时，可以在函数名称后面的小括号中添加一些参数，这些参数被称为 **形参**。
+
+而在调用该函数时，同样也需要传递相应的参数，这些参数被称为 **实参**。
+
+**参数的作用：** 在函数内部某些值不能固定，我们可以通过参数在调用函数时传递不同的值进去。
+
+```:no-line-numbers
+// 带参数的函数声明
+function 函数名(形参1, 形参2 , 形参3...) { // 可以定义任意多的参数，用逗号分隔
+    // 函数体
+}
+
+// 带参数的函数调用
+函数名(实参1, 实参2, 实参3...);
+```
+
+#### 10.3.2 函数参数的传递过程
+
+**示例：利用函数求任意两个数的和**
+
+```js:no-line-numbers
+function getSum(num1, num2) {
+    console.log(num1 + num2);
+}
+
+getSum(1, 3); // 4
+getSum(6, 5); // 11
+```
+
+```:no-line-numbers
+1. 调用的时候实参值是传递给形参的；
+2. 形参简单理解为：不用声明的变量；
+3. 实参和形参的多个参数之间用逗号（,）分隔。
+```
+
+#### 10.3.3 函数形参与实参个数不匹配问题
+
+|**参数个数**|**说明**|
+|:-|:-|
+|实参个数等于形参个数|输出正确结果|
+|实参个数多于形参个数|只取到形参的个数|
+|实参个数小于形参个数|多的形参定义为 `undefined`，结果为 `NaN`|
+
+**示例：**
+
+```js:no-line-numbers
+function sum(num1, num2) {
+    console.log(num1 + num2);
+}
+sum(100, 200); // 形参和实参个数相等，输出正确结果
+sum(100, 400, 500, 700); // 实参个数多于形参，只取到形参的个数
+sum(200); // 实参个数少于形参，多的形参定义为 undefined，结果为 NaN
+```
+
+> 注意：在 `JavaScript` 中，形参的默认值是 `undefined`。
+
+#### 10.3.4 小结
+
+- 函数可以带参数也可以不带参数；
+  
+- 声明函数的时候，函数名括号里面的是形参，形参的默认值为 `undefined`；
+  
+- 调用函数的时候，函数名括号里面的是实参；
+  
+- 多个参数中间用逗号分隔；
+  
+- 形参的个数可以和实参个数不匹配，但是结果不可预计，我们尽量要匹配。
+
+### 10.4 函数的返回值
+
+#### 10.4.1 `return` 语句
+
+有的时候，我们会希望函数将值返回给调用者，此时通过使用 `return` 语句就可以实现。
+
+`return` 语句的语法格式如下：
+
+```:no-line-numbers
+// 声明函数
+function 函数名（）{
+    ...
+    return 需要返回的值;
+}
+
+// 调用函数
+函数名(); // 此时调用函数就可以得到函数体内 return 后面的值
+```
+
+```:no-line-numbers
+- 在使用 return 语句时，函数会停止执行，并返回指定的值；
+- 如果函数没有 return ，返回的值是 undefined。
+```
+
+**示例1：利用函数求任意两个数的最大值**
+
+```js:no-line-numbers
+function getMax(num1, num2) {
+    return num1 > num2 ? num1 : num2;
+}
+console.log(getMax(1, 2));
+console.log(getMax(11, 2));
+```
+
+**示例2：利用函数求任意一个数组中的最大值**
+
+```js:no-line-numbers
+// 定义一个获取数组中最大数的函数
+function getMaxFromArr(numArray){
+    var maxNum = 0;
+    for (var i =0; i < numArray.length; i++) {
+        if (numArray[i] > maxNum) {
+            maxNum = numArray[i];
+        }
+    }
+    return maxNum;
+}
+
+var arrNum = [5,2,99,101,67,77];
+var maxN = getMaxFromArr(arrNum); // 这个实参是个数组
+alert('最大值为：'+ maxN);
+```
+
+#### 10.4.2 `return` 终止函数（`return` 语句之后的代码不被执行）
+
+```js:no-line-numbers
+function add(num1，num2){
+    //函数体
+    return num1 + num2; // 注意：return 后的代码不执行
+    alert('我不会被执行，因为前面有 return');
+}
+
+var resNum = add(21,6); // 调用函数，传入两个实参，并通过 resNum 接收函数返回值
+alert(resNum); // 27
+```
+
+#### 10.4.3 `return` 的返回值（`return` 只能返回一个值）
+
+`return` 只能返回一个值。如果用逗号隔开多个值，以最后一个为准。
+
+```js:no-line-numbers
+function add(num1，num2){
+    //函数体
+    return num1，num2;
+}
+
+var resNum = add(21,6); // 调用函数，传入两个实参，并通过 resNum 接收函数返回值
+alert(resNum); // 6
+```
+
+**示例：：创建一个函数，实现两个数之间的加减乘除运算，并将结果返回**
+
+```js:no-line-numbers
+var a = parseFloat(prompt('请输入第一个数'));
+var b = parseFloat(prompt('请输入第二个数'));
+
+function count(a, b) {
+    var arr = [a + b, a - b, a * b, a / b];
+    return arr;
+}
+
+var result = count(a, b); // 返回的是一个数组
+console.log(result);
+```
+
+#### 10.4.4 函数没有 `return` 返回 `undefined`
+
+函数都是有返回值的，因此：
+
+1. 如果有 `return` 则返回 `return` 后面的值；
+ 
+2. 如果没有 `return` 则返回 `undefined`。
+
+    ```js:no-line-numbers
+    function fun2() {
+
+    }
+
+    console.log(fun2()); // 函数返回的结果是 undefined
+    ```
+
+#### 10.4.5  `break`、`continue`、`return` 的区别
+
+```:no-line-numbers
+- break：结束当前的循环体（如 for、while）
+- continue：跳出本次循环，继续执行下次循环（如 for、while）
+- return：不仅可以退出循环，还能够返回 return 语句中的值，同时还可以结束当前的函数体内的代码。
+```
+
+
+### 10.5 `arguments` 的使用
+
+当我们不确定有多少个参数传递的时候，可以用 `arguments` 来获取。
+
+在 `JavaScript` 中，`arguments` 实际上是当前函数的一个内置对象。所有函数都内置了一个 `arguments` 对象，`arguments` 对象中存储了传递的所有实参。
+
+`arguments` 展示形式是一个伪数组，因此可以进行遍历。伪数组具有以下特点：
+
+- 具有 `length` 属性；
+  
+- 按索引方式储存数据；
+  
+- 不具有数组的 `push`，`pop` 等方法。
+
+**示例：利用函数求任意个数的最大值**
+
+```js:no-line-numbers
+function maxValue() {
+    var max = arguments[0];
+    for (var i = 0; i < arguments.length; i++) {
+        if (max < arguments[i]) {
+            max = arguments[i];
+        } 
+    }
+    return max;
+}
+
+console.log(maxValue(2, 4, 5, 9));
+console.log(maxValue(12, 4, 9));
+```
+
+### 10.6 函数案例
+
+#### 10.6.1 翻转任意一个数组
+
+```js:no-line-numbers
+function reverse(arr) {
+    var newArr = [];
+    for (var i = arr.length - 1; i >= 0; i--) {
+        newArr[newArr.length] = arr[i];
+    }
+    return newArr;
+}
+
+var arr1 = reverse([1, 3, 4, 6, 9]);
+console.log(arr1);
+var arr2 = reverse(['red', 'pink', 'blue']);
+console.log(arr2);
+```
+
+#### 10.6.2 利用函数冒泡排序
+
+```js:no-line-numbers
+function sort(arr) {
+    for (var i = 0; i < arr.length - 1; i++) {
+        for (var j = 0; j < arr.length - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                var temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+    return arr;
+}
+
+var arr1 = sort([1, 4, 2, 9]);
+console.log(arr1);
+var arr2 = sort([11, 7, 22, 999]);
+console.log(arr2);
+```
+
+#### 10.6.3 利用函数判断闰年
+
+```js:no-line-numbers
+function isRunYear(year) {
+    // 如果是闰年我们返回 true  否则 返回 false 
+    var flag = false;
+    if (year % 4 == 0 && year % 100 != 0 || year % 400 == 0) {
+        flag = true;
+    }
+    return flag;
+}
+
+console.log(isRunYear(2000));
+console.log(isRunYear(1999));
+```
+
+#### 10.6.4 函数中调用另外一个函数
+
+```js:no-line-numbers
+function fn1() {
+    console.log(111);
+    fn2();
+    console.log('fn1');
+}
+
+function fn2() {
+    console.log(222);
+    console.log('fn2');
+}
+
+fn1();
+```
+
+#### 10.6.5 用户输入年份，输出当前年份2月份的天数
+
+```js:no-line-numbers
+function backDay() {
+    var year = prompt('请您输入年份:');
+    if (isRunYear(year)) { // 调用函数需要加小括号
+        alert('当前年份是闰年2月份有29天');
+    } else {
+        alert('当前年份是平年2月份有28天');
+    }
+}
+
+backDay();
+
+// 判断是否为闰年的函数
+function isRunYear(year) {
+    // 如果是闰年我们返回 true  否则 返回 false 
+    var flag = false;
+    if (year % 4 == 0 && year % 100 != 0 || year % 400 == 0) {
+        flag = true;
+    }
+    return flag;
+}
+```
+
+### 10.7 函数的两种声明方式
+
+#### 10.7.1 自定义函数方式（又称命名函数）
+
+利用函数关键字 `function` 自定义函数方式。
+
+```js:no-line-numbers
+// 声明定义方式
+function fn() {...}
+
+// 调用
+fn();
+```
+
+```:no-line-numbers
+- 因为有名字，所以也被称为命名函数；
+- 调用函数的代码既可以放到声明函数的前面，也可以放在声明函数的后面。
+```
+
+#### 10.7.2 函数表达式方式（又称匿名函数）
+
+利用函数表达式方式的写法如下：
+
+```js:no-line-numbers
+// 这是函数表达式写法，匿名函数后面跟分号结束
+var fn = function(){...};
+
+// 调用的方式，函数调用必须写到函数体下面
+fn();
+```
+
+```js:no-line-numbers
+var fun = function(aru) {
+    console.log('我是函数表达式');
+    console.log(aru);
+}
+
+fun('pink老师');
+```
+
+```:no-line-numbers
+- 因为函数没有名字，所以也被称为匿名函数
+- fun 是变量名，不是函数名。fn 变量里面存储的是一个函数
+- 函数表达式也可以进行传递参数
+- 函数表达式方式原理跟声明变量方式是一致的 
+- 函数调用的代码必须写到函数体后面
+```
+
+## 11. `JavaScript` 作用域
+
+### 11.1 什么是作用域
+
+#### 11.1.1 全局作用域
+
+#### 11.1.2 局部作用域（函数作用域）
+
+#### 11.1.3 `JS` 没有块级作用域（在 `ES6` 之前）
+
+### 11.2 变量的作用域
+
+#### 11.2.1 据作用域不同，对变量的分类
+
+##### 11.2.1.1 全局变量
+
+##### 11.2.1.2 局部变量
+
+#### 11.2.2 全局变量和局部变量的区别
+
+### 11.3 作用域链
