@@ -2139,20 +2139,805 @@ fun('pink老师');
 
 ### 11.1 什么是作用域
 
+通常来说，一段程序代码中所用到的名字并不总是有效和可用的，而限定这个名字的可用性的代码范围就是这个名字的作用域。
+
+作用域的使用提高了程序逻辑的局部性，增强了程序的可靠性，减少了名字冲突。
+
+`JavaScript`（`ES6` 前）中的作用域有两种：
+
+- 全局作用域
+  
+- 局部作用域（函数作用域）
+
 #### 11.1.1 全局作用域
+
+作用于所有代码执行的环境（整个 `script` 标签内部）或者一个独立的 `js` 文件。
 
 #### 11.1.2 局部作用域（函数作用域）
 
+作用于函数内的代码环境，就是局部作用域。因为跟函数有关系，所以也称为函数作用域。
+
 #### 11.1.3 `JS` 没有块级作用域（在 `ES6` 之前）
+
+`JS` 没有块级作用域（在 `ES6` 之前）。
+
+```:no-line-numbers
+- 块作用域由 { } 包括。 
+- 在其他编程语言中（如 java、c# 等），在 if 语句、循环语句中创建的变量，仅仅只能在本 if 语句、本循环语句中使用。
+```
+
+```java:no-line-numbers
+// 如下面的 Java 代码：
+if (true) {
+    int num = 123;
+    system.out.print(num); // 123
+}
+system.out.print(num); // 报错
+```
 
 ### 11.2 变量的作用域
 
 #### 11.2.1 据作用域不同，对变量的分类
 
+在 `JavaScript` 中，根据作用域的不同，变量可以分为两种：
+
+- 全局变量
+
+- 局部变量
+
 ##### 11.2.1.1 全局变量
+
+在全局作用域下声明的变量叫做全局变量（在函数外部定义的变量）。
+
+```:no-line-numbers
+- 全局变量在代码的任何位置都可以使用；
+- 在全局作用域下 var 声明的变量 是全局变量；
+- 特殊情况下，在函数内不使用 var 声明的变量也是全局变量（不建议使用）。
+```
 
 ##### 11.2.1.2 局部变量
 
+在局部作用域下声明的变量叫做局部变量（在函数内部定义的变量）。
+
+```:no-line-numbers
+- 局部变量只能在该函数内部使用；
+- 在函数内部 var 声明的变量是局部变量；
+- 函数的形参实际上就是局部变量。
+```
+
 #### 11.2.2 全局变量和局部变量的区别
 
+```:no-line-numbers
+- 全局变量：在任何一个地方都可以使用，只有在浏览器关闭时才会被销毁，因此比较占内存。
+- 局部变量：只在函数内部使用，当其所在的代码块被执行时，会被初始化；当代码块运行结束后，就会被销毁，因此更节省内存空间。
+```
+
 ### 11.3 作用域链
+
+作用域链：内部函数访问外部函数的变量，采取的是链式查找的方式来决定取哪个值（就近原则），这种结构我们称为作用域链。
+
+```:no-line-numbers
+- 只要是代码，就至少有一个作用域；
+- 写在函数内部的局部作用域；
+- 如果函数（外部函数）中还有函数（内部函数），那么在这个作用域中就又可以诞生一个作用域；
+- 根据在内部函数中可以访问外部函数变量的这种机制，用链式查找决定哪些数据能被内部函数访问，就称作 作用域链；
+- 作用域链：采取就近原则的方式来查找变量最终的值。
+```
+
+**示例1：**
+
+```js:no-line-numbers
+var num = 10;
+
+function outFun() { // 外部函数
+    var num = 20;
+    function inFun() { // 内部函数
+        console.log(num);
+    }
+    inFun();
+}
+outFun();
+```
+
+**示例2：**
+
+```js:no-line-numbers
+function f1() {
+    var num = 123;
+    function f2() {
+        var num = 0;
+        console.log(num); // 结果是几？（站在目标出发，一层一层的往外查找）
+    }
+    f2();
+}
+var num = 456;
+f1();
+```
+
+**示例3：**
+
+```js:no-line-numbers
+var a = 1;
+function fn1() {
+    var a = 2;
+    var b = '22';
+    fn2();
+    function fn2() {
+        var a = 3;
+        fn3();
+        function fn3() {
+            var a = 4;
+            console.log(a); // a 的值 ?
+            console.log(b); // b 的值 ?
+        }
+    }
+}
+fn1();
+```
+
+## 12. 预解析
+
+### 12.1 什么是预解析
+
+**思考1：**
+
+```js:no-line-numbers
+// 1问  结果是多少？
+console.log(num);
+
+// 2问  结果是多少？
+console.log(num); // undefined  坑 1
+var num = 10;
+// 相当于执行了以下代码
+// var num;
+// console.log(num);
+// num = 10;
+```
+
+**思考2：**
+
+```js:no-line-numbers
+// 3问  
+function fn() {
+    console.log(11);
+}
+fn();
+
+// 4问
+fun(); // 报错  坑2 
+var fun = function() {
+    console.log(22);
+}
+// 函数表达式 调用必须写在函数表达式的下面
+// 相当于执行了以下代码
+// var fun;
+// fun();
+// fun = function() {
+//     console.log(22);
+// }
+```
+
+`JS` 代码是由浏览器中的 `JS` 解析器来执行的。`JS` 解析器在运行 `JS` 代码的时候分为两步：**预解析** 和 **代码执行**。
+
+- 预解析：在当前作用域下，`JS` 代码执行之前，浏览器会默认把带有 `var` 和 `function` 声明的变量在内存中进行提前声明或者定义（提前到当前作用域的最前面）。
+
+- 代码执行：从上到下执行 `JS` 语句。
+
+预解析只会发生在通过 `var` 定义的变量和 `function` 上。
+
+学习预解析能够让我们知道为什么在变量声明之前访问变量的值是 `undefined`，为什么在函数声明之前就可以调用函数。
+
+> 预解析也叫做变量、函数提升。
+
+### 12.2 变量预解析（变量提升）
+
+**变量提升：** 变量的声明会被提升到当前作用域的最上面，变量的赋值不会提升。
+
+### 12.3 函数预解析（函数提升）
+
+**函数提升：** 函数的声明会被提升到当前作用域的最上面，但是不会调用函数。
+
+### 12.4 预解析案例
+
+**案例1：**
+
+```js:no-line-numbers
+var num = 10;
+fun();
+
+function fun() {
+    console.log(num);
+    var num = 20;
+}
+
+// 相当于执行了以下操作
+// var num;
+// function fun() {
+//     var num;
+//     console.log(num);
+//     num = 20;
+// }
+// num = 10;
+// fun();
+```
+
+**案例2：**
+
+```js:no-line-numbers
+var num = 10;
+
+function fn() {
+    console.log(num);
+    var num = 20;
+    console.log(num);
+}
+fn();
+
+// 相当于以下代码
+// var num;
+// function fn() {
+//     var num;
+//     console.log(num);
+//     num = 20;
+//     console.log(num);
+// }
+// num = 10;
+// fn();
+```
+
+**案例3：**
+
+```js:no-line-numbers
+var a = 18;
+f1();
+
+function f1() {
+    var b = 9;
+    console.log(a);
+    console.log(b);
+    var a = '123';
+}
+
+// 相当于以下代码
+// var a;
+// function f1() {
+//     var b;
+//     var a;
+//     b = 9;
+//     console.log(a);
+//     console.log(b);
+//     a = '123';
+// }
+// a = 18;
+// f1();
+```
+
+**案例4：**
+
+```js:no-line-numbers
+f1();
+console.log(c);
+console.log(b);
+console.log(a);
+
+function f1() {
+    var a = b = c = 9;
+    console.log(a);
+    console.log(b);
+    console.log(c);
+}
+
+// 相当于以下代码
+// function f1() {
+//     var a;
+//     a = b = c = 9;
+//     // 相当于 var a = 9; b = 9; c = 9; b 和 c 直接赋值，没有 var 声明，当全局变量看
+//     // 集体声明  var a = 9, b = 9, c = 9;
+//     console.log(a);
+//     console.log(b);
+//     console.log(c);
+// }
+// f1();
+// console.log(c);
+// console.log(b);
+// console.log(a);
+```
+
+## 13. `JavaScript` 对象
+
+### 13.1 什么是对象 & 为什么需要对象
+
+现实生活中：万物皆对象，对象是一个具体的事物，看得见摸得着的实物。例如，一本书、一辆汽车、一个人可以是“对象”，一个数据库、一张网页、一个与远程服务器的连接也可以是“对象”。
+
+在 `JavaScript` 中，对象是一组无序的相关属性和方法的集合，所有的事物都是对象，例如字符串、数值、数组、函数等。
+
+对象是由 **属性** 和 **方法** 组成的。
+
+- 属性：事物的特征，在对象中用属性来表示（常用名词）
+
+- 方法：事物的行为，在对象中用方法来表示（常用动词）
+
+保存一个值时，可以使用变量，保存多个值（一组值）时，可以使用数组。如果要保存一个人的完整信息呢？此时，`JS` 中的对象表达结构更清晰，更强大。
+
+### 13.2 创建对象的三种方式
+
+在 `JavaScript` 中，现阶段我们可以采用三种方式创建对象（`object`）：
+
+- 利用字面量创建对象
+  
+- 利用 `new Object` 创建对象
+  
+- 利用构造函数创建对象
+
+#### 13.2.1 利用字面量创建对象
+
+**对象字面量：** 就是花括号 `{ }` 里面包含了表达这个具体事物（对象）的属性和方法。
+
+`{ }` 里面采取键值对的形式表示：
+
+- 键：相当于属性名；
+
+- 值：相当于属性值，可以是任意类型的值（数字类型、字符串类型、布尔类型，函数类型等）。
+
+**示例1：创建空对象**
+
+```js:no-line-numbers
+var obj = {};
+```
+
+**示例2：**
+
+```js:no-line-numbers
+// 多个属性或者方法中间用逗号隔开
+// 方法冒号后面跟的是一个匿名函数
+var obj = {
+        uname: '张三疯',
+        age: 18,
+        sex: '男',
+        sayHi: function() {
+            console.log('hi~');
+        }
+    };
+```
+
+##### 13.2.1.1 对象的调用
+
+- 调用对象的属性我们采取 `对象名.属性名`
+
+- 调用属性还有一种方法 `对象名['属性名']`
+  
+- 调用对象的方法 `对象名.方法名()`
+
+    > 注意这个方法名后面一定加括号。
+
+```js:no-line-numbers
+var obj = {
+        uname: '张三疯',
+        age: 18,
+        sex: '男',
+        sayHi: function() {
+            console.log('hi~');
+        }
+    }
+
+console.log(obj.uname);
+console.log(obj['age']);
+obj.sayHi();
+```
+
+##### 13.2.1.2 变量、属性、函数、方法总结
+
+- 变量：单独声明赋值，单独存在；
+  
+- 属性：对象里面的变量称为属性，不需要声明，用来描述该对象的特征；
+  
+- 函数：单独存在的，通过“函数名()”的方式就可以调用；
+  
+- 方法：对象里面的函数称为方法，方法不需要声明，使用“对象.方法名()”的方式就可以调用，方法用来描述该对象的行为和功能。
+
+#### 13.2.2 利用 `new Object` 创建对象
+
+```js:no-line-numbers
+// 创建空对象
+var obj = new Object();
+
+// 为对象添加属性和方法
+obj.uname = '张三疯';
+obj.age = 18;
+obj.sex = '男';
+obj.sayHi = function() {
+        console.log('hi~');
+    }
+
+// 访问对象的属性和方法
+console.log(obj.uname);
+console.log(obj['sex']);
+obj.sayHi();
+```
+
+#### 13.2.3 利用构造函数创建对象
+
+**为什么需要构造函数**
+
+按照前面两种创建对象的方式，当创建多个对象时，如果对象里面有很多相同的属性和方法，那么每次创建时都需要复制粘贴一遍。
+因此，我们可以通过函数封装这些相同的属性和方法，我们就把这个函数称为 **构造函数**。
+
+**什么是构造函数**
+
+构造函数：是一种特殊的函数，主要用来初始化对象，即为对象成员变量赋初始值，它总与 `new` 运算符一起使用。我们可以把对象中一些公共的属性和方法抽取出来，然后封装到这个函数里面。
+
+在 `js` 中，使用构造函数要时要注意以下两点：
+
+- 构造函数用于创建某一类对象，其首字母要大写；
+
+- 构造函数要和 `new` 一起使用才有意义。
+
+**示例：**
+
+```js:no-line-numbers
+function Person(name, age, sex) {
+    this.name = name;
+    this.age = age;
+    this.sex = sex;
+    this.sayHi = function() {
+        alert('我的名字叫：' + this.name + '，年龄：' + this.age + '，性别：' + this.sex);
+    } 
+}
+
+var bigbai = new Person('大白', 100, '男');
+var smallbai = new Person('小白', 21, '男');
+
+console.log(bigbai.name);
+console.log(smallbai.name);
+```
+
+**注意：**
+
+1. 构造函数约定 **首字母大写**；
+   
+2. 函数内的属性和方法前面需要添加 `this`，表示当前对象的属性和方法；
+   
+3. 构造函数中不需要 `return` 返回结果；
+   
+4. 当我们创建对象的时候，必须用 `new` 来调用构造函数。
+
+**构造函数和对象**
+
+- 构造函数，如 `Star()`，抽象了对象的公共部分封装到了函数里面。它泛指某一大类，类似于 `java` 语言里面的 类（`class`）
+
+    ```js:no-line-numbers
+    function Star(uname, age, sex) {
+        this.name = uname;
+        this.age = age;
+        this.sex = sex;
+        this.sing = function(sang) {
+            console.log(sang);
+
+        }
+    }
+    ```    
+
+- 对象特指是一个具体的事物。如：刘德华 == `{name: "刘德华", age: 18, sex: "男", sing: ƒ}`
+
+    ```js:no-line-numbers
+    var ldh = new Star('刘德华', 18, '男'); // 调用构造函数返回的是一个对象
+    ```
+
+- 利用构造函数创建对象的过程也称为 **对象的实例化**。
+
+### 13.3 `new` 关键字执行过程
+
+`new` 关键字执行过程：
+
+1. 在内存中创建一个新的空对象。
+   
+2. 让 `this` 指向这个新的对象。
+   
+3. 执行构造函数里面的代码，给这个新对象添加属性和方法。
+   
+4. 返回这个新对象（所以构造函数里面不需要 `return`）。
+
+### 13.4 遍历对象属性：`for...in` 语句
+
+`for...in` 语句用于对数组或者对象的属性进行循环操作。
+
+其语法如下：
+
+```:no-line-numbers
+for (变量 in 对象名字) {
+    // 在此执行代码
+}
+```
+
+> 语法中的变量是自定义的，它需要符合命名规范，通常我们会将这个变量写为 `k` 或者 `key`。
+
+**示例：**
+
+```js:no-line-numbers
+var obj = {
+    name: 'pink老师',
+    age: 18,
+    sex: '男',
+    fn: function() {}
+}
+
+for (var k in obj) {
+    console.log(k); // 这里的 k 是属性名
+    console.log(obj[k]); // 这里的 obj[k] 是属性值
+}
+```
+
+## 14. `JavaScript` 内置对象
+
+`JavaScript` 中的对象分为 `3` 种：自定义对象、内置对象、浏览器对象。
+
+> 前面两种对象是 `JS` 基础内容，属于 `ECMAScript`；
+> 
+> 第三个浏览器对象属于我们 `JS` 独有的，在 `JS API` 讲解。
+
+### 14.1 什么是内置对象
+
+内置对象就是指 `JS` 语言自带的一些对象，这些对象供开发者使用，并提供了一些常用的或是最基本而必要的功能（属性和方法）。
+
+内置对象最大的优点就是帮助我们快速开发。
+
+`JavaScript` 提供了多个内置对象：`Math`、`Date`、`Array`、`String` 等。
+
+### 14.2 查文档（`MDN`）学内置对象
+
+学习一个内置对象的使用，只要学会其常用成员的使用即可，我们可以通过查文档学习，如通过 `MDN`、`W3C` 来查询。
+
+`Mozilla` 开发者网络（[`MDN`](https://developer.mozilla.org/zh-CN/)）提供了有关开放网络技术（`Open Web`）的信息，包括 `HTML`、`CSS` 和万维网及 `HTML5` 应用的 `API`。
+
+如何学习对象中的方法：
+
+```:no-line-numbers
+1. 查阅该方法的功能；
+2. 查看里面参数的意义和类型；
+3. 查看返回值的意义和类型；
+4. 通过 demo 进行测试。
+```
+
+### 14.3 `Math` 对象
+
+`Math` 对象不是构造函数，它具有数学常数和函数的属性和方法。跟数学相关的运算（求绝对值、取整、最大值等）可以使用 `Math` 中的成员。
+
+> `Math` 对象不是一个构造函数，所以我们不需要 `new` 来调用，而是直接使用里面的属性和方法即可。
+
+```js:no-line-numbers
+Math.PI // 圆周率
+Math.floor() // 向下取整
+Math.ceil() // 向上取整
+Math.round() // 四舍五入版 就近取整 注意 -3.5 结果是 -3 
+Math.abs() // 绝对值
+Math.max() // 求最大值
+Math.min() // 求最小值
+```
+
+> 注意：上面的方法必须带括号。
+
+```js:no-line-numbers
+console.log(Math.PI); // 一个属性 圆周率
+console.log(Math.max(1, 99, 3)); // 99
+console.log(Math.max(-1, -10)); // -1
+console.log(Math.max(1, 99, 'pink老师')); // NaN
+console.log(Math.max()); // -Infinity
+```
+
+#### 14.3.1 封装自己的 `Math` 对象
+
+```js:no-line-numbers
+var myMath = {
+    PI: 3.141592653,
+    max: function() {
+        var max = arguments[0];
+        for (var i = 1; i < arguments.length; i++) {
+            if (arguments[i] > max) {
+                max = arguments[i];
+            }
+        }
+        return max;
+    },
+    min: function() {
+        var min = arguments[0];
+        for (var i = 1; i < arguments.length; i++) {
+            if (arguments[i] < min) {
+                min = arguments[i];
+            }
+        }
+        return min;
+    }
+}
+
+console.log(myMath.PI);
+console.log(myMath.max(1, 5, 9));
+console.log(myMath.min(1, 5, 9));
+```
+
+#### 14.3.2 `Math` 绝对值和三个取整方法
+
+```js:no-line-numbers
+// 1. 绝对值方法
+console.log(Math.abs(1)); // 1
+console.log(Math.abs(-1)); // 1
+console.log(Math.abs('-1')); // 隐式转换 会把字符串型 -1 转换为数字型
+console.log(Math.abs('pink')); // NaN 
+
+// 2. 三个取整方法
+// (1) Math.floor() 地板 向下取整 往最小了取值
+console.log(Math.floor(1.1)); // 1
+console.log(Math.floor(1.9)); // 1
+// (2) Math.ceil() 天花板 向上取整 往最大了取值
+console.log(Math.ceil(1.1)); // 2
+console.log(Math.ceil(1.9)); // 2
+// (3) Math.round() 四舍五入
+console.log(Math.round(1.1)); // 1
+console.log(Math.round(1.5)); // 2
+console.log(Math.round(1.9)); // 2
+console.log(Math.round(-1.1)); // -1
+console.log(Math.round(-1.5)); // 这个结果是 -1
+```
+
+#### 14.3.3 随机数方法：`random()`
+
+`random()` 方法可以随机返回一个小数，其取值范围是 `[0，1)`。
+
+##### 14.3.3.1 获取任意两个数之间的随机数（包括两个数在内）
+
+```js:no-line-numbers
+function getRandom(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+console.log(getRandom(1, 10));
+
+// 随机点名  
+var arr = ['张三', '张三丰', '张三疯子', '李四', '李思思', 'pink老师'];
+console.log(arr[getRandom(0, arr.length - 1)]);
+```
+
+### 14.4 `Date` 日期对象
+
+`Date` 对象和 `Math` 对象不一样，他是一个构造函数，所以我们需要实例化后才能使用。
+
+#### 14.4.1 获取系统的当前时间
+
+```js:no-line-numbers
+// 如果没有参数，那么返回系统的当前时间
+var date = new Date();
+console.log(date);
+```
+
+#### 14.4.2 获取指定的时间
+
+```js:no-line-numbers
+var date1 = new Date(2019, 10, 1);
+console.log(date1); // 返回的是 11 月，不是 10 月 
+
+var date2 = new Date('2019-10-1 8:8:8');
+console.log(date2);
+```
+
+**注意：**
+
+```
+如果 Date() 括号里面没有参数，就返回当前时间。
+
+如果括号里面有时间，就返回参数里面的时间。
+例如日期格式字符串为 '2019-5-1'，可以写成 new Date('2019-5-1') 或者 new Date('2019/5/1')
+```
+
+#### 14.4.3 日期格式化
+
+`JS` 无法像 `Java` 那样通过某个类（DateFormat）传入格式化字符串来进行日期格式化。
+
+`JS` 中通过获取日期中的各个部分（年、月、日、时、分、秒），然后手动拼接成指定的格式化字符串。
+
+`JS` 获取日期中的各个部分的方法如下：
+
+|**方法名**|**说明**|
+|:-|:-|
+|`getFullYear()`|获取年|
+|`getMonth()`|获取月（从 `0` 到 `11`）|
+|`getDate()`|获取日|
+|`getDay()`|获取星期几（`0` 表示周日，`6` 表示周六）|
+|`getHours()`|获取小时|
+|`getMinutes()`|获取分钟|
+|`getSeconds()`|获取秒|
+
+**示例1：年月日格式化显示**
+
+```js:no-line-numbers
+// 格式化日期 年月日 
+var date = new Date();
+console.log(date.getFullYear()); // 返回当前日期的年  2019
+console.log(date.getMonth() + 1); // 月份 返回的月份小1个月   记得月份+1 呦
+console.log(date.getDate()); // 返回的是 几号
+console.log(date.getDay()); // 3  周一返回的是 1 周六返回的是 6 但是 周日返回的是 0
+// 我们写一个 2019年 5月 1日 星期三
+var year = date.getFullYear();
+var month = date.getMonth() + 1;
+var dates = date.getDate();
+var arr = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+var day = date.getDay();
+console.log('今天是：' + year + '年' + month + '月' + dates + '日 ' + arr[day]);
+```
+
+**示例2：时分秒格式化显示**
+
+```js:no-line-numbers
+var date = new Date();
+console.log(date.getHours()); // 时
+console.log(date.getMinutes()); // 分
+console.log(date.getSeconds()); // 秒
+// 要求封装一个函数返回当前的时分秒 格式 08:08:08
+function getTimer() {
+    var time = new Date();
+    var h = time.getHours();
+    h = h < 10 ? '0' + h : h;
+    var m = time.getMinutes();
+    m = m < 10 ? '0' + m : m;
+    var s = time.getSeconds();
+    s = s < 10 ? '0' + s : s;
+    return h + ':' + m + ':' + s;
+}
+console.log(getTimer());
+```
+
+#### 14.4.4 获取日期的总的毫秒形式
+
+`Date` 对象是基于1970年1月1日（世界标准时间）起的毫秒数，即：不是当前时间的毫秒数，而是距离1970年1月1号过了多少毫秒数。
+
+我们经常利用总的毫秒数来计算时间，因为它更精确。
+
+```js:no-line-numbers
+// 1. 通过 valueOf()、getTime()
+var date = new Date();
+console.log(date.valueOf());
+console.log(date.getTime());
+
+// 2. 简单的写法 (最常用的写法)
+var date1 = +new Date(); // +new Date() 返回的就是总的毫秒数
+console.log(date1);
+
+// 3. H5 新增的获得总的毫秒数
+console.log(Date.now());
+```
+
+#### 14.4.5 倒计时效果
+
+```js:no-line-numbers
+// 倒计时效果
+// 1.核心算法：输入的时间减去现在的时间就是剩余的时间，即倒计时，但是不能拿着时分秒相减，比如 05 分减去 25 分，结果是负数的。
+// 2.用时间戳来做。用户输入时间总的毫秒数减去现在时间的总的毫秒数，得到的就是剩余时间的毫秒数。
+// 3.把剩余时间总的毫秒数转换为天、时、分、秒（时间戳转换为时分秒）
+//      转换公式如下： 
+//       d = parseInt(总秒数/ 60/60 /24);    //  计算天数
+//       h = parseInt(总秒数/ 60/60 %24)   //   计算小时
+//       m = parseInt(总秒数 /60 %60 );     //   计算分数
+//       s = parseInt(总秒数%60);            //   计算当前秒数
+function countDown(time) {
+    var nowTime = +new Date(); // 返回的是当前时间总的毫秒数
+    var inputTime = +new Date(time); // 返回的是用户输入时间总的毫秒数
+    var times = (inputTime - nowTime) / 1000; // times是剩余时间总的秒数 
+    var d = parseInt(times / 60 / 60 / 24); // 天
+    d = d < 10 ? '0' + d : d;
+    var h = parseInt(times / 60 / 60 % 24); //时
+    h = h < 10 ? '0' + h : h;
+    var m = parseInt(times / 60 % 60); // 分
+    m = m < 10 ? '0' + m : m;
+    var s = parseInt(times % 60); // 当前的秒
+    s = s < 10 ? '0' + s : s;
+    return d + '天' + h + '时' + m + '分' + s + '秒';
+}
+console.log(countDown('2019-5-1 18:00:00'));
+var date = new Date();
+console.log(date);
+```
+
+### 14.5 数组对象
+
+#### 14.5.1 创建数组对象的两种方式
+
+### 14.6 字符串对象
+
