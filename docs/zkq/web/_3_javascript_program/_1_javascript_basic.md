@@ -2820,7 +2820,7 @@ console.log(date2);
 
 **注意：**
 
-```
+```:no-line-numbers
 如果 Date() 括号里面没有参数，就返回当前时间。
 
 如果括号里面有时间，就返回参数里面的时间。
@@ -2937,7 +2937,240 @@ console.log(date);
 
 ### 14.5 数组对象
 
-#### 14.5.1 创建数组对象的两种方式
+#### 14.5.1 创建数组对象的两种方式：字面量方式 & `new Array()`
+
+```js:no-line-numbers
+// 创建数组的两种方式
+// 1. 利用数组字面量
+var arr = [1, 2, 3];
+console.log(arr[0]);
+
+// 2. 利用new Array()
+// var arr1 = new Array();  // 创建了一个空的数组
+// var arr1 = new Array(2);  // 这个 2 表示 数组的长度为2 里面有2个空的数组元素 
+var arr1 = new Array(2, 3); // 等价于 [2,3]  这样写表示 里面有2个数组元素 是 2和3
+console.log(arr1);
+```
+
+#### 14.5.2 检测是否为数组
+
+##### 14.5.2.1 `instanceof` 运算符（判断对象是否属于某种类型）
+
+```js:no-line-numbers
+// instanceof 运算符 它可以用来检测是否为数组
+var arr = [];
+var obj = {};
+console.log(arr instanceof Array); // true
+console.log(obj instanceof Array); // false
+```
+
+##### 14.5.2.2 `Array.isArray()`（判断对象是否为数组）
+
+```js:no-line-numbers
+// Array.isArray(参数);  H5新增的方法  ie9以上版本支持
+var arr = [];
+var obj = {};
+console.log(Array.isArray(arr)); // true
+console.log(Array.isArray(obj)); // false
+```
+
+#### 14.5.3 添加数组元素 & 删除数组元素：`push/unshift` & `pop/shift`
+
+|**方法名**|**说明**|**返回值**|
+|:-|:-|:-|
+|`push(参数1...)`|末尾添加一个或多个元素，修改原数组|并返回新的长度|
+|`pop()`|删除数组最后一个元素，把数组长度减 1，无参数，修改原数组|返回它删除的元素的值|
+|`unshift(参数1...)`|向数组的开头添加一个或更多元素，修改原数组|并返回新的长度|
+|`shift()`|删除数组的第一个元素，数组长度减 1，无参数，修改原数组|并返回第一个元素的值|
+
+```js:no-line-numbers
+// arr.push(ele...) 末尾添加一个或多个元素，arr 数组被修改，并返回 arr 新增元素后的长度
+var arr = [1, 2, 3];
+console.log(arr.push(4, 'pink'));
+console.log(arr);
+
+// arr.unshift(ele...) 开头添加一个或多个元素，arr 数组被修改，并返回 arr 新增元素后的长度
+console.log(arr.unshift('red', 'purple'));
+console.log(arr);
+
+// arr.pop() 删除 arr 中最后一个元素（调用一次只删一个），返回所删除的元素，arr 数组被修改，长度减 1
+console.log(arr.pop());
+console.log(arr);
+
+// 删除 arr 中第一个元素（调用一次只删一个），返回所删除的元素，arr 数组被修改，长度减 1
+console.log(arr.shift());
+console.log(arr);
+```
+
+**示例：筛选数组元素**
+
+```js:no-line-numbers
+// 有一个包含工资的数组[1500, 1200, 2000, 2100, 1800]，要求把数组中工资超过2000的删除，剩余的放到新数组里面
+var arr = [1500, 1200, 2000, 2100, 1800];
+var newArr = [];
+for (var i = 0; i < arr.length; i++) {
+    if (arr[i] < 2000) {
+        // newArr[newArr.length] = arr[i];
+        newArr.push(arr[i]);
+    }
+}
+console.log(newArr);
+```
+
+#### 14.5.4 数组翻转 & 排序：`reverse` & `sort`
+
+|**方法名**|**说明**|**是否修改原数组**|
+|:-|:-|:-|
+|`reverse()`|颠倒数组中元素的顺序，无参数|改变原数组，返回新数组|
+|`sort()`|对数组的元素进行排序|改变原数组，返回新数组|
+
+```js:no-line-numbers
+// 1. 翻转数组
+var arr = ['pink', 'red', 'blue'];
+arr.reverse();
+console.log(arr);
+
+// 2. 数组排序（冒泡排序）
+var arr1 = [13, 4, 77, 1, 7];
+arr1.sort(function(a, b) {
+    //  return a - b; 升序的顺序排列
+    return b - a; // 降序的顺序排列
+});
+console.log(arr1);
+```
+
+#### 14.5.5 获取数组元素索引的方法：`indexOf` & `lastIndexOf`
+
+|**方法名**|**说明**|**返回值**|
+|:-|:-|:-|
+|`indexOf()`|数组中查找给定元素的第一个索引（从前面开始查找）|如果存在返回索引号，不存在则返回 -1|
+|`lastIndexOf()`|数组中查找给定元素的最后一个索引（从后面开始查找）|如果存在返回索引号，不存在则返回 -1|
+
+```js:no-line-numbers
+// indexOf(ele) 从前面开始查找元素，只返回第一个满足条件的索引号 ，找不到则返回 -1 
+// var arr = ['red', 'green', 'blue', 'pink', 'blue'];
+var arr = ['red', 'green', 'pink'];
+console.log(arr.indexOf('blue'));
+        
+// lastIndexOf(ele) 从后面开始查找元素，只返回第一个满足条件的索引号 ，找不到则返回 -1 
+var arr = ['red', 'green', 'blue', 'pink', 'blue'];
+console.log(arr.lastIndexOf('blue')); // 4
+```
+
+##### 14.5.5.1 案例：数组去重
+
+```js:no-line-numbers
+// 数组去重 ['c', 'a', 'z', 'a', 'x', 'a', 'x', 'c', 'b'] 要求去除数组中重复的元素。
+// 1. 目标： 把旧数组里面不重复的元素选取出来放到新数组中， 重复的元素只保留一个 放到新数组中去重。
+// 2. 核心算法： 我们遍历旧数组， 然后拿着旧数组元素去查询新数组， 如果该元素在新数组里面没有出现过，我们就添加，否则不添加。
+// 3. 我们怎么知道该元素没有存在？ 利用 新数组.indexOf(数组元素) 如果返回时 -1 就说明新数组里面没有改元素
+// 封装一个 去重的函数 unique 独一无二的 
+function unique(arr) {
+    var newArr = [];
+    for (var i = 0; i < arr.length; i++) {
+        if (newArr.indexOf(arr[i]) === -1) {
+            newArr.push(arr[i]);
+        }
+    }
+    return newArr;
+}
+// var demo = unique(['c', 'a', 'z', 'a', 'x', 'a', 'x', 'c', 'b'])
+var demo = unique(['blue', 'green', 'blue'])
+console.log(demo);
+```
+
+#### 14.5.6 数组转换为字符串：`toString` & `join`
+
+|**方法名**|**说明**|**返回值**|
+|:-|:-|:-|
+|`toString()`|把数组转换成字符串，逗号分隔每一项|返回一个字符串|
+|`join('分隔符')`|将数组元素用分隔符转换拼接成字符串|返回一个字符串|
+
+```js:no-line-numbers
+// 1. toString() 将我们的数组转换为字符串
+var arr = [1, 2, 3];
+console.log(arr.toString()); // 1,2,3
+
+// 2. join(分隔符) 
+var arr1 = ['green', 'blue', 'pink'];
+console.log(arr1.join()); // green,blue,pink
+console.log(arr1.join('-')); // green-blue-pink
+console.log(arr1.join('&')); // green&blue&pink
+```
+
+#### 14.5.7 连接数组 & 截取部分数组：`concat` & `slice/splice`
+
+|**方法名**|**说明**|**返回值**|
+|:-|:-|:-|
+|`concat()`|连接两个或多个数组，不影响原数组|返回一个新的数组|
+|`slice()`|数组截取 `slice(begin, end)`|返回被截取项目的新数组|
+|`splice()`|数组删除 `splice(begin, count)`|返回被删除项目的新数组，会影响原数组|
+
+> `slice()` 和 `splice()` 目的基本相同，建议重点看下 `splice()`
 
 ### 14.6 字符串对象
+
+#### 14.6.1 基本包装类型：`String`、`Number`、`Boolean`
+
+为了方便操作基本数据类型，`JavaScript` 还提供了三个特殊的引用类型：`String`、`Number` 和 `Boolean`。
+
+**基本包装类型** 就是把简单数据类型包装成为复杂数据类型，这样基本数据类型就有了属性和方法。
+
+```js:no-line-numbers
+// 下面代码有什么问题？
+var str = 'andy';
+console.log(str.length);
+```
+
+按道理基本数据类型是没有属性和方法的，而对象才有属性和方法，但上面代码却可以执行，这是因为 `js` 会把基本数据类型包装为复杂数据类型，`var str = 'andy';` 的执行过程如下：
+
+```js:no-line-numbers
+// 1. 生成临时变量，把简单类型包装为复杂数据类型
+var temp = new String('andy');
+// 2. 赋值给我们声明的字符变量
+str = temp;
+// 3. 销毁临时变量
+temp = null;
+```
+
+#### 14.6.2 字符串的不可变性
+
+字符串的不可变性指的是字符串里面的值不可变，虽然看上去可以通过变量改变内容，但其实是变量表示的地址变了，内存中新开辟了一个内存空间。
+
+```js:no-line-numbers
+var str = 'abc';
+str = 'hello';
+// 当重新给 str 赋值的时候，常量'abc'不会被修改，依然在内存中
+// 重新给字符串赋值，会重新在内存中开辟空间，这个特点就是字符串的不可变
+// 由于字符串的不可变，在大量拼接字符串的时候会有效率问题
+var str = '';
+for (var i = 0; i < 100000; i++) {
+    str += i;
+}
+console.log(str); // 这个结果需要花费大量时间来显示，因为需要不断的开辟新的空间
+```
+
+> 由于字符串的不可变性，所以不要大量的拼接字符串。
+
+#### 14.6.3 获取字符所在索引：`indexOf` & `lastIndexOf`
+
+#### 14.6.4 获取指定索引处的字符：`chartAt` & `charCodeAt` & `str[index]`
+
+#### 14.6.5 字符串操作方法
+
+##### 14.6.5.1 `concat`
+
+##### 14.6.5.2 `substr`
+
+##### 14.6.5.3 `slice`
+
+##### 14.6.5.4 `substring`
+
+##### 14.6.5.5 `replace`
+
+##### 14.6.5.6 `split`
+
+##### 14.6.5.7 `toUpperCase`
+
+##### 14.6.5.8 `toLowerCase`
 
