@@ -2810,9 +2810,304 @@ parentNode.replaceChild(newChild, oldChild);
 
 ### 3.1 注册事件（绑定事件）
 
+给元素添加事件，称为注册事件或者绑定事件。
+
+注册事件有两种方式：**传统方式** 和 **方法监听注册方式**。
+
+#### 3.1.2 传统注册方式
+
+```:no-line-numbers
+- 利用 on 开头的事件 onclick 
+    <button onclick=“alert('hi~')”></button>
+    btn.onclick = function() {} 
+- 特点：注册事件的唯一性
+- 同一个元素同一个事件只能设置一个处理函数，最后注册的处理函数将会覆盖前面注册的处理函数
+```
+
+#### 3.1.3 方法监听注册方式
+
+```:no-line-numbers
+- w3c 标准 推荐方式
+- addEventListener() 它是一个方法
+- IE9 之前的 IE 不支持此方法，可使用 attachEvent() 代替
+- 特点：同一个元素同一个事件可以注册多个监听器
+- 按注册顺序依次执行
+```
+
+##### 3.1.3.1 `addEventListener` 事件监听方式（IE9+ 版本支持）
+
+```:no-line-numbers
+eventTarget.addEventListener(type, listener[, useCapture])
+
+    eventTarget.addEventListener() 方法将指定的监听器注册到 eventTarget（目标对象）上，
+    当该对象触发指定的事件时，就会执行事件处理函数。
+    该方法接收三个参数：
+        - type：事件类型字符串，比如 click、mouseover，注意这里不要带 on
+        - listener：事件处理函数，事件发生时，会调用该监听函数
+        - useCapture：可选参数，是一个布尔值，默认是 false。学完 DOM 事件流后，我们再进一步学习
+```
+
+##### 3.1.3.2 `attachEvent` 事件监听方式（IE8 及早期版本支持）
+
+```:no-line-numbers
+eventTarget.attachEvent(eventNameWithOn, callback)
+
+    eventTarget.attachEvent()方法将指定的监听器注册到 eventTarget（目标对象）上，
+    当该对象触发指定的事件时，指定的回调函数就会被执行。
+    该方法接收两个参数：
+        - eventNameWithOn：事件类型字符串，比如 onclick 、onmouseover，这里要带 on
+        - callback：事件处理函数，当目标触发事件时回调函数被调用
+    注意：IE8 及早期版本支持
+```
+
+##### 3.1.3.3 注册事件兼容性解决方案
+
+```js:no-line-numbers
+function addEventListener(element, eventName, fn) {
+    // 判断当前浏览器是否支持 addEventListener 方法
+    if (element.addEventListener) {
+        element.addEventListener(eventName, fn); // 第三个参数 默认是false
+    } else if (element.attachEvent) {
+        element.attachEvent('on' + eventName, fn);
+    } else {
+        // 相当于 element.onclick = fn;
+        element['on' + eventName] = fn;
+    }
+}
+```
+
+> 兼容性处理的原则：首先照顾大多数浏览器，再处理特殊浏览器。
+
+#### 3.1.4 示例：注册事件两种方式
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <button>传统注册事件</button>
+    <button>方法监听注册事件</button>
+    <button>ie9 attachEvent</button>
+    <script>
+        var btns = document.querySelectorAll('button');
+        // 1. 传统方式注册事件
+        btns[0].onclick = function() {
+            alert('hi');
+        }
+        btns[0].onclick = function() {
+                alert('hao a u');
+            }
+            // 2. 事件侦听注册事件 addEventListener 
+            // (1) 里面的事件类型是字符串 必定加引号 而且不带on
+            // (2) 同一个元素 同一个事件可以添加多个侦听器（事件处理程序）
+        btns[1].addEventListener('click', function() {
+            alert(22);
+        })
+        btns[1].addEventListener('click', function() {
+                alert(33);
+            })
+            // 3. attachEvent ie9以前的版本支持
+        btns[2].attachEvent('onclick', function() {
+            alert(11);
+        })
+    </script>
+</body>
+
+</html>
+```
+
 ### 3.2 删除事件（解绑事件）
 
-### 3.3 `DOM` 事件流
+#### 3.2.1 删除采用传统方式注册的事件
+
+```:no-line-numbers
+eventTarget.onclick = null;
+```
+
+#### 3.2.2 删除采用方法监听注册的事件
+
+```:no-line-numbers
+① eventTarget.removeEventListener(type, listener[, useCapture]);
+② eventTarget.detachEvent(eventNameWithOn, callback);
+```
+
+#### 3.2.3 删除事件兼容性解决方案
+
+```js:no-line-numbers
+function removeEventListener(element, eventName, fn) {
+    // 判断当前浏览器是否支持 removeEventListener 方法
+    if (element.removeEventListener) {
+        element.removeEventListener(eventName, fn); // 第三个参数 默认是false
+    } else if (element.detachEvent) {
+        element.detachEvent('on' + eventName, fn);
+    } else {
+        element['on' + eventName] = null;
+    }
+}
+```
+
+#### 3.2.4 示例：删除事件
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+    </style>
+</head>
+
+<body>
+    <div>1</div>
+    <div>2</div>
+    <div>3</div>
+    <script>
+        var divs = document.querySelectorAll('div');
+        divs[0].onclick = function() {
+                alert(11);
+                // 1. 传统方式删除事件
+                divs[0].onclick = null;
+            }
+            // 2. removeEventListener 删除事件
+        divs[1].addEventListener('click', fn) // 里面的fn 不需要调用加小括号
+
+        function fn() {
+            alert(22);
+            divs[1].removeEventListener('click', fn);
+        }
+        // 3. detachEvent
+        divs[2].attachEvent('onclick', fn1);
+
+        function fn1() {
+            alert(33);
+            divs[2].detachEvent('onclick', fn1);
+        }
+    </script>
+</body>
+
+</html>
+```
+
+### 3.3 `DOM` 事件流（事件在元素节点之间的传播过程）
+
+事件流描述的是从页面中接收事件的顺序。
+
+事件发生时会在元素节点之间按照特定的顺序传播，这个 **传播过程** 即 **`DOM` 事件流**。
+
+`DOM` 事件流分为 3 个阶段：
+
+1. 捕获阶段
+
+    ```:no-line-numbers
+    事件捕获：网景最早提出，由 DOM 最顶层节点开始，然后逐级向下传播到到最具体的元素接收的过程。
+    ```
+   
+2. 当前目标阶段
+   
+3. 冒泡阶段
+
+    ```:no-line-numbers
+    事件冒泡：IE 最早提出，事件开始时由最具体的元素接收，然后逐级向上传播到到 DOM 最顶层节点的过程。
+    ```
+
+我们向水里面扔一块石头，首先它会有一个下降的过程，这个过程就可以理解为从最顶层向事件发生的最具体元素（目标点）的捕获过程；之后会产生泡泡，会在最低点（最具体元素）之后漂浮到水面上，这个过程相当于事件冒泡。
+
+![](./images/_2_web_apis/14.png)
+
+**注意：**
+
+```:no-line-numbers
+1. JS 代码中只能执行捕获或者冒泡其中的一个阶段。
+2. onclick 和 attachEvent 只能得到冒泡阶段。
+3. addEventListener(type, listener[, useCapture]) 第三个参数如果是 true，
+    表示在事件捕获阶段调用事件处理程序；如果是 false（不写默认就是false），表示在事件冒泡阶段调用事件处理程序。
+4. 实际开发中我们很少使用事件捕获，我们更关注事件冒泡。
+5. 有些事件是没有冒泡的，比如 onblur、onfocus、onmouseenter、onmouseleave
+6. 事件冒泡有时候会带来麻烦，有时候又会帮助很巧妙的做某些事件，我们后面讲解。
+```
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .father {
+            overflow: hidden;
+            width: 300px;
+            height: 300px;
+            margin: 100px auto;
+            background-color: pink;
+            text-align: center;
+        }
+        
+        .son {
+            width: 200px;
+            height: 200px;
+            margin: 50px;
+            background-color: purple;
+            line-height: 200px;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="father">
+        <div class="son">son盒子</div>
+    </div>
+    <script>
+        // dom 事件流 三个阶段
+        // 1. JS 代码中只能执行捕获或者冒泡其中的一个阶段。
+        // 2. onclick 和 attachEvent（ie） 只能得到冒泡阶段。
+        // 3. 捕获阶段 如果addEventListener 第三个参数是 true 那么则处于捕获阶段  document -> html -> body -> father -> son
+        // var son = document.querySelector('.son');
+        // son.addEventListener('click', function() {
+        //     alert('son');
+        // }, true);
+        // var father = document.querySelector('.father');
+        // father.addEventListener('click', function() {
+        //     alert('father');
+        // }, true);
+        // 4. 冒泡阶段 如果addEventListener 第三个参数是 false 或者 省略 那么则处于冒泡阶段  son -> father ->body -> html -> document
+        var son = document.querySelector('.son');
+        son.addEventListener('click', function() {
+            alert('son');
+        }, false);
+        var father = document.querySelector('.father');
+        father.addEventListener('click', function() {
+            alert('father');
+        }, false);
+        document.addEventListener('click', function() {
+            alert('document');
+        })
+    </script>
+</body>
+
+</html>
+```
 
 ### 3.4 事件对象
 
