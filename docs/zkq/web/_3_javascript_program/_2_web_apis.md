@@ -3010,6 +3010,8 @@ function removeEventListener(element, eventName, fn) {
 
 事件发生时会在元素节点之间按照特定的顺序传播，这个 **传播过程** 即 **`DOM` 事件流**。
 
+#### 3.3.1 `DOM` 事件流的 3 个阶段：捕获、当前目标、冒泡阶段
+
 `DOM` 事件流分为 3 个阶段：
 
 1. 捕获阶段
@@ -3111,10 +3113,1665 @@ function removeEventListener(element, eventName, fn) {
 
 ### 3.4 事件对象
 
+#### 3.4.1 什么是事件对象
+
+```js:no-line-numbers
+ eventTarget.onclick = function(event) {
+    // 这个 event 就是事件对象，我们还喜欢的写成 e 或者 evt 
+ } 
+
+ eventTarget.addEventListener('click', function(event) {
+    // 这个 event 就是事件对象，我们还喜欢的写成 e 或者 evt 
+ }）
+```
+
+```:no-line-numbers
+官方解释：
+    event 对象代表事件的状态，比如键盘按键的状态、鼠标的位置、鼠标按钮的状态。
+简单理解：
+    事件发生后，跟事件相关的一系列信息数据的集合都放到这个对象里面，这个对象就是事件对象 event，它有很多属性和方法。
+    比如： 
+    1. 谁绑定了这个事件。
+    2. 鼠标触发事件的话，会得到鼠标的相关信息，如鼠标位置。
+    3. 键盘触发事件的话，会得到键盘的相关信息，如按了哪个键。
+```
+
+#### 3.4.2 事件对象的使用语法
+
+```js:no-line-numbers
+ eventTarget.onclick = function(event) {
+    // 这个 event 就是事件对象，我们还喜欢的写成 e 或者 evt 
+ } 
+
+ eventTarget.addEventListener('click', function(event) {
+    // 这个 event 就是事件对象，我们还喜欢的写成 e 或者 evt 
+ }）
+```
+
+```:no-line-numbers
+这个 event 是个形参，系统帮我们设定为事件对象，不需要传递实参过去。
+当我们注册事件时，event 对象就会被系统自动创建，并依次传递给事件监听器（事件处理函数）。
+```
+
+#### 3.4.3 事件对象的兼容性方案
+
+事件对象本身的获取存在兼容问题：
+
+1. 标准浏览器中是浏览器给方法传递的参数，只需要定义形参 `e` 就可以获取到。
+   
+2. 在 `IE6~8` 中，浏览器不会给方法传递参数，如果需要的话，需要到 `window.event` 中获取查找。
+
+```:no-line-numbers
+解决方式: 
+e = e || window.event;
+```
+
+#### 3.4.4 事件对象的常见属性和方法
+
+|**事件对象属性方法**|**说明**|
+|:-|:-|
+|`e.target`|返回触发事件的对象（标准）|
+|`e.srcElement`|返回触发事件的对象（非标准，`IE6~8` 使用）|
+|`e.type`|返回事件的类型，比如 `click`、`mouseover`，不带 `on`|
+|`e.cancelBubble`|该属性阻止冒泡（非标准，`IE6~8` 使用）|
+|`e.returnValue`|该属性阻止默认事件（默认行为）（非标准，`IE6~8` 使用），比如不让链接跳转|
+|`e.preventDefault()`|该方法阻止默认事件（默认行为）（标准），比如不让链接跳转|
+|`e.stopPropagation()`|阻止冒泡（标准）|
+
+```:no-line-numbers
+e.target 和 this 的区别：
+    e.target 是事件触发的元素。
+    this 是事件绑定的元素，这个函数的调用者（绑定这个事件的元素）
+```
+
+#### 3.4.5 示例1：`e.target` 与 `this` 的区别 & 兼容性方案
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+    </style>
+</head>
+
+<body>
+    <div>123</div>
+    <ul>
+        <li>abc</li>
+        <li>abc</li>
+        <li>abc</li>
+    </ul>
+    <script>
+        // 常见事件对象的属性和方法
+        // 1. e.target 返回的是触发事件的对象（元素）  this 返回的是绑定事件的对象（元素）
+        // 区别 ： e.target 点击了那个元素，就返回那个元素 this 那个元素绑定了这个点击事件，那么就返回谁
+        var div = document.querySelector('div');
+        div.addEventListener('click', function(e) {
+            console.log(e.target);
+            console.log(this);
+
+        })
+        var ul = document.querySelector('ul');
+        ul.addEventListener('click', function(e) {
+                // 我们给ul 绑定了事件  那么this 就指向ul  
+                console.log(this);
+                console.log(e.currentTarget);
+
+                // e.target 指向我们点击的那个对象 谁触发了这个事件 我们点击的是li e.target 指向的就是li
+                console.log(e.target);
+
+            })
+            // 了解兼容性
+            // div.onclick = function(e) {
+            //     e = e || window.event;
+            //     var target = e.target || e.srcElement;
+            //     console.log(target);
+            // }
+        // 2. 了解 跟 this 有个非常相似的属性 currentTarget  ie678不认识
+    </script>
+</body>
+
+</html>
+```
+
+#### 3.4.6 示例2：事件对象阻止默认行为
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div>123</div>
+    <a href="http://www.baidu.com">百度</a>
+    <form action="http://www.baidu.com">
+        <input type="submit" value="提交" name="sub">
+    </form>
+    <script>
+        // 常见事件对象的属性和方法
+        // 1. 返回事件类型
+        var div = document.querySelector('div');
+        div.addEventListener('click', fn);
+        div.addEventListener('mouseover', fn);
+        div.addEventListener('mouseout', fn);
+
+        function fn(e) {
+            console.log(e.type);
+        }
+        // 2. 阻止默认行为（事件） 让链接不跳转 或者让提交按钮不提交
+        var a = document.querySelector('a');
+        a.addEventListener('click', function(e) {
+                e.preventDefault(); //  dom 标准写法
+            })
+            // 3. 传统的注册方式
+        a.onclick = function(e) {
+            // 普通浏览器 e.preventDefault();  方法
+            // e.preventDefault();
+            // 低版本浏览器 ie678  returnValue  属性
+            // e.returnValue;
+            // 我们可以利用 return false 也能阻止默认行为 没有兼容性问题 特点：return 后面的代码不执行了， 而且只限于传统的注册方式
+            return false;
+            alert(11);
+        }
+    </script>
+</body>
+
+</html>
+```
+
 ### 3.5 阻止事件冒泡
+
+事件冒泡：开始时由最具体的元素接收，然后逐级向上传播到到 `DOM` 最顶层节点。
+
+事件冒泡本身的特性，会带来的坏处，也会带来的好处，需要我们灵活掌握。
+
+#### 3.5.1 阻止事件冒泡的两种写法（标准 & 非标准）
+
+```:no-line-numbers
+e.stopPropagation()
+    标准写法：利用事件对象里面的 stopPropagation() 方法
+
+e.cancelBubble = true;
+    非标准写法：IE 6-8 利用事件对象 cancelBubble 属性
+```
+
+#### 3.5.2  阻止事件冒泡的兼容性解决方案
+
+```js:no-line-numbers
+if (e && e.stopPropagation) {
+    e.stopPropagation();
+} else {
+    window.event.cancelBubble = true;
+}
+```
+
+#### 3.5.3 示例：阻止事件冒泡
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .father {
+            overflow: hidden;
+            width: 300px;
+            height: 300px;
+            margin: 100px auto;
+            background-color: pink;
+            text-align: center;
+        }
+        
+        .son {
+            width: 200px;
+            height: 200px;
+            margin: 50px;
+            background-color: purple;
+            line-height: 200px;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="father">
+        <div class="son">son儿子</div>
+    </div>
+    <script>
+        // 常见事件对象的属性和方法
+        // 阻止冒泡  dom 推荐的标准 stopPropagation() 
+        var son = document.querySelector('.son');
+        son.addEventListener('click', function(e) {
+            alert('son');
+            e.stopPropagation(); // stop 停止 Propagation 传播
+            e.cancelBubble = true; // 非标准 cancel 取消 bubble 泡泡
+        }, false);
+
+        var father = document.querySelector('.father');
+        father.addEventListener('click', function() {
+            alert('father');
+        }, false);
+        document.addEventListener('click', function() {
+            alert('document');
+        })
+    </script>
+</body>
+
+</html>
+```
 
 ### 3.6 事件委托（代理、委派）
 
+**事件委托的生活场景**
+
+```:no-line-numbers
+咱们班有100个学生， 快递员有100个快递， 如果一个个的送花费时间较长。同时每个学生领取的时候，也需要排队领取，也花费时间较长，何如？
+
+解决方案： 
+    快递员把100个快递，委托给班主任，班主任把这些快递放到办公室，同学们下课自行领取即可。
+优势： 
+    快递员省事，委托给班主任就可以走了。 同学们领取也方便，因为相信班主任。
+```
+
+**事件委托的代码场景**
+
+```:no-line-numbers
+ <ul>
+    <li>知否知否，应该有弹框在手</li>
+    <li>知否知否，应该有弹框在手</li>
+    <li>知否知否，应该有弹框在手</li>
+    <li>知否知否，应该有弹框在手</li>
+    <li>知否知否，应该有弹框在手</li>
+ </ul>
+
+点击每个 li 都会弹出对话框，以前需要给每个 li 注册事件，是非常辛苦的，而且访问 DOM 的次数越多，这就会延长整个页面的交互就绪时间。
+
+解决方案：
+    给 ul 注册点击事件，然后利用事件对象的 target 来找到当前点击的 li，因为点击 li，事件会冒泡到 ul 上，ul 有注册事件，就会触发事件监听器。
+优势： 
+    我们只操作了一次 DOM ，提高了程序的性能。
+```
+
+> 事件委托也称为事件代理，在 `jQuery` 里面称为事件委派。
+
+**事件委托的原理**
+
+```:no-line-numbers
+不是给每个子节点单独设置事件监听器，而是将事件监听器设置在其父节点上，然后利用冒泡原理影响设置每个子节点。
+```
+
+#### 3.6.1 示例：事件委托
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <ul>
+        <li>知否知否，点我应有弹框在手！</li>
+        <li>知否知否，点我应有弹框在手！</li>
+        <li>知否知否，点我应有弹框在手！</li>
+        <li>知否知否，点我应有弹框在手！</li>
+        <li>知否知否，点我应有弹框在手！</li>
+    </ul>
+    <script>
+        // 事件委托的核心原理：给父节点添加侦听器， 利用事件冒泡影响每一个子节点
+        var ul = document.querySelector('ul');
+        ul.addEventListener('click', function(e) {
+            // alert('知否知否，点我应有弹框在手！');
+            // e.target 这个可以得到我们点击的对象
+            e.target.style.backgroundColor = 'pink';
+        })
+    </script>
+</body>
+
+</html>
+```
+
 ### 3.7 常用的鼠标事件
 
+|**鼠标事件**|**触发条件**|
+|:-|:-|
+|`onclick`|鼠标点击左键触发|
+|`onmouseover`|鼠标经过触发|
+|`onmouseout`|鼠标离开触发|
+|`onfocus`|获得鼠标焦点触发|
+|`onblur`|失去鼠标焦点触发|
+|`onmousemove`|鼠标移动触发|
+|`onmouseup`|鼠标弹起触发|
+|`onmousedown`|鼠标按下触发|
+
+#### 3.7.1 禁止鼠标右键菜单（`contextmenu` 显示上下文菜单事件）
+
+```js:no-line-numbers
+// contextmenu 主要控制应该何时显示上下文菜单，主要用于程序员取消默认的上下文菜单。
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+})
+```
+
+#### 3.7.2 禁止鼠标选中（`selectstart` 开始选中事件）
+
+```js:no-line-numbers
+document.addEventListener('selectstart', function(e) {
+    e.preventDefault();
+})
+```
+
+#### 3.7.3 鼠标事件对象（`MouseEvent`）
+
+|**鼠标事件对象**|**触说明**|
+|:-|:-|
+|`e.clientX`|返回鼠标相对于浏览器窗口可视区的 `X` 坐标|
+|`e.clientY`|返回鼠标相对于浏览器窗口可视区的 `Y` 坐标|
+|`e.pageX`|返回鼠标相对于文档页面的 `X` 坐标（`IE9+` 支持）|
+|`e.pageY`|返回鼠标相对于文档页面的 `Y` 坐标（`IE9+` 支持）|
+|`e.screenX`|返回鼠标相对于电脑屏幕的 `X` 坐标|
+|`e.screenY`|返回鼠标相对于电脑屏幕的 `Y` 坐标|
+
+#### 3.7.4 示例1：禁止鼠标右键菜单 & 禁止鼠标选中
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    我是一段不愿意分享的文字
+    <script>
+        // 1. contextmenu 我们可以禁用右键菜单
+        document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            })
+            // 2. 禁止选中文字 selectstart
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+
+        })
+    </script>
+</body>
+
+</html>
+```
+
+#### 3.7.5 示例2：鼠标事件对象
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        body {
+            height: 3000px;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        // 鼠标事件对象 MouseEvent
+        document.addEventListener('click', function(e) {
+            // 1. client 鼠标在可视区的x和y坐标
+            console.log(e.clientX);
+            console.log(e.clientY);
+            console.log('---------------------');
+
+            // 2. page 鼠标在页面文档的x和y坐标
+            console.log(e.pageX);
+            console.log(e.pageY);
+            console.log('---------------------');
+
+            // 3. screen 鼠标在电脑屏幕的x和y坐标
+            console.log(e.screenX);
+            console.log(e.screenY);
+
+        })
+    </script>
+</body>
+
+</html>
+```
+
+#### 3.7.6 示例3：跟随鼠标的天使
+
+```:no-line-numbers
+案例分析：
+① 鼠标不断的移动，使用鼠标移动事件：mousemove
+② 在页面中移动，给 document 注册事件
+③ 图片要移动距离，而且不占位置，我们使用绝对定位即可
+④ 核心原理：每次鼠标移动，我们都会获得最新的鼠标坐标，把这个x和y坐标做为图片的 top 和 left 值就可以移动图片
+```
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        img {
+            position: absolute;
+            top: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <img src="images/angel.gif" alt="">
+    <script>
+        var pic = document.querySelector('img');
+        document.addEventListener('mousemove', function(e) {
+            // 1. mousemove只要我们鼠标移动1px 就会触发这个事件
+            // console.log(1);
+            // 2. 核心原理： 每次鼠标移动，我们都会获得最新的鼠标坐标， 把这个x和y坐标做为图片的top和left 值就可以移动图片
+            var x = e.pageX;
+            var y = e.pageY;
+            console.log('x坐标是' + x, 'y坐标是' + y);
+            // 3. 千万不要忘记给left 和top 添加px 单位
+            pic.style.left = x - 50 + 'px';
+            pic.style.top = y - 40 + 'px';
+        });
+    </script>
+</body>
+
+</html>
+```
+
 ### 3.8 常用的键盘事件
+
+事件除了使用鼠标触发，还可以使用键盘触发。
+
+> 注意给文档 `document` 添加键盘事件。
+
+|**键盘事件**|**触发条件**|
+|:-|:-|
+|`onkeyup`|某个键盘按键被松开时触发|
+|`onkeydown`|某个键盘按键被按下时触发|
+|`onkeypress`|某个键盘按键被按下并弹起时触发|
+
+> **注意：** 
+> 
+> 1. `onkeypress` 和前面2个的区别是，它不识别功能键，比如左右箭头，`shift` 等。
+> 
+> 2. `onkeydown` 和 `onkeyup` 不区分字母大小写，`onkeypress` 区分字母大小写。
+
+#### 3.8.1 键盘事件对象（`KeyboardEvent`）
+
+|**键盘事件对象**|**说明**|
+|:-|:-|
+|`keyCode`|返回该键的 `ASCII` 值|
+
+![](./images/_2_web_apis/15.png)
+
+#### 3.8.2 示例1：键盘事件对象的 `keyCode` 属性
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        // 键盘事件对象中的 keyCode 属性可以得到相应键的 ASCII 码值
+        // 1. 我们的 keyup 和 keydown 事件不区分字母大小写  a 和 A 得到的都是 65
+        // 2. 我们的 keypress 事件 区分字母大小写  a  97 和 A 得到的是65
+        document.addEventListener('keyup', function(e) {
+            // console.log(e);
+            console.log('up:' + e.keyCode);
+            // 我们可以利用 keycode 返回的 ASCII 码值来判断用户按下了那个键
+            if (e.keyCode === 65) {
+                alert('您按下的a键');
+            } else {
+                alert('您没有按下a键')
+            }
+
+        })
+        document.addEventListener('keypress', function(e) {
+            // console.log(e);
+            console.log('press:' + e.keyCode);
+
+        })
+    </script>
+</body>
+
+</html>
+```
+
+#### 3.8.3 示例2：模拟京东按键输入内容
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <input type="text">
+    <script>
+        // 核心思路： 检测用户是否按下了s 键，如果按下s 键，就把光标定位到搜索框里面
+        // 使用键盘事件对象里面的keyCode 判断用户按下的是否是s键
+        // 搜索框获得焦点： 使用 js 里面的 focus() 方法
+        var search = document.querySelector('input');
+        document.addEventListener('keyup', function(e) {
+            // console.log(e.keyCode);
+            if (e.keyCode === 83) {
+                search.focus();
+            }
+        })
+    </script>
+</body>
+
+</html>
+```
+
+#### 3.8.4 示例3：模拟京东快递单号查询
+
+![](./images/_2_web_apis/16.png)
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .search {
+            position: relative;
+            width: 178px;
+            margin: 100px;
+        }
+        
+        .con {
+            display: none;
+            position: absolute;
+            top: -40px;
+            width: 171px;
+            border: 1px solid rgba(0, 0, 0, .2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+            padding: 5px 0;
+            font-size: 18px;
+            line-height: 20px;
+            color: #333;
+        }
+        
+        .con::before {
+            content: '';
+            width: 0;
+            height: 0;
+            position: absolute;
+            top: 28px;
+            left: 18px;
+            border: 8px solid #000;
+            border-style: solid dashed dashed;
+            border-color: #fff transparent transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="search">
+        <div class="con">123</div>
+        <input type="text" placeholder="请输入您的快递单号" class="jd">
+    </div>
+    <script>
+        // 快递单号输入内容时，上面的大号字体盒子（con）显示(这里面的字号更大）
+        // 表单检测用户输入： 给表单添加键盘事件
+        // 同时把快递单号里面的值（value）获取过来赋值给 con盒子（innerText）做为内容
+        // 如果快递单号里面内容为空，则隐藏大号字体盒子(con)盒子
+        var con = document.querySelector('.con');
+        var jd_input = document.querySelector('.jd');
+        jd_input.addEventListener('keyup', function() {
+                // console.log('输入内容啦');
+                if (this.value == '') {
+                    con.style.display = 'none';
+                } else {
+                    con.style.display = 'block';
+                    con.innerText = this.value;
+                }
+            })
+            // 当我们失去焦点，就隐藏这个con盒子
+        jd_input.addEventListener('blur', function() {
+                con.style.display = 'none';
+            })
+            // 当我们获得焦点，就显示这个con盒子
+        jd_input.addEventListener('focus', function() {
+            if (this.value !== '') {
+                con.style.display = 'block';
+            }
+        })
+    </script>
+</body>
+```
+
+## 4. `BOM`（浏览器对象模型）
+
+### 4.1 `BOM` 概述
+
+#### 4.1.1 什么是 `BOM`
+
+`BOM`（`Browser Object Model`）即浏览器对象模型，它提供了独立于内容而与浏览器窗口进行交互的对象，其核心对象是 `window`。
+
+`BOM` 由一系列相关的对象构成，并且每个对象都提供了很多方法与属性。
+
+`BOM` 缺乏标准，`JavaScript` 语法的标准化组织是 `ECMA`，`DOM` 的标准化组织是 `W3C`，`BOM` 最初是 `Netscape` 浏览器标准的一部分。
+
+#### 4.1.2 `DOM` 与 `BOM` 的对比
+
+<table>
+    <tr>
+        <th>DOM</th>
+        <th>BOM</th>
+    </tr>
+    <tr>
+        <td>
+            <ul>
+                <li>文档对象模型</li>
+                <li>DOM 就是把「文档」当做一个「对象」来看待</li>
+                <li>DOM 的顶级对象是 document</li>
+                <li>DOM 主要学习的是操作页面元素</li>
+                <li>DOM 是 W3C 标准规范</li>
+            </ul>
+        </td>
+        <td>
+            <ul>
+                <li>浏览器对象模型</li>
+                <li>BOM 把「浏览器」当做一个「对象」来看待</li>
+                <li>BOM 的顶级对象是 window</li>
+                <li>BOM 学习的是浏览器窗口交互的一些对象</li>
+                <li>BOM 是浏览器厂商在各自浏览器上定义的，兼容性较差</li>
+            </ul>
+        </td>
+    </tr>
+</table>
+
+#### 4.1.3 `BOM` 的构成
+
+`BOM` 比 `DOM` 更大，它包含 `DOM`。
+
+![](./images/_2_web_apis/17.png)
+
+#### 4.1.4 浏览器顶级对象 `window` 概述
+
+`window` 对象是浏览器的顶级对象，它具有双重角色：
+
+1. 它是 `JS` 访问浏览器窗口的一个接口。
+   
+2. 它是一个全局对象。定义在全局作用域中的变量、函数都会变成 `window` 对象的属性和方法。
+
+在调用的时候可以省略 `window`，前面学习的对话框都属于 `window` 对象方法，如 `alert()`、`prompt()` 等。
+
+> 注意 `window` 下的一个特殊属性 `window.name`
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        // window.document.querySelector()
+        var num = 10;
+        console.log(num);
+        console.log(window.num);
+
+        function fn() {
+            console.log(11);
+
+        }
+        fn();
+        window.fn();
+        // alert(11);
+        // window.alert(11)
+        console.dir(window);
+        // var name = 10;
+        console.log(window.name);
+    </script>
+</body>
+
+</html>
+```
+
+### 4.2 `window` 对象的常见事件
+
+#### 4.2.1 窗口加载事件：`window.onload`
+
+**注册窗口加载事件：**
+
+```js:no-line-numbers
+window.onload = function(){}
+// 或者
+window.addEventListener("load",function(){});
+```
+
+```:no-line-numbers
+window.onload 是窗口 (页面）加载事件，当文档内容完全加载完成会触发该事件（包括图像、脚本文件、CSS 文件等），调用的处理函数。
+```
+
+**注意：**
+
+```:no-line-numbers
+1. 有了 window.onload 就可以把 JS 代码写到页面元素的上方，因为 onload 是等页面内容全部加载完毕，再去执行处理函数。
+2. window.onload 传统注册事件方式只能写一次，如果有多个，会以最后一个 window.onload 为准。
+3. 如果使用 addEventListener 则没有限制。
+```
+
+##### 4.2.1.1 `DOMContentLoaded` 事件
+
+```js:no-line-numbers
+document.addEventListener('DOMContentLoaded',function(){})
+```
+
+```:no-line-numbers
+- DOMContentLoaded 事件触发时，仅当DOM加载完成，不包括样式表，图片，flash等等。
+- IE9 以上才支持
+- 如果页面的图片很多的话，从用户访问到 onload 触发可能需要较长的时间，交互效果就不能实现，必然影响用
+  户的体验，此时用 DOMContentLoaded 事件比较合适。
+```
+
+##### 4.2.1.2 示例：利用 `window.onload` 将 `JS` 代码写到页面元素的上方
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script>
+        // window.onload = function() {
+        //     var btn = document.querySelector('button');
+        //     btn.addEventListener('click', function() {
+        //         alert('点击我');
+        //     })
+        // }
+        // window.onload = function() {
+        //     alert(22);
+        // }
+        window.addEventListener('load', function() {
+            var btn = document.querySelector('button');
+            btn.addEventListener('click', function() {
+                alert('点击我');
+            })
+        })
+        window.addEventListener('load', function() {
+
+            alert(22);
+        })
+        document.addEventListener('DOMContentLoaded', function() {
+                alert(33);
+            })
+            // load 等页面内容全部加载完毕，包含页面dom元素 图片 flash  css 等等
+            // DOMContentLoaded 是DOM 加载完毕，不包含图片 falsh css 等就可以执行 加载速度比 load更快一些
+    </script>
+</head>
+
+<body>
+    <button>点击</button>
+</body>
+
+</html>
+```
+
+#### 4.2.2 调整窗口大小事件：`window.onresize`
+
+**注册调整窗口大小事件：**
+
+```js:no-line-numbers
+window.onresize = function(){}
+// 或者
+window.addEventListener("resize",function(){});
+```
+
+```:no-line-numbers
+window.onresize 是调整窗口大小加载事件，当触发时就调用的处理函数。
+```
+
+**注意：**
+
+```:no-line-numbers
+1. 只要窗口大小发生像素变化，就会触发这个事件。
+2. 我们经常利用这个事件完成响应式布局。window.innerWidth 当前屏幕的宽度。
+```
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            width: 200px;
+            height: 200px;
+            background-color: pink;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        window.addEventListener('load', function() {
+            var div = document.querySelector('div');
+            window.addEventListener('resize', function() {
+                console.log(window.innerWidth);
+
+                console.log('变化了');
+                if (window.innerWidth <= 800) {
+                    div.style.display = 'none';
+                } else {
+                    div.style.display = 'block';
+                }
+
+            })
+        })
+    </script>
+    <div></div>
+</body>
+
+</html>
+```
+
+### 4.3 定时器
+
+`window` 对象给我们提供了 2 个非常好用的方法 —— 定时器。
+
+- `setTimeout()`
+  
+- `setInterval()`
+
+#### 4.3.1 定时器1：`window.setTimeout(调用函数, [延迟的毫秒数])`
+
+```:no-line-numbers
+window.setTimeout(调用函数, [延迟的毫秒数]);
+
+    setTimeout() 方法用于设置一个定时器，该定时器在定时器到期后执行调用函数。
+    这个调用函数我们也称为回调函数 callback，即需要等待时间，时间到了才去调用这个函数
+```
+
+**注意：**
+
+```:no-line-numbers
+1. window 可以省略。
+2. 这个调用函数可以直接写函数，或者写函数名，或者采取字符串 '函数名()' 三种形式写法。（第三种不推荐）
+3. 延迟的毫秒数省略默认是 0，如果写，必须是毫秒。
+4. 因为定时器可能有很多，所以我们经常给定时器赋值一个标识符。
+```
+
+**停止 `setTimeout()` 定时器**
+
+```:no-line-numbers
+window.clearTimeout(timeoutID)
+
+    clearTimeout() 方法取消了先前通过调用 setTimeout() 建立的定时器。
+    window 可以省略。
+    参数 timeoutID 就是定时器的标识符 。
+```
+
+##### 4.3.1.1 示例1：回调函数的三种形式写法
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        // 1. 直接写函数
+        // setTimeout(function() {
+        //     console.log('时间到了');
+
+        // }, 2000);
+        function callback() {
+            console.log('爆炸了');
+
+        }
+
+        // 2. 写函数名
+        var timer1 = setTimeout(callback, 3000); // timer1 就是给定时器赋的一个标识符
+        var timer2 = setTimeout(callback, 5000); // timer2 就是给定时器赋的一个标识符
+
+        // 3. 采取字符串 '函数名()'
+        // setTimeout('callback()', 3000); // 我们不提倡这个写法
+    </script>
+</body>
+
+</html>
+```
+
+##### 4.3.1.2 示例2：5秒之后自定关闭的广告
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <img src="images/ad.jpg" alt="" class="ad">
+    <script>
+        var ad = document.querySelector('.ad');
+        setTimeout(function() {
+            ad.style.display = 'none';
+        }, 5000);
+    </script>
+</body>
+
+</html>
+```
+
+##### 4.3.1.3 示例3：停止 `setTimeout()` 定时器
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <button>点击停止定时器</button>
+    <script>
+        var btn = document.querySelector('button');
+        var timer = setTimeout(function() {
+            console.log('爆炸了');
+
+        }, 5000);
+        btn.addEventListener('click', function() {
+            clearTimeout(timer);
+        })
+    </script>
+</body>
+
+</html>
+```
+
+#### 4.3.2 定时器2：`window.setInterval(回调函数, [间隔的毫秒数])`
+
+```:no-line-numbers
+window.setInterval(回调函数, [间隔的毫秒数]);
+
+    setInterval() 方法重复调用一个函数，每隔这个时间，就去调用一次回调函数。
+```
+
+**注意：**
+
+```:no-line-numbers
+1. window 可以省略。
+2. 这个调用函数可以直接写函数，或者写函数名，或者采取字符串 '函数名()' 三种形式。
+3. 间隔的毫秒数省略默认是 0，如果写，必须是毫秒，表示每隔多少毫秒就自动调用这个函数。
+4. 因为定时器可能有很多，所以我们经常给定时器赋值一个标识符。 
+5. 第一次执行也是间隔毫秒数之后执行，之后每隔毫秒数就执行一次。
+```
+
+**停止 `setInterval()` 定时器**
+
+```:no-line-numbers
+window.clearInterval(intervalID);
+
+    clearInterval() 方法取消了先前通过调用 setInterval() 建立的定时器。
+    window 可以省略。
+    参数 intervalID 就是定时器的标识符。
+```
+
+**`setTimeout()` 和 `setInterval()` 的区别**
+
+```:no-line-numbers
+1. setTimeout 延时时间到了，就去调用这个回调函数，只调用一次 就结束了这个定时器
+2. setInterval 每隔这个延时时间，就去调用这个回调函数，会调用很多次，重复调用这个函数
+```
+
+##### 4.3.2.1 示例1：倒计时效果
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            margin: 200px;
+        }
+        
+        span {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            font-size: 20px;
+            color: #fff;
+            text-align: center;
+            line-height: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <span class="hour">1</span>
+        <span class="minute">2</span>
+        <span class="second">3</span>
+    </div>
+    <script>
+        // 1. 获取元素 
+        var hour = document.querySelector('.hour'); // 小时的黑色盒子
+        var minute = document.querySelector('.minute'); // 分钟的黑色盒子
+        var second = document.querySelector('.second'); // 秒数的黑色盒子
+        var inputTime = +new Date('2019-5-1 18:00:00'); // 返回的是用户输入时间总的毫秒数
+        countDown(); // 我们先调用一次这个函数，防止第一次刷新页面有空白 
+        // 2. 开启定时器
+        setInterval(countDown, 1000);
+
+        function countDown() {
+            var nowTime = +new Date(); // 返回的是当前时间总的毫秒数
+            var times = (inputTime - nowTime) / 1000; // times是剩余时间总的秒数 
+            var h = parseInt(times / 60 / 60 % 24); //时
+            h = h < 10 ? '0' + h : h;
+            hour.innerHTML = h; // 把剩余的小时给 小时黑色盒子
+            var m = parseInt(times / 60 % 60); // 分
+            m = m < 10 ? '0' + m : m;
+            minute.innerHTML = m;
+            var s = parseInt(times % 60); // 当前的秒
+            s = s < 10 ? '0' + s : s;
+            second.innerHTML = s;
+        }
+    </script>
+</body>
+
+</html
+```
+
+##### 4.3.2.2 示例2：停止 `setInterval()` 定时器
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <button class="begin">开启定时器</button>
+    <button class="stop">停止定时器</button>
+    <script>
+        var begin = document.querySelector('.begin');
+        var stop = document.querySelector('.stop');
+        var timer = null; // 全局变量 null 是一个空对象
+        begin.addEventListener('click', function() {
+            timer = setInterval(function() {
+                console.log('ni hao ma');
+            }, 1000);
+        })
+        stop.addEventListener('click', function() {
+            clearInterval(timer);
+        })
+    </script>
+</body>
+
+</html>
+```
+
+##### 4.3.2.3 示例3：发送短信
+
+点击按钮后，该按钮60秒之内不能再次点击，防止重复发送短信
+
+![](./images/_2_web_apis/18.png)
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    手机号码： <input type="number"> <button>发送</button>
+    <script>
+        // 按钮点击之后，会禁用 disabled 为true 
+        // 同时按钮里面的内容会变化， 注意 button 里面的内容通过 innerHTML修改
+        // 里面秒数是有变化的，因此需要用到定时器
+        // 定义一个变量，在定时器里面，不断递减
+        // 如果变量为0 说明到了时间，我们需要停止定时器，并且复原按钮初始状态
+        var btn = document.querySelector('button');
+        var time = 3; // 定义剩下的秒数
+        btn.addEventListener('click', function() {
+            btn.disabled = true;
+            var timer = setInterval(function() {
+                if (time == 0) {
+                    // 清除定时器和复原按钮
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    btn.innerHTML = '发送';
+                } else {
+                    btn.innerHTML = '还剩下' + time + '秒';
+                    time--;
+                }
+            }, 1000);
+        })
+    </script>
+</body>
+
+</html>
+```
+
+### 4.4 `this` 指向问题
+
+`this` 的指向在函数定义的时候是确定不了的，只有函数执行的时候才能确定 `this` 到底指向谁，一般情况下 `this` 的最终指向的是那个调用它的对象。
+
+现阶段，我们先了解一下几个 `this` 指向：
+
+1. 全局作用域或者普通函数中 `this` 指向全局对象 `window`（注意定时器里面的 this 指向 `window`）
+   
+2. 方法调用中谁调用 `this` 指向谁
+   
+3. 构造函数中 `this` 指向构造函数的实例
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <button>点击</button>
+    <script>
+        // this 指向问题 一般情况下 this 的最终指向的是那个调用它的对象
+
+        // 1. 全局作用域或者普通函数中 this 指向全局对象 window（ 注意定时器里面的 this 指向 window）
+        console.log(this);
+
+        function fn() {
+            console.log(this);
+        }
+        window.fn();
+        window.setTimeout(function() {
+            console.log(this);
+
+        }, 1000);
+        // 2. 方法调用中谁调用this指向谁
+        var o = {
+            sayHi: function() {
+                console.log(this); // this指向的是 o 这个对象
+            }
+        }
+        o.sayHi();
+        var btn = document.querySelector('button');
+        // btn.onclick = function() {
+        //     console.log(this); // this指向的是btn这个按钮对象
+        // }
+        btn.addEventListener('click', function() {
+                console.log(this); // this指向的是btn这个按钮对象
+            })
+            // 3. 构造函数中this指向构造函数的实例
+        function Fun() {
+            console.log(this); // this 指向的是fun 实例对象
+        }
+        var fun = new Fun();
+    </script>
+</body>
+
+</html>
+```
+
+### 4.5 `JS` 执行机制
+
+#### 4.5.1 `JS` 是单线程
+
+`JavaScript` 语言的一大特点就是单线程。也就是说，同一个时间只能做一件事。
+
+这是因为 `Javascript` 这门脚本语言诞生的使命所致 —— `JavaScript` 是为处理页面中用户的交互，以及操作 `DOM` 而诞生的。
+
+比如我们对某个 `DOM` 元素进行添加和删除操作，不能同时进行。应该先进行添加，之后再删除。
+
+单线程就意味着，所有任务需要排队，前一个任务结束，才会执行后一个任务。
+
+这样所导致的问题是：如果 `JS` 执行的时间过长，这样就会造成页面的渲染不连贯，导致页面渲染加载阻塞的感觉。
+
+#### 4.5.2 同步和异步
+
+**以下代码执行的结果是什么？**
+
+```js:no-line-numbers
+console.log(1);
+setTimeout(function () {
+    console.log(3);
+}, 1000);
+console.log(2);
+```
+
+为了解决这个问题，利用多核 `CPU` 的计算能力，`HTML5` 提出 `Web Worker` 标准，允许 `JavaScript` 脚本创建多个线程。
+
+于是，`JS` 中出现了同步和异步。
+
+**同步：**
+
+```:no-line-numbers
+前一个任务结束后再执行后一个任务，程序的执行顺序与任务的排列顺序是一致的、同步的。
+比如做饭的同步做法：我们要烧水煮饭，等水开了（10分钟之后），再去切菜，炒菜。
+```
+
+**异步：**
+
+```:no-line-numbers
+你在做一件事情时，因为这件事情会花费很长时间，在做这件事的同时，你还可以去处理其他事情。
+比如做饭的异步做法，我们在烧水的同时，利用这10分钟，去切菜，炒菜。
+```
+
+> 同步和异步的本质区别： 这条流水线上各个流程的执行顺序不同。
+
+**以下代码执行的结果是什么？**
+
+```js:no-line-numbers
+console.log(1);
+setTimeout(function () {
+    console.log(3);
+}, 0);
+console.log(2);
+```
+
+**同步任务：**
+
+```:no-line-numbers
+同步任务都在主线程上执行，形成一个执行栈。
+```
+
+**异步任务：**
+
+```:no-line-numbers
+JS 的异步是通过回调函数实现的。
+
+一般而言，异步任务有以下三种类型: 
+1、普通事件，如 click、resize 等 
+2、资源加载，如 load、error 等 
+3、定时器，包括 setInterval、setTimeout 等
+
+异步任务相关回调函数添加到任务队列中（任务队列也称为消息队列）。
+```
+
+#### 4.5.3 `JS` 执行机制
+
+```:no-line-numbers
+1. 先执行执行栈中的同步任务。 
+2. 异步任务（回调函数）放入任务队列中。
+3. 一旦执行栈中的所有同步任务执行完毕，系统就会按次序读取任务队列中的异步任务，
+   于是被读取的异步任务结束等待状态，进入执行栈，开始执行。
+```
+
+![](./images/_2_web_apis/19.png)
+
+**事件循环（`event loop`）**
+
+由于主线程不断的重复获得任务、执行任务、再获取任务、再执行，所以这种机制被称为事件循环（`event loop`）
+
+![](./images/_2_web_apis/20.png)
+
+### 4.6 `location` 对象（操作窗体的 `URL`）
+
+`window` 对象给我们提供了一个 `location` 属性用于获取或设置窗体的 `URL`，并且可以用于解析 `URL`。 
+
+因为这个属性返回的是一个对象，所以我们将这个属性也称为 `location` 对象。
+
+#### 4.6.1 `URL`（统一资源定位符）
+
+统一资源定位符 (`Uniform Resource Locator`，`URL`) 是互联网上标准资源的地址。
+
+互联网上的每个文件都有一个唯一的 `URL`，它包含的信息指出文件的位置以及浏览器应该怎么处理它。
+
+**`URL` 的一般语法格式为：**
+
+```:no-line-numbers
+protocol://host[:port]/path/[?query]#fragment
+
+示例：
+http://www.itcast.cn/index.html?name=andy&age=18#link
+```
+
+|**组成**|**说明**|
+|:-|:-|
+|`protocol`|通信协议，常用的：`http`、`ftp`、`maito` 等|
+|`host`|主机（域名），如：`www.itheima.com`|
+|`port`|端口号（可选），省略时使用协议的默认端口，如 `http` 的默认端口为 80|
+|`path`|路径，由零或多个 '`/`' 符号隔开的字符串，一般用来表示主机上的一个目录或文件地址|
+|`query`|参数，以键值对的形式，通过 '`&`' 符号分隔开来|
+|`fragment`|片段，'`#`' 后面内容，常见于链接锚点|
+
+#### 4.6.2 `location` 对象的属性
+
+|**`location` 对象属性**|**返回值**|
+|:-|:-|
+|`location.href`|获取或设置整个 `URL`|
+|`location.host`|返回主机（域名）|
+|`location.port`|返回端口号，如果未写，那么返回空字符串|
+|`location.pathname`|返回路径|
+|`location.search`|返回参数|
+|`location.hash`|返回片段，'`#`' 后面内容|
+
+> 重点记住： `href` 和 `search`
+
+#### 4.6.3 示例1：5秒钟之后自动跳转页面
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <button>点击</button>
+    <div></div>
+    <script>
+        var btn = document.querySelector('button');
+        var div = document.querySelector('div');
+        btn.addEventListener('click', function() {
+            // console.log(location.href);
+            location.href = 'http://www.itcast.cn';
+        })
+        var timer = 5;
+        setInterval(function() {
+            if (timer == 0) {
+                location.href = 'http://www.itcast.cn';
+            } else {
+                div.innerHTML = '您将在' + timer + '秒钟之后跳转到首页';
+                timer--;
+            }
+
+        }, 1000);
+    </script>
+</body>
+
+</html>
+```
+
+#### 4.6.4 示例2：获取 `URL` 参数
+
+```html:no-line-numbers
+<!-- login.xml -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <form action="index.html">
+        用户名： <input type="text" name="uname">
+        <input type="submit" value="登录">
+    </form>
+</body>
+
+</html>
+```
+
+```html:no-line-numbers
+<!-- index.xml -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div></div>
+    <script>
+        console.log(location.search); // ?uname=andy
+        // 1.先去掉？  substr('起始的位置'，截取几个字符);
+        var params = location.search.substr(1); // uname=andy
+        console.log(params);
+        // 2. 利用=把字符串分割为数组 split('=');
+        var arr = params.split('=');
+        console.log(arr); // ["uname", "ANDY"]
+        var div = document.querySelector('div');
+        // 3.把数据写入div中
+        div.innerHTML = arr[1] + '欢迎您';
+    </script>
+</body>
+
+</html>
+```
+
+#### 4.6.5 `location` 对象的方法
+
+|**`location` 对象方法**|**返回值**|
+|:-|:-|
+|`location.assign()`|跟 `href` 一样，可以跳转页面（也称为重定向页面）|
+|`location.replace()`|替换当前页面，因为不记录历史，所以不能后退页面|
+|`location.reload()`|重新加载页面，相当于刷新按钮或者 `F5`，如果参数为 `true`，那么表示强制刷新（`Ctrl + F5`）|
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <button>点击</button>
+    <script>
+        var btn = document.querySelector('button');
+        btn.addEventListener('click', function() {
+            // 记录浏览历史，所以可以实现后退功能
+            // location.assign('http://www.itcast.cn');
+            // 不记录浏览历史，所以不可以实现后退功能
+            // location.replace('http://www.itcast.cn');
+            location.reload(true);
+        })
+    </script>
+</body>
+
+</html>
+```
+
+### 4.7 `navigator` 对象
+
+`navigator` 对象包含有关浏览器的信息，它有很多属性。
+
+我们最常用的是 `userAgent`，该属性可以返回由客户机发送服务器的 `user-agent` 头部的值。
+
+**示例：根据用户终端（手机、`PC`）打开不同的 `html` 页面**
+
+```js:no-line-numbers
+if ((navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i))) {
+    window.location.href = "../H5/index.html"; //手机
+}
+```
+
+### 4.8 `history` 对象
+
+`window` 对象给我们提供了一个 `history` 对象，与浏览器历史记录进行交互。该对象包含用户（在浏览器窗口中）访问过的 `URL`。
+
+|**`history` 对象方法**|**作用**|
+|:-|:-|
+|`back(`)|后退功能|
+|`forward()`|前进功能|
+|`go(参数)`|前进后退功能，参数如果是 `1`，表示前进 `1` 个页面；如果是 `-1`，表示后退 `1` 个页面|
+
+> `history` 对象一般在实际开发中比较少用，但是会在一些 `OA` 办公系统中见到。
+>
+> ![](./images/_2_web_apis/21.png)
+
+
+**示例：**
+
+```html:no-line-numbers
+<!-- index.xml -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <a href="list.html">点击我去往列表页</a>
+    <button>前进</button>
+    <script>
+        var btn = document.querySelector('button');
+        btn.addEventListener('click', function() {
+            // history.forward();
+            history.go(1);
+        })
+    </script>
+</body>
+
+</html>
+```
+
+```html:no-line-numbers
+<!-- list.xml -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <a href="index.html">点击我去往首页</a>
+    <button>后退</button>
+    <script>
+        var btn = document.querySelector('button');
+        btn.addEventListener('click', function() {
+            // history.back();
+            history.go(-1);
+        })
+    </script>
+</body>
+
+</html>
+```
