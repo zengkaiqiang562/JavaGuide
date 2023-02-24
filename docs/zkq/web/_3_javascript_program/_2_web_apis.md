@@ -4775,3 +4775,865 @@ if ((navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobi
 
 </html>
 ```
+
+## 5. `PC` 端网页特效
+
+### 5.1 元素偏移量 `offset` 系列
+
+`offset` 翻译过来就是偏移量， 我们使用 `offset` 系列相关属性可以动态的得到该元素的位置（偏移）、大小等：
+
+```:no-line-numbers
+- 获得元素距离带有定位父元素的位置
+- 获得元素自身的大小（宽度高度） 
+- 注意：返回的数值都不带单位
+```
+
+![](./images/_2_web_apis/22.png)
+
+#### 5.1.1 `offset` 系列常用属性
+
+|**`offset` 系列常用属性**|**作用**|
+|:-|:-|
+|`element.offsetParent`|返回作为该元素带有定位的父级元素，如果父级都没有定位，那么返回 `body`|
+|`element.offsetTop`|返回元素相对带有定位父元素上方的偏移|
+|`element.offsetLeft`|返回元素相对带有定位父元素左边框的偏移|
+|`element.offsetWidth`|返回自身包括 `padding`、边框、内容区的宽度，返回数值不带单位|
+|`element.offsetHeight`|返回自身包括 `padding`、边框、内容区的高度，返回数值不带单位|
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .father {
+            /* position: relative; */
+            width: 200px;
+            height: 200px;
+            background-color: pink;
+            margin: 150px;
+        }
+        
+        .son {
+            width: 100px;
+            height: 100px;
+            background-color: purple;
+            margin-left: 45px;
+        }
+        
+        .w {
+            height: 200px;
+            background-color: skyblue;
+            margin: 0 auto 200px;
+            padding: 10px;
+            border: 15px solid red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="father">
+        <div class="son"></div>
+    </div>
+    <div class="w"></div>
+    <script>
+        // offset 系列
+        var father = document.querySelector('.father');
+        var son = document.querySelector('.son');
+        // 1.可以得到元素的偏移 位置 返回的不带单位的数值  
+        console.log(father.offsetTop);
+        console.log(father.offsetLeft);
+        // 它以带有定位的父亲为准  如果么有父亲或者父亲没有定位 则以 body 为准
+        console.log(son.offsetLeft);
+        var w = document.querySelector('.w');
+        // 2.可以得到元素的大小 宽度和高度 是包含padding + border + width 
+        console.log(w.offsetWidth);
+        console.log(w.offsetHeight);
+        // 3. 返回带有定位的父亲 否则返回的是body
+        console.log(son.offsetParent); // 返回带有定位的父亲 否则返回的是body
+        console.log(son.parentNode); // 返回父亲 是最近一级的父亲 亲爸爸 不管父亲有没有定位
+    </script>
+</body>
+
+</html>
+```
+
+#### 5.1.2 `offset` 与 `style` 区别
+
+<table>
+    <tr>
+        <th>offset</th>
+        <th>style</th>
+    </tr>
+    <tr>
+        <td>
+            <ul>
+                <li>offset 可以得到任意样式表中的样式值</li>
+                <li>offset 系列获得的数值是没有单位的</li>
+                <li>offsetWidth 包含 padding+border+width</li>
+                <li>offsetWidth 等属性是只读属性，只能获取不能赋值</li>
+                <li>所以，我们想要获取元素大小位置，用 offset 更合适</li>
+            </ul>
+        </td>
+        <td>
+            <ul>
+                <li>style 只能得到行内样式表中的样式值</li>
+                <li>style.width 获得的是带有单位的字符串</li>
+                <li>style.width 获得不包含 padding 和 border 的值</li>
+                <li>style.width 是可读写属性，可以获取也可以赋值</li>
+                <li>所以，我们想要给元素更改值，则需要用 style 改变</li>
+            </ul>
+        </td>
+    </tr>
+</table>
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .box {
+            width: 200px;
+            height: 200px;
+            background-color: pink;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box" style="width: 200px;"></div>
+    <script>
+        // offset与style的区别
+        var box = document.querySelector('.box');
+        console.log(box.offsetWidth);
+        console.log(box.style.width);
+        // box.offsetWidth = '300px';
+        box.style.width = '300px';
+    </script>
+</body>
+
+</html>
+```
+
+#### 5.1.3 示例1：获取鼠标在盒子内的坐标
+
+```:no-line-numbers
+案例分析：
+① 我们在盒子内点击，想要得到鼠标距离盒子左右的距离。
+② 首先得到鼠标在页面中的坐标（e.pageX, e.pageY） 
+③ 其次得到盒子在页面中的距离 (box.offsetLeft, box.offsetTop)
+④ 用鼠标距离页面的坐标减去盒子在页面中的距离，得到 鼠标在盒子内的坐标
+⑤ 如果想要移动一下鼠标，就要获取最新的坐标，使用鼠标移动事件 mousemove
+```
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .box {
+            width: 300px;
+            height: 300px;
+            background-color: pink;
+            margin: 200px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box"></div>
+    <script>
+        // 我们在盒子内点击，想要得到鼠标距离盒子左右的距离。
+        // 首先得到鼠标在页面中的坐标（e.pageX, e.pageY）
+        // 其次得到盒子在页面中的距离(box.offsetLeft, box.offsetTop)
+        // 用鼠标距离页面的坐标减去盒子在页面中的距离， 得到 鼠标在盒子内的坐标
+        var box = document.querySelector('.box');
+        box.addEventListener('mousemove', function(e) {
+            // console.log(e.pageX);
+            // console.log(e.pageY);
+            // console.log(box.offsetLeft);
+            var x = e.pageX - this.offsetLeft;
+            var y = e.pageY - this.offsetTop;
+            this.innerHTML = 'x坐标是' + x + ' y坐标是' + y;
+        })
+    </script>
+</body>
+
+</html>
+```
+
+#### 5.1.4 示例2：模态框（即弹出框）拖拽
+
+弹出框，我们也称为模态框。
+
+```:no-line-numbers
+1. 点击弹出层，会弹出模态框，并且显示灰色半透明的遮挡层。
+2. 点击关闭按钮，可以关闭模态框，并且同时关闭灰色半透明遮挡层。
+3. 鼠标放到模态框最上面一行，可以按住鼠标拖拽模态框在页面中移动。
+4. 鼠标松开，可以停止拖动模态框移动。
+```
+
+```:no-line-numbers
+案例分析：
+① 点击弹出层， 模态框和遮挡层就会显示出来 display:block;
+② 点击关闭按钮，模态框和遮挡层就会隐藏起来 display:none;
+③ 在页面中拖拽的原理： 鼠标按下并且移动， 之后松开鼠标
+④ 触发事件是鼠标按下 mousedown， 鼠标移动mousemove 鼠标松开 mouseup
+⑤ 拖拽过程: 鼠标移动过程中，获得最新的值赋值给模态框的left和top值， 这样模态框可以跟着鼠标走了
+⑥ 鼠标按下触发的事件源是 最上面一行，就是 id 为 title 
+⑦ 鼠标的坐标 减去 鼠标在盒子内的坐标， 才是模态框真正的位置。
+⑧ 鼠标按下，我们要得到鼠标在盒子的坐标。
+⑨ 鼠标移动，就让模态框的坐标 设置为 ： 鼠标坐标 减去盒子坐标即可，注意移动事件写到按下事件里面。
+⑩ 鼠标松开，就停止拖拽，就是可以让鼠标移动事件解除
+```
+
+**案例代码：** [模态框（即弹出框）拖拽](https://github.com/zengkaiqiang562/JavaGuide-Demo/blob/main/docs/zkq/web/_3_javascript_program/_2_web_apis/%E6%A8%A1%E6%80%81%E6%A1%86%EF%BC%88%E5%8D%B3%E5%BC%B9%E5%87%BA%E6%A1%86%EF%BC%89%E6%8B%96%E6%8B%BD/%E6%8B%96%E5%8A%A8%E7%9A%84%E6%A8%A1%E6%80%81%E6%A1%86.html)
+
+#### 5.1.5 示例3：仿京东放大镜
+
+**案例分析：**
+
+整个案例可以分为三个功能模块：
+
+1. 鼠标经过小图片盒子，黄色的遮挡层 和 大图片盒子显示，离开隐藏2个盒子功能
+
+    ```:no-line-numbers
+    就是显示与隐藏
+    ```
+
+2. 黄色的遮挡层跟随鼠标功能
+
+    ```:no-line-numbers
+    - 把鼠标坐标给遮挡层不合适。因为遮挡层坐标以父盒子为准。
+    - 首先是获得鼠标在盒子的坐标。
+    - 之后把数值给遮挡层做为left 和top值。
+    - 此时用到鼠标移动事件，但是还是在小图片盒子内移动。
+    - 发现，遮挡层位置不对，需要再减去盒子自身高度和宽度的一半。
+    - 遮挡层不能超出小图片盒子范围。
+    - 如果小于零，就把坐标设置为0 ⑨ 如果大于遮挡层最大的移动距离，就把坐标设置为最大的移动距离
+    - 遮挡层的最大移动距离： 小图片盒子宽度 减去 遮挡层盒子宽度
+    ```
+
+    ![](./images/_2_web_apis/23.png)
+
+3. 移动黄色遮挡层，大图片跟随移动功能
+   
+    ![](./images/_2_web_apis/24.png)
+
+
+**案例代码：** [京东放大镜效果](https://github.com/zengkaiqiang562/JavaGuide-Demo/blob/main/docs/zkq/web/_3_javascript_program/_2_web_apis/%E4%BA%AC%E4%B8%9C%E6%94%BE%E5%A4%A7%E9%95%9C%E6%95%88%E6%9E%9C/detail.html)
+
+### 5.2 元素可视区 `client` 系列
+
+`client` 翻译过来就是客户端，我们使用 `client` 系列的相关属性来获取元素可视区的相关信息。
+
+通过 `client` 系列的相关属性可以动态的得到该元素的边框大小、元素大小等。
+
+#### 5.2.1 `client` 系列常用属性
+
+|**`client` 系列属性**|**作用**|
+|:-|:-|
+|`element.clientTop`|返回元素上边框的大小|
+|`element.clientLeft`|返回元素左边框的大小|
+|`element.clientWidth`|返回自身包括 `padding`、内容区的宽度，不含边框。返回数值不带单位|
+|`element.clientHeight`|返回自身包括 `padding`、内容区的高度，不含边框。返回数值不带单位|
+
+> `clientWidth` 和 `offsetWidth` 最大的区别就是 **不包含边框**
+
+![](./images/_2_web_apis/25.png)
+
+#### 5.2.2 立即执行函数：`(function(){})()` 和 `(function(){}())`
+
+立即执行函数：不需要调用，立马能够自己执行的函数。
+
+立即执行函数的两种写法（也可以传递参数进来）：
+
+```:no-line-numbers
+1. (function(){})()
+2. (function(){}())
+```
+
+立即执行函数最大的作用就是：独立创建了一个作用域，里面所有的变量都是局部变量，不会有命名冲突的情况。
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        // 普通函数定义后，需要另外调用
+        function fn() {
+            console.log(1);
+        }
+        fn();
+
+        // 立即执行函数的写法一（可以传参进来）
+        (function(a, b) {
+            console.log(a + b);
+            var num = 10; // 局部变量
+        })(1, 2); // 第二个小括号可以看做是调用函数
+
+        // 立即执行函数的写法二（可以传参进来）
+        (function sum(a, b) {
+            console.log(a + b);
+            var num = 10;
+        }(2, 3));
+    </script>
+</body>
+
+</html>
+```
+
+#### 5.2.3 示例：淘宝 `flexible.js` 源码分析
+
+```js:no-line-numbers
+(function flexible(window, document) {
+    // 获取的html 的根元素
+    var docEl = document.documentElement
+        // dpr 物理像素比
+    var dpr = window.devicePixelRatio || 1
+
+    // adjust body font size  设置我们body 的字体大小
+    function setBodyFontSize() {
+        // 如果页面中有body 这个元素 就设置body的字体大小
+        if (document.body) {
+            document.body.style.fontSize = (12 * dpr) + 'px'
+        } else {
+            // 如果页面中没有body 这个元素，则等着 我们页面主要的DOM元素加载完毕再去设置body
+            // 的字体大小
+            document.addEventListener('DOMContentLoaded', setBodyFontSize)
+        }
+    }
+    setBodyFontSize();
+
+    // set 1rem = viewWidth / 10    设置我们html 元素的文字大小
+    function setRemUnit() {
+        var rem = docEl.clientWidth / 10
+        docEl.style.fontSize = rem + 'px'
+    }
+
+    setRemUnit()
+
+    // reset rem unit on page resize  当我们页面尺寸大小发生变化的时候，要重新设置下rem 的大小
+    window.addEventListener('resize', setRemUnit)
+        // pageshow 是我们重新加载页面触发的事件
+    window.addEventListener('pageshow', function(e) {
+        // e.persisted 返回的是true 就是说如果这个页面是从缓存取过来的页面，也需要从新计算一下rem 的大小
+        if (e.persisted) {
+            setRemUnit()
+        }
+    })
+
+    // detect 0.5px supports  有些移动端的浏览器不支持0.5像素的写法
+    if (dpr >= 2) {
+        var fakeBody = document.createElement('body')
+        var testElement = document.createElement('div')
+        testElement.style.border = '.5px solid transparent'
+        fakeBody.appendChild(testElement)
+        docEl.appendChild(fakeBody)
+        if (testElement.offsetHeight === 1) {
+            docEl.classList.add('hairlines')
+        }
+        docEl.removeChild(fakeBody)
+    }
+}(window, document))
+```
+
+##### 5.2.3.1 像素比：`window.devicePixelRatio`
+
+##### 5.2.3.2 `load` 事件的触发条件 & 页面显示事件 `pageshow`
+
+下面三种情况都会刷新页面都会触发 `load` 事件：
+
+```:no-line-numbers
+1. a 标签的超链接
+2. F5 或者刷新按钮（强制刷新）
+3. 前进后退按钮
+```
+
+但是，火狐中有个特点，有个 “往返缓存”，这个缓存中不仅保存着页面数据，还保存了 `DOM` 和 `JavaScript` 的状态；实际上是将整个页面都保存在了内存里。所以此时后退按钮不能刷新页面。
+
+此时可以使用 `pageshow` 事件来触发。这个事件在页面显示时触发，无论页面是否来自缓存。
+
+在重新加载页面中，`pageshow` 会在 `load` 事件触发后触发；
+
+根据事件对象中的 `persisted` 来判断是否是缓存中的页面触发的 `pageshow` 事件，注意这个事件给 `window` 添加。
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <!-- <script src="flexible.js"></script> -->
+</head>
+
+<body>
+    <script>
+        // console.log(window.devicePixelRatio);
+        window.addEventListener('pageshow', function() {
+            alert(11);
+        })
+    </script>
+    <a href="http://www.itcast.cn">链接</a>
+</body>
+
+</html>
+```
+
+### 5.3 元素滚动 `scroll` 系列
+
+`scroll` 翻译过来就是滚动的，我们使用 `scroll` 系列的相关属性可以动态的得到该元素的大小、滚动距离等。
+
+#### 5.3.1 `scroll` 系列常用属性
+
+|**`scroll` 系列属性**|**作用**|
+|:-|:-|
+|`element.scrollTop`|返回被卷去的上侧距离，返回数值不带单位|
+|`element.scrollLeft`|返回被卷去的左侧距离，返回数值不带单位|
+|`element.scrollWidth`|返回自身实际的宽度，不含边框，返回数值不带单位|
+|`element.scrollHeight`|返回自身实际的高度，不含边框，返回数值不带单位|
+
+![](./images/_2_web_apis/26.png)
+
+#### 5.3.2 页面被卷去的头部
+
+如果浏览器的高（或宽）度不足以显示整个页面时，会自动出现滚动条。
+
+当滚动条向下滚动时，页面上面被隐藏掉的高度，我们就称为页面被卷去的头部。
+
+滚动条在滚动时会触发 `onscroll` 事件。
+
+#### 5.3.3 示例：仿淘宝固定右侧侧边栏
+
+```:no-line-numbers
+案例分析：
+① 需要用到页面滚动事件 scroll 因为是页面滚动，所以事件源是 document
+② 滚动到某个位置，就是判断页面被卷去的上部值。
+③ 页面被卷去的头部：可以通过window.pageYOffset 获得 如果是被卷去的左侧 window.pageXOffset
+④ 注意，元素被卷去的头部是 element.scrollTop , 如果是页面被卷去的头部 则是 window.pageYOffset
+⑤ 其实这个值 可以通过盒子的 offsetTop 可以得到，如果大于等于这个值，就可以让盒子固定定位了
+```
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .slider-bar {
+            position: absolute;
+            left: 50%;
+            top: 300px;
+            margin-left: 600px;
+            width: 45px;
+            height: 130px;
+            background-color: pink;
+        }
+        
+        .w {
+            width: 1200px;
+            margin: 10px auto;
+        }
+        
+        .header {
+            height: 150px;
+            background-color: purple;
+        }
+        
+        .banner {
+            height: 250px;
+            background-color: skyblue;
+        }
+        
+        .main {
+            height: 1000px;
+            background-color: yellowgreen;
+        }
+        
+        span {
+            display: none;
+            position: absolute;
+            bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slider-bar">
+        <span class="goBack">返回顶部</span>
+    </div>
+    <div class="header w">头部区域</div>
+    <div class="banner w">banner区域</div>
+    <div class="main w">主体部分</div>
+    <script>
+        //1. 获取元素
+        var sliderbar = document.querySelector('.slider-bar');
+        var banner = document.querySelector('.banner');
+        // banner.offestTop 就是被卷去头部的大小 一定要写到滚动的外面
+        var bannerTop = banner.offsetTop
+            // 当我们侧边栏固定定位之后应该变化的数值
+        var sliderbarTop = sliderbar.offsetTop - bannerTop;
+        // 获取main 主体元素
+        var main = document.querySelector('.main');
+        var goBack = document.querySelector('.goBack');
+        var mainTop = main.offsetTop;
+        // 2. 页面滚动事件 scroll
+        document.addEventListener('scroll', function() {
+            // console.log(11);
+            // window.pageYOffset 页面被卷去的头部
+            // console.log(window.pageYOffset);
+            // 3 .当我们页面被卷去的头部大于等于了 172 此时 侧边栏就要改为固定定位
+            if (window.pageYOffset >= bannerTop) {
+                sliderbar.style.position = 'fixed';
+                sliderbar.style.top = sliderbarTop + 'px';
+            } else {
+                sliderbar.style.position = 'absolute';
+                sliderbar.style.top = '300px';
+            }
+            // 4. 当我们页面滚动到main盒子，就显示 goback模块
+            if (window.pageYOffset >= mainTop) {
+                goBack.style.display = 'block';
+            } else {
+                goBack.style.display = 'none';
+            }
+        })
+    </script>
+</body>
+
+</html>
+```
+
+#### 5.3.4 页面被卷去的头部兼容性解决方案
+
+需要注意的是，页面被卷去的头部，有兼容性问题，因此被卷去的头部通常有如下几种写法：
+
+```:no-line-numbers
+1. 声明了 DTD，使用 document.documentElement.scrollTop
+2. 未声明 DTD，使用 document.body.scrollTop
+3. 新方法 window.pageYOffset 和 window.pageXOffset，IE9 开始支持
+```
+
+```js:no-line-numbers
+function getScroll() {
+    return {
+        left: window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft||0,
+        top: window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+    };
+} 
+
+// 使用的时候 getScroll().left
+```
+
+### 5.4 `offset`、`client`、`scroll` 三大系列对比
+
+|**三大系列对比**|**作用**|
+|:-|:-|
+|`element.offsetWidth`|返回自身包括 `padding`、边框、内容区的宽度，返回数值不带单位|
+|`element.clientWidth`|返回自身包括 `padding`、内容区的宽度，不含边框，返回数值不带单位|
+|`element.scrollWidth`|返回自身实际的宽度，不含边框，返回数值不带单位|
+
+![](./images/_2_web_apis/27.png)
+
+**他们主要用法：**
+
+```:no-line-numbers
+1. offset 系列 经常用于获得元素位置 offsetLeft offsetTop
+2. client 经常用于获取元素大小 clientWidth clientHeight
+3. scroll 经常用于获取滚动距离 scrollTop scrollLeft 
+4. 注意页面滚动的距离通过 window.pageXOffset 获得
+```
+
+### 5.5 `mouseenter` 和 `mouseover` 的区别
+
+当鼠标移动到元素上时就会触发 `mouseenter` 事件，类似 `mouseover`，它们两者之间的差别是：
+
+```:no-line-numbers
+mouseover 鼠标经过自身盒子会触发，经过子盒子还会触发。 
+mouseenter 只会经过自身盒子触发。
+```
+
+> 之所以这样，就是因为 `mouseenter` 不会冒泡。跟 `mouseenter` 搭配的鼠标离开事件 `mouseleave` 同样不会冒泡。
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .father {
+            width: 300px;
+            height: 300px;
+            background-color: pink;
+            margin: 100px auto;
+        }
+        
+        .son {
+            width: 200px;
+            height: 200px;
+            background-color: purple;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="father">
+        <div class="son"></div>
+    </div>
+    <script>
+        var father = document.querySelector('.father');
+        var son = document.querySelector('.son');
+        father.addEventListener('mouseenter', function() {
+            console.log(11);
+        })
+    </script>
+</body>
+
+</html>
+```
+
+### 5.6 动画函数封装
+
+#### 5.6.1 动画实现原理（核心：通过定时器 `setInterval()` 不断移动盒子位置）
+
+**核心原理：** 通过定时器 `setInterval()` 不断移动盒子位置。
+
+**实现步骤：**
+
+```:no-line-numbers
+1. 获得盒子当前位置
+2. 让盒子在当前位置加上1个移动距离
+3. 利用定时器不断重复这个操作
+4. 加一个结束定时器的条件
+5. 注意此元素需要添加定位，才能使用 element.style.left
+```
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            position: absolute;
+            left: 0;
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+    </style>
+</head>
+
+<body>
+    <div></div>
+    <script>
+        var div = document.querySelector('div');
+        var timer = setInterval(function() {
+            if (div.offsetLeft >= 400) {
+                // 停止动画 本质是停止定时器
+                clearInterval(timer);
+            }
+            div.style.left = div.offsetLeft + 1 + 'px';
+        }, 30);
+    </script>
+</body>
+
+</html>
+```
+
+#### 5.6.2 动画函数简单封装
+
+注意函数需要传递 `2` 个参数，**动画对象** 和 **移动到的距离**。
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            position: absolute;
+            left: 0;
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+        
+        span {
+            position: absolute;
+            left: 0;
+            top: 200px;
+            display: block;
+            width: 150px;
+            height: 150px;
+            background-color: purple;
+        }
+    </style>
+</head>
+
+<body>
+    <div></div>
+    <span>夏雨荷</span>
+    <script>
+        // 简单动画函数封装 obj 目标对象，target 目标位置
+        function animate(obj, target) {
+            var timer = setInterval(function() {
+                if (obj.offsetLeft >= target) {
+                    // 停止动画 本质是停止定时器
+                    clearInterval(timer);
+                }
+                obj.style.left = obj.offsetLeft + 1 + 'px';
+            }, 30);
+        }
+
+        var div = document.querySelector('div');
+        var span = document.querySelector('span');
+        // 调用函数
+        animate(div, 300);
+        animate(span, 200);
+    </script>
+</body>
+
+</html>
+```
+
+#### 5.6.3 动画函数给不同元素记录不同定时器
+
+如果多个元素都使用这个动画函数，每次都要 `var` 声明定时器。我们可以给不同的元素使用不同的定时器（自己专门用自己的定时器）。
+
+**核心原理：** 利用 `JS` 是一门动态语言，可以很方便的给当前对象添加属性。
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            position: absolute;
+            left: 0;
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+        
+        span {
+            position: absolute;
+            left: 0;
+            top: 200px;
+            display: block;
+            width: 150px;
+            height: 150px;
+            background-color: purple;
+        }
+    </style>
+</head>
+
+<body>
+    <button>点击夏雨荷才走</button>
+    <div></div>
+    <span>夏雨荷</span>
+    <script>
+        // var obj = {};
+        // obj.name = 'andy';
+        // 简单动画函数封装 obj 目标对象，target 目标位置
+        // 给不同的元素指定了不同的定时器
+        function animate(obj, target) {
+            // 当我们不断的点击按钮，这个元素的速度会越来越快，因为开启了太多的定时器
+            // 解决方案就是 让我们元素只有一个定时器执行
+            // 先清除以前的定时器，只保留当前的一个定时器执行
+            clearInterval(obj.timer);
+            obj.timer = setInterval(function() {
+                if (obj.offsetLeft >= target) {
+                    // 停止动画 本质是停止定时器
+                    clearInterval(obj.timer);
+                }
+                obj.style.left = obj.offsetLeft + 1 + 'px';
+            }, 30);
+        }
+
+        var div = document.querySelector('div');
+        var span = document.querySelector('span');
+        var btn = document.querySelector('button');
+        // 调用函数
+        animate(div, 300);
+        btn.addEventListener('click', function() {
+            animate(span, 200);
+        })
+    </script>
+</body>
+
+</html>
+```
+
+#### 5.6.4 缓动效果原理
+
+#### 5.6.5 动画函数多个目标值之间移动
+
+#### 5.6.6 动画函数添加回调函数
+
+#### 5.6.7 动画函数封装到单独 `JS` 文件里面
+
+### 5.7 常见网页特效案例
