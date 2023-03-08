@@ -5630,10 +5630,630 @@ mouseenter 只会经过自身盒子触发。
 
 #### 5.6.4 缓动效果原理
 
-#### 5.6.5 动画函数多个目标值之间移动
+缓动动画就是让元素运动速度有所变化，最常见的是让速度慢慢停下来。
 
-#### 5.6.6 动画函数添加回调函数
+**思路：**
+
+```:no-line-numbers
+1. 让盒子每次移动的距离慢慢变小，速度就会慢慢落下来。
+2. 核心算法：(目标值 - 现在的位置 ) / 10 做为每次移动的距离 步长
+3. 停止的条件是： 让当前盒子位置等于目标位置就停止定时器 
+4. 注意步长值需要取整
+```
+
+**示例：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            position: absolute;
+            left: 0;
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+        
+        span {
+            position: absolute;
+            left: 0;
+            top: 200px;
+            display: block;
+            width: 150px;
+            height: 150px;
+            background-color: purple;
+        }
+    </style>
+</head>
+
+<body>
+    <button>点击夏雨荷才走</button>
+    <span>夏雨荷</span>
+    <script>
+        // 缓动动画函数封装obj目标对象 target 目标位置
+        // 思路：
+        // 1. 让盒子每次移动的距离慢慢变小， 速度就会慢慢落下来。
+        // 2. 核心算法：(目标值 - 现在的位置) / 10 做为每次移动的距离 步长
+        // 3. 停止的条件是： 让当前盒子位置等于目标位置就停止定时器
+        function animate(obj, target) {
+            // 先清除以前的定时器，只保留当前的一个定时器执行
+            clearInterval(obj.timer);
+            obj.timer = setInterval(function() {
+                // 步长值写到定时器的里面
+                var step = (target - obj.offsetLeft) / 10;
+                if (obj.offsetLeft == target) {
+                    // 停止动画 本质是停止定时器
+                    clearInterval(obj.timer);
+                }
+                // 把每次加1 这个步长值改为一个慢慢变小的值  步长公式：(目标值 - 现在的位置) / 10
+                obj.style.left = obj.offsetLeft + step + 'px';
+
+            }, 15);
+        }
+        var span = document.querySelector('span');
+        var btn = document.querySelector('button');
+
+        btn.addEventListener('click', function() {
+                // 调用函数
+                animate(span, 500);
+            })
+            // 匀速动画 就是 盒子是当前的位置 +  固定的值 10 
+            // 缓动动画就是  盒子当前的位置 + 变化的值(目标值 - 现在的位置) / 10）
+    </script>
+</body>
+
+</html>
+```
+
+
+#### 5.6.5 动画在多个目标值之间移动
+
+```:no-line-numbers
+可以让动画函数从 800 移动到 500。
+当我们点击按钮时候，判断步长是正值还是负值
+1. 如果是正值，则步长 往大了取整
+2. 如果是负值，则步长 向小了取整
+```
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            position: absolute;
+            left: 0;
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+        
+        span {
+            position: absolute;
+            left: 0;
+            top: 200px;
+            display: block;
+            width: 150px;
+            height: 150px;
+            background-color: purple;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="btn500">点击夏雨荷到500</button>
+    <button class="btn800">点击夏雨荷到800</button>
+    <span>夏雨荷</span>
+    <script>
+        function animate(obj, target) {
+            // 先清除以前的定时器，只保留当前的一个定时器执行
+            clearInterval(obj.timer);
+            obj.timer = setInterval(function() {
+                // 步长值写到定时器的里面
+                // 把我们步长值改为整数 不要出现小数的问题
+                // var step = Math.ceil((target - obj.offsetLeft) / 10);
+                var step = (target - obj.offsetLeft) / 10;
+                step = step > 0 ? Math.ceil(step) : Math.floor(step);
+                if (obj.offsetLeft == target) {
+                    // 停止动画 本质是停止定时器
+                    clearInterval(obj.timer);
+                }
+                // 把每次加1 这个步长值改为一个慢慢变小的值  步长公式：(目标值 - 现在的位置) / 10
+                obj.style.left = obj.offsetLeft + step + 'px';
+
+            }, 15);
+        }
+        var span = document.querySelector('span');
+        var btn500 = document.querySelector('.btn500');
+        var btn800 = document.querySelector('.btn800');
+
+        btn500.addEventListener('click', function() {
+            // 调用函数
+            animate(span, 500);
+        })
+        btn800.addEventListener('click', function() {
+                // 调用函数
+                animate(span, 800);
+            })
+    </script>
+</body>
+
+</html>
+```
+
+#### 5.6.6 动画添加回调函数
+
+```:no-line-numbers
+回调函数原理：
+    函数可以作为一个参数。将这个函数作为参数传到另一个函数里面，当那个函数执行完之后，再执行传进去的这个函数，这个过程就叫做回调。 
+
+回调函数写的位置：
+    定时器结束的位置。
+```
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            position: absolute;
+            left: 0;
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+        
+        span {
+            position: absolute;
+            left: 0;
+            top: 200px;
+            display: block;
+            width: 150px;
+            height: 150px;
+            background-color: purple;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="btn500">点击夏雨荷到500</button>
+    <button class="btn800">点击夏雨荷到800</button>
+    <span>夏雨荷</span>
+    <script>
+        function animate(obj, target, callback) {
+            // console.log(callback);  callback = function() {}  调用的时候 callback()
+
+            // 先清除以前的定时器，只保留当前的一个定时器执行
+            clearInterval(obj.timer);
+            obj.timer = setInterval(function() {
+                // 步长值写到定时器的里面
+                // 把我们步长值改为整数 不要出现小数的问题
+                // var step = Math.ceil((target - obj.offsetLeft) / 10);
+                var step = (target - obj.offsetLeft) / 10;
+                step = step > 0 ? Math.ceil(step) : Math.floor(step);
+                if (obj.offsetLeft == target) {
+                    // 停止动画 本质是停止定时器
+                    clearInterval(obj.timer);
+                    // 回调函数写到定时器结束里面
+                    if (callback) {
+                        // 调用函数
+                        callback();
+                    }
+                }
+                // 把每次加1 这个步长值改为一个慢慢变小的值  步长公式：(目标值 - 现在的位置) / 10
+                obj.style.left = obj.offsetLeft + step + 'px';
+
+            }, 15);
+        }
+        var span = document.querySelector('span');
+        var btn500 = document.querySelector('.btn500');
+        var btn800 = document.querySelector('.btn800');
+
+        btn500.addEventListener('click', function() {
+            // 调用函数
+            animate(span, 500);
+        })
+        btn800.addEventListener('click', function() {
+                // 调用函数
+                animate(span, 800, function() {
+                    // alert('你好吗');
+                    span.style.backgroundColor = 'red';
+                });
+            })
+    </script>
+</body>
+
+</html>
+```
 
 #### 5.6.7 动画函数封装到单独 `JS` 文件里面
 
+```:no-line-numbers
+因为以后经常使用这个动画函数，可以单独封装到一个JS文件里面，使用的时候引用这个 JS 文件即可。步骤：
+1. 单独新建一个 JS 文件。
+2. HTML 文件引入 JS 文件。
+```
+
+```js:no-line-numbers
+/* animate.js */
+function animate(obj, target, callback) {
+    // console.log(callback);  callback = function() {}  调用的时候 callback()
+
+    // 先清除以前的定时器，只保留当前的一个定时器执行
+    clearInterval(obj.timer);
+    obj.timer = setInterval(function() {
+        // 步长值写到定时器的里面
+        // 把我们步长值改为整数 不要出现小数的问题
+        // var step = Math.ceil((target - obj.offsetLeft) / 10);
+        var step = (target - obj.offsetLeft) / 10;
+        step = step > 0 ? Math.ceil(step) : Math.floor(step);
+        if (obj.offsetLeft == target) {
+            // 停止动画 本质是停止定时器
+            clearInterval(obj.timer);
+            // 回调函数写到定时器结束里面
+            // if (callback) {
+            //     // 调用函数
+            //     callback();
+            // }
+            callback && callback();
+        }
+        // 把每次加1 这个步长值改为一个慢慢变小的值  步长公式：(目标值 - 现在的位置) / 10
+        obj.style.left = obj.offsetLeft + step + 'px';
+
+    }, 15);
+}
+```
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .sliderbar {
+            position: fixed;
+            right: 0;
+            bottom: 100px;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            line-height: 40px;
+            cursor: pointer;
+            color: #fff;
+        }
+        
+        .con {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 200px;
+            height: 40px;
+            background-color: purple;
+            z-index: -1;
+        }
+    </style>
+    <!-- HTML 文件引入 JS 文件 -->
+    <script src="animate.js"></script>
+</head>
+
+<body>
+    <div class="sliderbar">
+        <span>←</span>
+        <div class="con">问题反馈</div>
+    </div>
+
+    <script>
+        // 1. 获取元素
+        var sliderbar = document.querySelector('.sliderbar');
+        var con = document.querySelector('.con');
+        // 当我们鼠标经过 sliderbar 就会让 con这个盒子滑动到左侧
+        // 当我们鼠标离开 sliderbar 就会让 con这个盒子滑动到右侧
+        sliderbar.addEventListener('mouseenter', function() {
+            // animate(obj, target, callback);
+            animate(con, -160, function() {
+                // 当我们动画执行完毕，就把 ← 改为 →
+                sliderbar.children[0].innerHTML = '→';
+            });
+
+        })
+        sliderbar.addEventListener('mouseleave', function() {
+            // animate(obj, target, callback);
+            animate(con, 0, function() {
+                sliderbar.children[0].innerHTML = '←';
+            });
+
+        })
+    </script>
+</body>
+
+</html>
+```
+
 ### 5.7 常见网页特效案例
+
+#### 5.7.1 案例1：网页轮播图
+
+**功能需求：**
+
+```:no-line-numbers
+1. 鼠标经过轮播图模块，左右按钮显示，离开隐藏左右按钮。
+2. 点击右侧按钮一次，图片往左播放一张，以此类推，左侧按钮同理。
+3. 图片播放的同时，下面小圆圈模块跟随一起变化。
+4. 点击小圆圈，可以播放相应图片。
+5. 鼠标不经过轮播图，轮播图也会自动播放图片。
+6. 鼠标经过，轮播图模块，自动播放停止。
+```
+
+**案例分析：**
+
+```:no-line-numbers
+① 因为 js 较多，我们单独新建 js 文件夹，再新建 js 文件，引入页面中。
+② 此时需要添加 load 事件。
+③ 鼠标经过轮播图模块，左右按钮显示，离开隐藏左右按钮。
+④ 显示隐藏 display 按钮。
+```
+
+```:no-line-numbers
+动态生成小圆圈
+- 核心思路：小圆圈的个数要跟图片张数一致
+- 所以首先先得到ul里面图片的张数（图片放入li里面，所以就是li的个数）
+- 利用循环动态生成小圆圈（这个小圆圈要放入ol里面）
+- 创建节点 createElement(‘li’)
+- 插入节点 ol.appendChild(li)
+- 第一个小圆圈需要添加 current 类
+```
+
+```:no-line-numbers
+小圆圈的排他思想
+- 点击当前小圆圈，就添加current类 
+- 其余的小圆圈就移除这个current类 
+- 注意：我们在刚才生成小圆圈的同时，就可以直接绑定这个点击事件了。
+```
+
+```:no-line-numbers
+点击小圆圈滚动图片
+- 此时用到animate动画函数，将js文件引入（注意，因为index.js 依赖 animate.js 所以，animate.js 要写到 index.js 上面）
+- 使用动画函数的前提，该元素必须有定位
+- 注意是ul 移动 而不是小li 
+- 滚动图片的核心算法：点击某个小圆圈，就让图片滚动 小圆圈的索引号乘以图片的宽度做为ul移动距离
+- 此时需要知道小圆圈的索引号，我们可以在生成小圆圈的时候，给它设置一个自定义属性，点击的时候获取这个自定义属性即可。
+```
+
+```:no-line-numbers
+点击右侧按钮一次，就让图片滚动一张。
+- 声明一个变量num，点击一次，自增1，让这个变量乘以图片宽度，就是 ul 的滚动距离。
+- 图片无缝滚动原理
+- 把ul 第一个li 复制一份，放到ul 的最后面
+- 当图片滚动到克隆的最后一张图片时， 让ul 快速的、不做动画的跳到最左侧： left 为0 
+- 同时num 赋值为0，可以从新开始滚动图片了
+```
+
+```:no-line-numbers
+克隆第一张图片
+- 克隆ul 第一个li cloneNode() 加true 深克隆 复制里面的子节点 false 浅克隆
+- 添加到 ul 最后面 appendChild
+```
+
+```:no-line-numbers
+点击右侧按钮，小圆圈跟随变化
+- 最简单的做法是再声明一个变量circle，每次点击自增1，注意，左侧按钮也需要这个变量，因此要声明全局变量。
+- 但是图片有5张，我们小圆圈只有4个少一个，必须加一个判断条件
+- 如果circle == 4 就 从新复原为 0
+```
+
+```:no-line-numbers
+自动播放功能
+- 添加一个定时器
+- 自动播放轮播图，实际就类似于点击了右侧按钮
+- 此时我们使用手动调用右侧按钮点击事件 arrow_r.click()
+- 鼠标经过focus 就停止定时器
+- 鼠标离开focus 就开启定时器
+```
+
+**什么是节流阀：**
+
+```:no-line-numbers
+防止轮播图按钮连续点击造成播放过快。
+
+节流阀目的：
+    当上一个函数动画内容执行完毕，再去执行下一个函数动画，让事件无法连续触发。
+
+核心实现思路：
+    利用回调函数，添加一个变量来控制，锁住函数和解锁函数。
+
+开始设置一个变量 var flag = true;
+if(flag) {flag = false; do something} 关闭水龙头
+利用回调函数 动画执行完毕，flag = true 打开水龙头
+```
+
+**案例代码：** [网页轮播图](https://github.com/zengkaiqiang562/JavaGuide-Demo/blob/main/docs/zkq/web/_3_javascript_program/_2_web_apis/%E7%BD%91%E9%A1%B5%E8%BD%AE%E6%92%AD%E5%9B%BE/index.html)
+
+#### 5.7.2 案例2：仿淘宝返回顶部
+
+```:no-line-numbers
+核心思想：滚动窗口至文档中的特定位置。
+实现：window.scroll(x, y) 
+注意，里面的x和y 不跟单位，直接写数字
+```
+
+**案例分析：**
+
+```:no-line-numbers
+① 带有动画的返回顶部
+② 此时可以继续使用我们封装的动画函数
+③ 只需要把所有的left 相关的值 改为 跟 页面垂直滚动距离相关就可以了
+④ 页面滚动了多少，可以通过 window.pageYOffset 得到
+⑤ 最后是页面滚动，使用 window.scroll(x,y)
+```
+
+**示例代码：**
+
+```html:no-line-numbers
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .slider-bar {
+            position: absolute;
+            left: 50%;
+            top: 300px;
+            margin-left: 600px;
+            width: 45px;
+            height: 130px;
+            background-color: pink;
+        }
+        
+        .w {
+            width: 1200px;
+            margin: 10px auto;
+        }
+        
+        .header {
+            height: 150px;
+            background-color: purple;
+        }
+        
+        .banner {
+            height: 250px;
+            background-color: skyblue;
+        }
+        
+        .main {
+            height: 1000px;
+            background-color: yellowgreen;
+        }
+        
+        span {
+            display: none;
+            position: absolute;
+            bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slider-bar">
+        <span class="goBack">返回顶部</span>
+    </div>
+    <div class="header w">头部区域</div>
+    <div class="banner w">banner区域</div>
+    <div class="main w">主体部分</div>
+    <script>
+        //1. 获取元素
+        var sliderbar = document.querySelector('.slider-bar');
+        var banner = document.querySelector('.banner');
+        // banner.offestTop 就是被卷去头部的大小 一定要写到滚动的外面
+        var bannerTop = banner.offsetTop
+            // 当我们侧边栏固定定位之后应该变化的数值
+        var sliderbarTop = sliderbar.offsetTop - bannerTop;
+        // 获取main 主体元素
+        var main = document.querySelector('.main');
+        var goBack = document.querySelector('.goBack');
+        var mainTop = main.offsetTop;
+        // 2. 页面滚动事件 scroll
+        document.addEventListener('scroll', function() {
+                // console.log(11);
+                // window.pageYOffset 页面被卷去的头部
+                // console.log(window.pageYOffset);
+                // 3 .当我们页面被卷去的头部大于等于了 172 此时 侧边栏就要改为固定定位
+                if (window.pageYOffset >= bannerTop) {
+                    sliderbar.style.position = 'fixed';
+                    sliderbar.style.top = sliderbarTop + 'px';
+                } else {
+                    sliderbar.style.position = 'absolute';
+                    sliderbar.style.top = '300px';
+                }
+                // 4. 当我们页面滚动到main盒子，就显示 goback模块
+                if (window.pageYOffset >= mainTop) {
+                    goBack.style.display = 'block';
+                } else {
+                    goBack.style.display = 'none';
+                }
+
+            })
+            // 3. 当我们点击了返回顶部模块，就让窗口滚动的页面的最上方
+        goBack.addEventListener('click', function() {
+            // 里面的x和y 不跟单位的 直接写数字即可
+            // window.scroll(0, 0);
+            // 因为是窗口滚动 所以对象是window
+            animate(window, 0);
+        });
+        // 动画函数
+        function animate(obj, target, callback) {
+            // console.log(callback);  callback = function() {}  调用的时候 callback()
+
+            // 先清除以前的定时器，只保留当前的一个定时器执行
+            clearInterval(obj.timer);
+            obj.timer = setInterval(function() {
+                // 步长值写到定时器的里面
+                // 把我们步长值改为整数 不要出现小数的问题
+                // var step = Math.ceil((target - obj.offsetLeft) / 10);
+                var step = (target - window.pageYOffset) / 10;
+                step = step > 0 ? Math.ceil(step) : Math.floor(step);
+                if (window.pageYOffset == target) {
+                    // 停止动画 本质是停止定时器
+                    clearInterval(obj.timer);
+                    // 回调函数写到定时器结束里面
+                    // if (callback) {
+                    //     // 调用函数
+                    //     callback();
+                    // }
+                    callback && callback();
+                }
+                // 把每次加1 这个步长值改为一个慢慢变小的值  步长公式：(目标值 - 现在的位置) / 10
+                // obj.style.left = window.pageYOffset + step + 'px';
+                window.scroll(0, window.pageYOffset + step);
+            }, 15);
+        }
+    </script>
+</body>
+
+</html>
+```
+
+#### 5.7.3 案例3：筋斗云导航栏
+
+```:no-line-numbers
+鼠标经过某个小li， 筋斗云跟这到当前小li位置
+鼠标离开这个小li， 筋斗云复原为原来的位置
+鼠标点击了某个小li， 筋斗云就会留在点击这个小li 的位置
+```
+
+**案例分析：**
+
+```:no-line-numbers
+① 利用动画函数做动画效果
+② 原先筋斗云的起始位置是0 
+③ 鼠标经过某个小li， 把当前小li 的 offsetLeft 位置 做为目标值即可
+④ 鼠标离开某个小li， 就把目标值设为 0 
+⑤ 如果点击了某个小li， 就把li当前的位置存储起来，做为筋斗云的起始位置
+```
+
+**案例代码：** [筋斗云导航栏](https://github.com/zengkaiqiang562/JavaGuide-Demo/blob/main/docs/zkq/web/_3_javascript_program/_2_web_apis/%E7%AD%8B%E6%96%97%E4%BA%91%E5%AF%BC%E8%88%AA%E6%A0%8F/demo%20js%E9%83%A8%E5%88%86.html)
