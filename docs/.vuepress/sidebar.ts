@@ -3,6 +3,36 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
     // 应该把更精确的路径放置在前边
 
+    "/zkq/books/": [ // 书籍笔记
+        {
+            text: "Linux内核设计与实现",
+            prefix: "linux-kernel-development/",
+            collapsable: true,
+            children: [
+                "_01_linux_kernel_introduction",
+                "_02_begin_from_kernel",
+                "_03_process_manager",
+                "_04_process_dispatch",
+                "_05_system_call",
+                "_06_kernel_data_structure",
+                "_07_interrupt_and_deal",
+                "_08_bottom_half_and_defer_execute",
+                "_09_kernel_sync_introduction",
+                "_10_kernel_sync_method",
+                "_11_timer_and_manage",
+                "_12_memory_manage",
+                "_13_virtual_file_system",
+                "_14_block_io_layer",
+                "_15_process_addr_space",
+                "_16_page_high_cache_and_page_rewrite",
+                "_17_device_and_module",
+                "_18_debug",
+                "_19_transplant",
+                "_20_patch_and_dev_community",
+            ]
+        },
+    ],
+
     "/zkq/gradle/": [ // Gradle 3.0 自动化项目构建技术精讲+实战
         "_01_introduce", // Gradle 快速入门
         {
