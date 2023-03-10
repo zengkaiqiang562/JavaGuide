@@ -3,6 +3,82 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
     // 应该把更精确的路径放置在前边
 
+    "/zkq/c_and_cpp/": [ // 黑马 C/C++ 32 期
+        {
+            text: "01-C语言基础",
+            prefix: "_1_c-basic/",
+            collapsable: true,
+            children: [
+                "day01",
+                "day02",
+                "day03",
+                "day04",
+                "day05",
+                "day06",
+                "day07",
+                "day08",
+                "day09",
+                "day10",
+                "day11",
+                "day12",
+                "day13",
+            ]
+        },
+        {
+            text: "02-C高级编程",
+            prefix: "_2_c-advance/",
+            collapsable: true,
+            children: [
+                "day01",
+                "day02",
+                "day03",
+                "day04",
+                "day05",
+                "day06",
+                "day07",
+                "ext01",
+            ]
+        },
+        {
+            text: "03-数据结构",
+            prefix: "_3_data-structure",
+            collapsable: true,
+            children: [
+                "day01",
+                "day02",
+                "day03",
+            ]
+        },
+        {
+            text: "04-C++核心编程",
+            prefix: "_4_cpp-core/",
+            collapsable: true,
+            children: [
+                "day01",
+                "day02",
+                "day03",
+                "day04",
+                "day05",
+                "day06",
+                "day07",
+                "day08",
+                "day09",
+                "ext01",
+                "ext02",
+            ]
+        },
+        {
+            text: "05-STL",
+            prefix: "_5_stl",
+            collapsable: true,
+            children: [
+                "day01",
+                "day02",
+                "day03",
+            ]
+        },
+    ],
+
     "/zkq/books/": [ // 书籍笔记
         {
             text: "Linux内核设计与实现",

@@ -58,6 +58,9 @@ actions:
   - text: 书籍笔记
     link: /zkq/books/readme.md
     type: default 
+  - text: C/C++
+    link: /zkq/c_and_cpp/readme.md
+    type: default 
 # footer: |-
 #   <a href="https://beian.miit.gov.cn/" target="_blank">鄂ICP备2020015769号-1</a> | 主题: <a href="https://vuepress-theme-hope.github.io/v2/" target="_blank">VuePress Theme Hope</a>
 ---
