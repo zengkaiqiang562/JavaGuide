@@ -271,6 +271,77 @@ export const sidebarConfig = defineSidebarConfig({
             children: [
                 "analysis-speedbooster",
             ] 
+        },
+        {
+            text: "VPN项目",
+            prefix: "vpn/",
+            collapsable: true,
+            children: [
+                // Ping 模块
+            ] 
+        },
+        {
+            text: "扫码项目",
+            prefix: "qrcode/",
+            collapsable: true,
+            children: [
+                
+            ] 
+        },
+        {
+            text: "清理项目",
+            prefix: "clean/",
+            collapsable: true,
+            children: [
+                
+            ] 
+        },
+        {
+            text: "健康项目",
+            prefix: "health/",
+            collapsable: true,
+            children: [
+                
+            ] 
+        },
+        {
+            text: "SDK接入",
+            prefix: "sdk/",
+            collapsable: true,
+            children: [
+                "firebase", // Firebase 
+                "facebook", // Facebook
+                "adjust", // Adjust
+                "admob", // Admob
+            ] 
+        },
+        {
+            text: "通用模块",
+            prefix: "general/",
+            collapsable: true,
+            children: [
+                // 广告缓存展示模块
+                // 数据加解密模块
+                // 远程打包配置模块
+            ] 
+        },
+        {
+            text: "开发问题集",
+            prefix: "issue/",
+            collapsable: true,
+            children: [
+                
+            ] 
+        },
+        {
+            text: "常用知识点",
+            prefix: "ability/",
+            collapsable: true,
+            children: [
+                // Keytool 命令生成签名文件
+                // aab 包本地安装
+                // 常用设计模式
+            ] 
         }
     ],
 
