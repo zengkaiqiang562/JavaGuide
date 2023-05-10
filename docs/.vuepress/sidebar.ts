@@ -247,6 +247,7 @@ export const sidebarConfig = defineSidebarConfig({
 
     "/zkq/hnap/": [ // 湖南安派项目经历
         "dev-note", // 开发笔记
+        "interview_faq", // 开发笔记
         {
             text: "C407",
             prefix: "C407/",
