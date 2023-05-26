@@ -106,29 +106,27 @@ public class MyApplication extends Application {
 ## 2. 事件跟踪
 
 ```java:no-line-numbers
-public static void traceEventByAdjust(String event, Map<String, Object> params, boolean unique) {
-    AdjustEvent adjustEvent = new AdjustEvent(event); // 设置事件对象
-    if (unique) {
-        /* 
-            事件数据去重：
-                可以发送一个可选的标识符，以避免跟踪重复事件。
-                SDK 会存储最新的十个标识符。这意味着带有重复交易 ID 的收入事件会被跳过。
-        */
-        adjustEvent.setOrderId(event);
+public static void traceEvent(String event, Map<String, String> params, boolean unique) {
+    if (unique && SPUtils.getInstance().getBoolean(event)) {
+        Log.e(TAG, "traceEvent() -->  unique event " + event + "  has been REPORT !!!");
+        return; // 去重事件已经上报过，不再上报
     }
+
+    AdjustEvent adjustEvent = new AdjustEvent(event);
+    if (unique) {
+        adjustEvent.setOrderId(event); // Adjust 内部的去重（最多只能支持10个事件，所以自己再套了层 SP 保证去重）
+    }
+
     if (params != null && !params.isEmpty()) {
-        for (Map.Entry<String, Object> entry : params.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            if (value instanceof String) {
-                /*
-                    将回传参数发送至 Adjust
-                */
-                adjustEvent.addCallbackParameter(key, (String) value);
-            }
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            adjustEvent.addCallbackParameter(entry.getKey(), entry.getValue());
         }
     }
+
     Adjust.trackEvent(adjustEvent);
+    if (unique) {
+        SPUtils.getInstance().put(event, true); // 自己通过 SP 保证去重
+    }
 }
 ```
 
