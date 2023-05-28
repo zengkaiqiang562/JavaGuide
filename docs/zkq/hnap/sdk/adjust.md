@@ -103,12 +103,12 @@ public class MyApplication extends Application {
 }
 ```
 
-## 2. 事件跟踪
+## 2. 事件跟踪（即：埋点）
 
 ```java:no-line-numbers
-public static void traceEvent(String event, Map<String, String> params, boolean unique) {
+public static void trackEvent(String event, Map<String, String> params, boolean unique) {
     if (unique && SPUtils.getInstance().getBoolean(event)) {
-        Log.e(TAG, "traceEvent() -->  unique event " + event + "  has been REPORT !!!");
+        Log.e(TAG, "trackEvent() -->  unique event " + event + "  has been REPORT !!!");
         return; // 去重事件已经上报过，不再上报
     }
 
@@ -130,15 +130,27 @@ public static void traceEvent(String event, Map<String, String> params, boolean 
 }
 ```
 
-## 3. 通过 `Adjust` 上报归因（上报 `FB` 安装事件）
+## 3. `BI` 系统接入
 
-**Step1. 让产品提供如下信息**
+`BI` 系统接入就是 `Adjust` 将客户端上报的信息再转发给 `BI` 系统。客户端只需关心要上报哪些信息给 `Adjust` 即可。
+
+目前，需要上报三类信息：
+
+1. 通过 `Adjust` 上报归因（上报 `FB` 安装事件）
+
+2. 通过 `Adjust` 上报广告价值
+
+3. 通过 `Adjust` 上报广告的请求事件、匹配事件、点击事件
+
+### 3.1 通过 `Adjust` 上报归因（上报 `FB` 安装事件）
+
+#### 3.1.1 产品需提供的信息
 
 |**事件名称**|**`Adjust` 识别码**|**备注**|**触发条件**|**参数**|
 |:-|:-|:-|:-|:-|
 |`cfinstalla`|`xm2kgc`|`FB` `install` 事件||加密数据参数：`cfurla`|
 
-**Step2. 示例代码**
+#### 3.1.2 示例代码
 
 ```java:no-line-numbers
 public class MyApplication extends Application {
@@ -199,27 +211,141 @@ private void setupReferrer(Application application) {
 }
 ```
 
-## 4. 通过 `Adjust` 上报广告价值
+### 3.2 通过 `Adjust` 上报广告价值
 
+#### 3.2.1 Step1. `Adjust` 上报广告价值的方法封装
 
-## 5. 通过 `Adjust` 上报广告的请求事件、匹配事件、点击事件
+```java:no-line-numbers
+public static void reportRevenue(long valueMicros, String currencyCode, String network, String adId, String adPlace) {
+    double revenue = valueMicros / 1000000.0; //把原来的千分值转换成0.001
+    AdjustAdRevenue adRevenue = new AdjustAdRevenue(AdjustConfig.AD_REVENUE_ADMOB);
+    adRevenue.setRevenue(revenue, currencyCode);
+    adRevenue.setAdRevenueNetwork(network); //广告源渠道
+    adRevenue.setAdRevenuePlacement(adPlace); //广告位名称
+    adRevenue.setAdRevenueUnit(adId); //广告ID
+    Adjust.trackAdRevenue(adRevenue); //调用Adjust上报广告价值的方法
+}
+```
 
-**Step1. 让产品提供如下信息**
+#### 3.2.2 Step2. 获取广告源渠道的方法封装
+
+```java:no-line-numbers
+public static String getAdChannel(String adapter) { // 参数 adapter 通过广告 SDK 提供的 API 获取
+    String channel = ""; // 广告源渠道
+
+    if (TextUtils.isEmpty(adapter)) {
+        return channel;
+    }
+
+    if (adapter.contains("AdMobAdapter")) {
+        channel = "admob";
+    } else if (adapter.contains("adcolony")) {
+        channel = "adcolony";
+    } else if (adapter.contains("chartboost")) {
+        channel = "chartboost";
+    } else if (adapter.contains("inmobi")) {
+        channel = "inmobi";
+    } else if (adapter.contains("ironsource")) {
+        channel = "ironsource";
+    } else if (adapter.contains("pangle")) {
+        channel = "pangle";
+    } else if (adapter.contains("unity")) {
+        channel = "unity";
+    } else if (adapter.contains("vungle")) {
+        channel = "vungle";
+    } else if (adapter.contains(".mtg")) {
+        channel = "mintegral";
+    }
+
+    return channel;
+}
+```
+
+#### 3.2.3 Step3. 实现 `OnPaidEventListener` 接口
+
+```java:no-line-numbers
+public class MyOnPaidEventListener implements OnPaidEventListener {
+
+    private final PlaceBean placeBean; // placeBean 实体类的作用是提供广告位名称
+    private final UnitBean unitBean; // unitBean 实体类的作用是提供广告单元 id
+    private final String adapter; // // 参数 adapter 通过广告 SDK 提供的 API 获取
+
+    public MyOnPaidEventListener(PlaceBean placeBean, UnitBean unitBean, String adapter) {
+        this.placeBean = placeBean;
+        this.unitBean = unitBean;
+        this.adapter = adapter == null ? "" : adapter;
+    }
+
+    @Override
+    public void onPaidEvent(@NonNull AdValue adValue) {
+        String network = getAdChannel(adapter); // 广告源渠道
+
+        if (placeBean == null || unitBean == null) {
+            return;
+        }
+
+        reportRevenue(adValue.getValueMicros(), adValue.getCurrencyCode(), network, unitBean.getId(), placeBean.getPlace());
+    }
+}
+```
+
+#### 3.2.4 Step4. 在请求成功的回调中为广告对象设置 `OnPaidEventListener`
+
+```java:no-line-numbers
+/* 示例：开屏广告设置监听器的方法。（插页广告与之类似） */
+@Override
+public void onAdLoaded(@NonNull AppOpenAd appOpenAd) {
+    ...
+    String adapterName = appOpenAd.getResponseInfo().getMediationAdapterClassName();
+    /*
+        placeBean 实体类的作用是提供广告位名称
+        unitBean 实体类的作用是提供广告单元 id
+    */
+    appOpenAd.setOnPaidEventListener(new MyOnPaidEventListener(placeBean, unitBean, adapterName));
+    ad = (T) appOpenAd;
+    ...
+}
+```
+
+```java:no-line-numbers
+/* 示例：原生广告设置监听器的方法。 */
+adLoadBuilder.forNativeAd(nativeAd -> { // onNativeAdLoaded
+    ...
+    String adapterName = nativeAd.getResponseInfo() == null ? "" : nativeAd.getResponseInfo().getMediationAdapterClassName();
+    nativeAd.setOnPaidEventListener(new MyOnPaidEventListener(placeBean, unitBean, adapterName));
+    ad = (T) nativeAd;
+    ...
+});
+```
+
+```java:no-line-numbers
+/* 示例：Banner 广告设置监听器的方法。 */
+public void onAdLoaded() {
+    ...
+    String adapterName = adView.getResponseInfo() == null ? "" : adView.getResponseInfo().getMediationAdapterClassName();
+    adView.setOnPaidEventListener(new MyOnPaidEventListener(placeBean, unitBean, adapterName));
+    ...
+}
+```
+
+### 3.3 通过 `Adjust` 上报广告的请求事件、匹配事件、点击事件
+
+#### 3.3.1 产品需提供的信息
 
 |**事件名称**|**`Adjust` 识别码**|**备注**|**触发条件**|**参数**|
 |:-|:-|:-|:-|:-|
-|`cfaska`|`c6j2e7`|请求事件|开始请求广告后，回传数据|广告单元 `unit`、广告位置 `place`|
-|`cfmata`|`2scofd`|匹配事件|广告请求成功后，回传数据|广告单元 `unit`、收入渠道 `income`、广告位置 `place`|
-|`cfpota`|`g55rtc`|点击事件|广告点击后，回传数据|广告单元 `unit`、收入渠道 `income`、广告位置 `place`|
+|`cfaska`|`c6j2e7`|请求事件|开始请求广告后，回传数据|广告单元 `unitId`、广告位置 `place`|
+|`cfmata`|`2scofd`|匹配事件|广告请求成功后，回传数据|广告单元 `unitId`、收入渠道 `channel`、广告位置 `place`|
+|`cfpota`|`g55rtc`|点击事件|广告点击后，回传数据|广告单元 `unitId`、收入渠道 `channel`、广告位置 `place`|
 
-> 注意：广告的请求事件触发时，还无法获取到收入渠道，所以此时不需要传（或者传 `""`，或者传一个默认值（如 "`admob`"））
+> 注意：广告的请求事件触发时，还无法获取到收入渠道，所以此时不需要传（或根据产品需求传 `""`，或传一个默认值（如 "`admob`"））
 
-**Step2. `Adjust` 事件上报方法的封装（兼容带参数的事件）**
+#### 3.3.2 定义埋点方法（兼容带参数的事件）
 
 ```java:no-line-numbers
-public static void traceEvent(String event, Map<String, String> params, boolean unique) {
+public static void trackEvent(String event, Map<String, String> params, boolean unique) {
     if (unique && SPUtils.getInstance().getBoolean(event)) {
-        Log.e(TAG, "traceEvent() -->  unique event " + event + "  has been REPORT !!!");
+        Log.e(TAG, "trackEvent() -->  unique event " + event + "  has been REPORT !!!");
         return; // 去重事件已经上报过，不再上报
     }
 
@@ -241,70 +367,114 @@ public static void traceEvent(String event, Map<String, String> params, boolean 
 }
 ```
 
-**Step3. 上报各个广告的请求事件**
+#### 3.3.3 上报各个广告的请求事件
 
 ```java:no-line-numbers
-/* 1. 封装广告请求事件的上报方法 */
+/* 1. 广告请求事件的埋点方法封装 */
 /**
  * 事件: 开始请求广告后，回传数据
- * 事件名: c6j2e7
- * 广告单元参数 unit、广告位置参数 place
+ * 事件识别码: xxx
+ * 广告单元参数 unitId, 广告位置参数 place
  */
-public static void traceAdmobPreload(String admobId, String admobPos) {
-    Log.e(TAG, "--> traceAdmobPreload()  admobId=" + admobId + "  admobPos=" + admobPos);
+public static void traceAdPreload(String unitId, String place) {
+    LogUtils.e(TAG, "--> traceAdPreload()  unitId=" + unitId + "  place=" + place);
     Map<String, String> map = new HashMap<>();
-    map.put("unit", admobId);
-    map.put("place", admobPos);
-    traceEvent("c6j2e7", map, false);
+    map.put("unitId", unitId);
+    map.put("place", place);
+    trackEvent("xxx", map, false);
 }
 ```
 
 ```java:no-line-numbers
-/* 2. 在各个广告请求前调用 traceAdmobPreload 方法 */
+/* 2. 在各个广告请求前调用 traceAdPreload 方法 */
+
+// 示例：在开屏广告请求前调用（其他广告类似处理）
+traceAdPreload(unitBean.getId(), placeBean.getPlace());
+AdRequest request = new AdRequest.Builder().build();
+AppOpenAd.load(context, unitBean.getId(), request, AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, appOpenAdLoadCallback);
 ```
 
-**Step4. 上报各个广告的匹配事件（请求成功）**
+#### 3.3.4 上报各个广告的匹配事件（请求成功）
 
 ```java:no-line-numbers
-/* 1. 封装广告匹配事件的上报方法 */
+/* 1. 广告匹配事件（请求成功）的埋点方法封装 */
 /**
  * 事件: 广告请求成功后，回传数据
- * 事件名: 2scofd
- * 广告单元参数 unit、收入渠道参数 income、广告位置参数 place
+ * 事件识别码: xxx
+ * 广告单元参数 unitId, 广告位置参数 place, 收入渠道参数 channel
  */
-public static void traceAdmobLoadSuccess(String admobId, String admobPos, String admobChannel) {
-    Glog.e(TAG, "--> traceAdmobLoadSuccess()  admobId=" + admobId + "  admobPos=" + admobPos + "  admobChannel=" + admobChannel);
+public static void traceAdLoadSuccess(String unitId, String place, String channel) {
+    LogUtils.e(TAG, "--> traceAdLoadSuccess()  unitId=" + unitId + "  place=" + place + "  channel=" + channel);
     Map<String, String> map = new HashMap<>();
-    map.put("unit", admobId);
-    map.put("income", admobPos);
-    map.put("place", admobChannel);
-    ThirdService.traceEvent("2scofd", map, false);
+    map.put("unitId", unitId);
+    map.put("place", place);
+    map.put("channel", channel);
+    trackEvent("xxx", map, false);
 }
 ```
 
 ```java:no-line-numbers
-/* 2. 在各个广告请求成功的回调中调用 traceAdmobLoadSuccess 方法 */
+/* 2. 在各个广告请求成功的回调中调用 traceAdLoadSuccess 方法 */
+
+// 示例：在开屏广告请求成功时调用 traceAdLoadSuccess 方法（其他广告类似处理）
+@Override
+public void onAdLoaded(@NonNull AppOpenAd appOpenAd) {
+    LogUtils.e(TAG, "--> onAdLoaded() appOpenAd=" + appOpenAd);
+    ...
+    String adapterName = appOpenAd.getResponseInfo().getMediationAdapterClassName();
+    appOpenAd.setOnPaidEventListener(new MyOnPaidEventListener(placeBean, unitBean, adapterName));
+    traceAdLoadSuccess(unitBean.getId(), placeBean.getPlace(), AdConfig.getAdChannel(adapterName));
+    ad = (T) appOpenAd;
+    ...
+}
 ```
 
-**Step5. 上报各个广告的点击事件**
+> 注意：就是在 [为广告对象设置 `OnPaidEventListener` 时](#_3-2-4-step4-在请求成功的回调中为广告对象设置-onpaideventlistener) 调用 `traceAdLoadSuccess` 方法 
+
+#### 3.3.5 上报各个广告的点击事件
 
 ```java:no-line-numbers
-/* 2. 封装广告点击事件的上报方法 */
+/* 2. 广告点击事件的埋点方法封装 */
 /**
  * 事件: 广告点击后，回传数据
- * 事件名: g55rtc
- * 广告单元参数 unit、收入渠道参数 income、广告位置参数 place
+ * 事件识别码: xxx
+ * 广告单元参数 unitId, 广告位置参数 place, 收入渠道参数 channel
  */
-public static void traceAdmobClick(String admobId, String admobPos, String admobChannel) {
-    Glog.e(TAG, "--> traceAdmobClick()  admobId=" + admobId + "  admobPos=" + admobPos + "  admobChannel=" + admobChannel);
+public static void traceAdClick(String unitId, String place, String channel) {
+    LogUtils.e(TAG, "--> traceAdClick()  unitId=" + unitId + "  place=" + place + "  channel=" + channel);
     Map<String, String> map = new HashMap<>();
-    map.put("unit", admobId);
-    map.put("income", admobPos);
-    map.put("place", admobChannel);
-    ThirdService.traceEvent("g55rtc", map, false);
+    map.put("unitId", unitId);
+    map.put("place", place);
+    map.put("channel", channel);
+    trackEvent("xxx", map, false);
 }
 ```
 
 ```java:no-line-numbers
-/* 2. 在各个广告点击事件的回调中调用 traceAdmobClick 方法 */
+/* 2. 在各个广告点击事件的回调中调用 traceAdClick 方法 */
+
+// 示例：在开屏广告的点击事件中调用 traceAdClick 方法（插页广告类似处理）
+@Override
+public void onAdClicked() {
+    String adapterName = ((AppOpenAd) ad).getResponseInfo().getMediationAdapterClassName();
+    traceAdClick(unitBean.getId(), placeBean.getPlace(), AdConfig.getAdChannel(adapterName));
+    ...
+}
+
+// 示例：在原生广告的点击事件中调用 traceAdClick 方法
+@Override
+public void onAdClicked() {
+    String adapterName = ((NativeAd) ad).getResponseInfo() == null ? 
+            "" : ((NativeAd) ad).getResponseInfo().getMediationAdapterClassName();
+    traceAdClick(unitBean.getId(), placeBean.getPlace(), AdConfig.getAdChannel(adapterName));
+    ...
+}
+
+// 示例：在Banner 广告的点击事件中调用 traceAdClick 方法
+@Override
+public void onAdClicked() {
+    String adapterName = adView.getResponseInfo() == null ? "" : adView.getResponseInfo().getMediationAdapterClassName();
+    traceAdClick(unitBean.getId(), placeBean.getPlace(), AdConfig.getAdChannel(adapterName));
+    ...
+}
 ```
