@@ -324,6 +324,7 @@ export const sidebarConfig = defineSidebarConfig({
                 // 广告缓存展示模块
                 // 数据加解密模块
                 // 远程打包配置模块
+                "remote_pack"
             ] 
         },
         {
