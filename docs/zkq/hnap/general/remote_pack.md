@@ -8,7 +8,7 @@ tag:
 
 > 参考：[远程打包方案示例代码](https://github.com/zengkaiqiang562/HNAP_VpnTemplate)
 
-## 1. 项目文件结构介绍
+## 1. 项目结构介绍
 
 ![](./images/remote_pack/01.png)
 
@@ -82,7 +82,7 @@ define.cmake
 */src/main/release/
 ```
 
-## 2. 快速集成步骤
+## 2. 集成步骤
 
 ### 2.1 在项目中创建所需的配置文件
 
@@ -244,6 +244,127 @@ xxx
 
 ![](./images/remote_pack/03.png)
 
+```:no-line-numbers
+DeployPlugin：
+    自定义插件类，插件处理流程的入口
+
+DeployExtension：
+    自定义插件提供的扩展属性类（导入该插件的 Project 可以访问到这些扩展属性）
+
+DeployLoader：
+    处理一些数据，如：
+    1. 根据 jks 文件生成签名字符串
+    2. 对 config.json 中的本地内置全局配置数据进行压缩加密
+    3. 对 template.ovpn 中的 VPN 证书进行压缩加密
+    4. 将生成的签名字符串、压缩加密后的全局配置以及 VPN 证书写入到 cmake 文件中，作为宏变量给 Native 层使用
+
+DeployAdapter：
+    在 main/release 下生成正式环境下的代码，并修改包路径结构，以及文件中的包名
+```
+
 ### 2.3 将 `libconfig` 配置模块导入到项目中
+
+![](./images/remote_pack/04.png)
+
+导入 `libconfig` 模块后，需要修改如下内容：
+
+**1、修改 `build.gradle.kts` 文件（注释的部分）**
+
+```kotlin:no-line-numbers
+plugins {
+    id("com.android.library")
+
+    id("com.deploy.plugin") // 导入自定义插件 buildSrc
+}
+
+android {
+    println("curLibPkgName=${deployExt.curLibPkgName}")
+    namespace = deployExt.curLibPkgName // 库模块的包路径
+    compileSdk = 32
+
+    defaultConfig {
+        minSdk = 21
+        targetSdk = 32
+
+        /* 将扩展属性添加到库模块的 BuildConfig 类中 */
+        buildConfigField("boolean", "VPN_DEBUG", "${deployExt.debug}")
+        buildConfigField("boolean", "ENABLE_LOG", "${deployExt.enableLog}")
+        buildConfigField("boolean", "LIMIT_VPN", "${deployExt.limitVPN}")
+
+        buildConfigField("String", "PROTOCOL_PRIVACY", "\"${deployExt.urlPrivacy}\"")
+        buildConfigField("String", "PROTOCOL_SERVICE", "\"${deployExt.urlTerms}\"")
+        buildConfigField("String", "FEEDBACK_EMAIL", "\"${deployExt.emailFeedback}\"")
+
+        buildConfigField("String", "BASE_URL", "\"${deployExt.baseUrl}\"")
+        buildConfigField("String", "PATH_CONFIG", "\"${deployExt.pathConfig}\"")
+        buildConfigField("String", "PATH_VPN_NODE_LIST", "\"${deployExt.pathVpnNodeList}\"")
+        buildConfigField("String", "PATH_VPN_NODE_INFO", "\"${deployExt.pathVpnNodeInfo}\"")
+
+        buildConfigField("String", "PATH_LOCATION_1", "\"${deployExt.pathLocation1}\"")
+        buildConfigField("String", "PATH_LOCATION_2", "\"${deployExt.pathLocation2}\"")
+        buildConfigField("String", "PATH_LOCATION_3", "\"${deployExt.pathLocation3}\"")
+        buildConfigField("String", "PATH_LOCATION_4", "\"${deployExt.pathLocation4}\"")
+
+        /* 将扩展属性添加到库模块的资源文件 string.xml 中 */
+        resValue("string", "facebook_id", deployExt.facebookId)
+        resValue("string", "facebook_token", deployExt.facebookToken)
+        resValue("string", "adjust_token", deployExt.adjustToken)
+        resValue("string", "admob_id", deployExt.admobId)
+
+        buildConfigField("String", "FACEBOOK_ID", "\"${deployExt.facebookId}\"")
+        buildConfigField("String", "FACEBOOK_TOKEN", "\"${deployExt.facebookToken}\"")
+        buildConfigField("String", "ADJUST_TOKEN", "\"${deployExt.adjustToken}\"")
+    }
+
+    buildTypes {
+        release {
+            // 混淆文件的路径从扩展属性中取
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), deployExt.proguardPath) 
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        getByName("main") {
+            /* 因为需要区分测试环境(main/debug/)和正式环境(main/release/)的代码，所以需要修改项目文件的默认存放位置 */
+            assets.srcDirs(deployExt.assetsPath)
+            java.srcDirs(deployExt.javaPath)
+            res.srcDirs(deployExt.resPath)
+            manifest.srcFile(deployExt.manifestPath)
+        }
+    }
+}
+
+dependencies {
+    implementation("androidx.appcompat:appcompat:1.4.2")
+    implementation("com.google.android.material:material:1.6.1")
+}
+```
+
+**2、修改 `AndroidManifest.xml` 文件**
+
+一些需要在配置清单文件（``AndroidManifest.xml``）中配置的数据，请在 `libconfig` 模块的 `AndroidManifest.xml` 文件中配置。
+
+```xml:no-line-numbers
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Facebook -->
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_id"/>
+
+        <!-- Admob -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_id"/>
+    </application>
+</manifest>
+```
+
 
 ### 2.4 修改 `app` 模块的目录结构以及 `build.gradle` 文件
