@@ -366,5 +366,175 @@ dependencies {
 </manifest>
 ```
 
+**3. 修改 `LibConfig.java`**
 
-### 2.4 修改 `app` 模块的目录结构以及 `build.gradle` 文件
+`LibConfig` 类存在的目的是对 `BuildConfig` 的属性做一次封装，避免直接使用 `BuildConfig`。
+
+因为在项目未编译时，`BuildConfig` 类是不存在的，此时无法访问到 `BuildConfig`，于是引用 `BuildConfig` 的地方都会报错。
+
+因此，`LibConfig` 的作用主要就是让 `BuildConfig` 引起的报错都集中在一个地方，方便管理。
+
+```java:no-line-numbers
+package com.template.config;
+
+public final class LibConfig {
+    public static final boolean VPN_DEBUG = BuildConfig.VPN_DEBUG;
+    public static final boolean ENABLE_LOG = BuildConfig.ENABLE_LOG;
+    public static final boolean LIMIT_VPN = BuildConfig.LIMIT_VPN;
+
+    public static final String PROTOCOL_PRIVACY = BuildConfig.PROTOCOL_PRIVACY;
+    public static final String PROTOCOL_SERVICE = BuildConfig.PROTOCOL_SERVICE;
+    public static final String FEEDBACK_EMAIL = BuildConfig.FEEDBACK_EMAIL;
+
+    public static final String BASE_URL = BuildConfig.BASE_URL;
+    public static final String PATH_CONFIG = BuildConfig.PATH_CONFIG;
+    public static final String PATH_VPN_NODE_LIST = BuildConfig.PATH_VPN_NODE_LIST;
+    public static final String PATH_VPN_NODE_INFO = BuildConfig.PATH_VPN_NODE_INFO;
+
+    public static final String PATH_LOCATION_1 = BuildConfig.PATH_LOCATION_1;
+    public static final String PATH_LOCATION_2 = BuildConfig.PATH_LOCATION_2;
+    public static final String PATH_LOCATION_3 = BuildConfig.PATH_LOCATION_3;
+    public static final String PATH_LOCATION_4 = BuildConfig.PATH_LOCATION_4;
+
+    public static final String FACEBOOK_ID = BuildConfig.FACEBOOK_ID;
+    public static final String FACEBOOK_TOKEN = BuildConfig.FACEBOOK_TOKEN;
+    public static final String ADJUST_TOKEN = BuildConfig.ADJUST_TOKEN;
+}
+```
+
+### 2.4 修改 `app` 模块的目录结构以及 `build.gradle.kts` 文件
+
+![](./images/remote_pack/05.png)
+
+为了区分正式环境的代码，需要将测试环境的代码以及资源文件、混淆文件、`AndroidManifest.xml` 文件都放到 `main/debug/` 目录下。
+
+然后在 `build.gradle.kts` 中修改这些文件的默认存放位置：
+
+```kotlin:no-line-numbers
+import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
+
+plugins {
+    id("com.android.application")
+    id("com.google.gms.google-services")  
+    id("com.google.firebase.crashlytics") 
+
+    id("com.deploy.plugin") // // 导入自定义插件 buildSrc
+}
+
+android {
+    namespace = deployExt.curPkgName
+    compileSdk = 32
+
+    defaultConfig {
+        /* 版本信息和包名从扩展属性中取 */
+        applicationId = deployExt.curPkgName
+        minSdk = 21
+        targetSdk = 32
+        versionCode = deployExt.versionCode
+        versionName = deployExt.versionName
+
+        externalNativeBuild {
+            ndk {
+                abiFilters += listOf(/*"x86", "x86_64",*/ "armeabi-v7a", "arm64-v8a")
+            }
+        }
+    }
+
+    signingConfigs {
+        register("release") {
+            /* 签名信息从扩展属性中取 */
+            enableV1Signing = true
+            enableV2Signing = true
+            keyAlias = deployExt.signPwd
+            keyPassword = deployExt.signPwd
+            storePassword = deployExt.signPwd
+            storeFile = rootProject.file(deployExt.signPath)
+
+            println("storeFile=${storeFile?.absolutePath}")
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            // 混淆文件的路径从扩展属性中取
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), deployExt.proguardPath)
+
+            configure<CrashlyticsExtension> {
+                // 是否上传混淆映射文件到 firebase（测试环境下不上传，因为 google-services.json 文件是乱写的，会上传失败）
+                mappingFileUploadEnabled = deployExt.uploadMappingFile
+            }
+
+            ndk {
+                debugSymbolLevel = "none"
+            }
+
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    sourceSets {
+        getByName("main") {
+            /* 修改项目文件的默认存放位置 */
+            assets.srcDirs(deployExt.assetsPath)
+            java.srcDirs(deployExt.javaPath)
+            res.srcDirs(deployExt.resPath)
+            manifest.srcFile(deployExt.manifestPath)
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path(deployExt.cmakePath) // cmake 文件的路径从扩展属性中取
+            version = "3.18.1"
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    bundle {
+        abi { enableSplit = false }
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
+    dataBinding {
+        enable = true
+    }
+}
+
+dependencies {
+    ...
+    implementation(project(":libconfig")) // app 模块需要依赖 libconfig 模块
+    ...
+}
+```
+
+### 2.5 项目编译
+
+**Step1：** 根据测试环境和正式环境的不同，修改如下内容：
+
+1. 修改 `config.json`
+2. 修改 `deploy.json`
+3. 正式环境下替换产品给的 `app/google-services.json`
+4. 正式环境下替换远程打包服务器上生成的 `jks` 签名文件
+
+**Step2：** 执行 `build` -> `Clean Project` 清理下项目，此时会把之前生成的 `main/release` 下的正式环境的代码都删除掉。
+
+**Step3：** 执行 `Gralde Sync`，此时会根据当前的 `main/debug` 下的代码在 `main/release` 下生成正式环境的代码
+
+**Step4：** 编译项目或打 `aab` 包
+
+## 3. 注意事项
+
+1. 将 `aab` 包压缩成 `zip` 文件，需要用到 `7z` 压缩软件，且该打包方案的压缩程序只适配了 `windows` 系统的命令格式。所以只会在远程打包服务器上生成 `zip` 压缩文件。
+
+    > `windows` 系统中需安装 `7z` 压缩软件，并将 `7z.exe` 添加到环境变量后，再打开 `AS`，才能生成 `zip` 文件。
