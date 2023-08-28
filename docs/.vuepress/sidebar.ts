@@ -344,6 +344,16 @@ export const sidebarConfig = defineSidebarConfig({
                 // aab 包本地安装
                 // 常用设计模式
             ] 
+        },
+        {
+            text: "代码评审",
+            prefix: "code_review/",
+            collapsable: true,
+            children: [
+                "c448", // Keytool 命令生成签名文件
+                "c462"// aab 包本地安装
+                // 常用设计模式
+            ] 
         }
     ],
 
