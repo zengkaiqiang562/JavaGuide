@@ -538,3 +538,35 @@ dependencies {
 1. 将 `aab` 包压缩成 `zip` 文件，需要用到 `7z` 压缩软件，且该打包方案的压缩程序只适配了 `windows` 系统的命令格式。所以只会在远程打包服务器上生成 `zip` 压缩文件。
 
     > `windows` 系统中需安装 `7z` 压缩软件，并将 `7z.exe` 添加到环境变量后，再打开 `AS`，才能生成 `zip` 文件。
+
+
+## 4. 移除 `aab` 包中的混淆映射文件
+
+在 `app` 模块中的 `build.gradle.kts` 文件中添加如下代码：
+
+```kotlin:no-line-numbers
+tasks.register("removeProguardMappingFromReleaseIntermediateBundle", Zip::class.java) {
+    description = "Remove proguard mapping from bundle file for Google Play upload"
+
+    archiveName = "intermediary-bundle.tmp.aab"
+
+    destinationDir = file("${project.buildDir}/intermediates/intermediary_bundle/release/")
+
+    println(destinationDir.listFiles())
+
+    from(zipTree("${project.buildDir}/intermediates/intermediary_bundle/release/intermediary-bundle.aab")) {
+        exclude("BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map")
+    }
+
+    doLast {
+        val source = "${project.buildDir}/intermediates/intermediary_bundle/release/intermediary-bundle.tmp.aab"
+        val target = source.replace(".tmp.aab", ".aab")
+        file(target).delete()
+        file(source).renameTo(file(target))
+    }
+}
+
+project.afterEvaluate {
+    tasks.getByName("shrinkBundleReleaseResources").finalizedBy("removeProguardMappingFromReleaseIntermediateBundle")
+}
+```
