@@ -107,6 +107,25 @@ export const sidebarConfig = defineSidebarConfig({
                 "_20_patch_and_dev_community",
             ]
         },
+        {
+            text: "音视频开发进阶指南",
+            prefix: "audio-video-development-advance-guide/",
+            collapsable: true,
+            children: [
+                "_01_audio_video_basic",
+                "_02_mobile_env_build",
+                "_03_ffmpeg_introduce_usage",
+                "_04_mobile_platform_audio_video_render",
+                "_05_make_video_player",
+                "_06_audio_video_sample_encoder",
+                "_07_make_video_recorder",
+                "_08_audio_effector_introduce_practice",
+                "_09_video_effector_introduce_practice",
+                "_10_pro_video_recorder_practice",
+                "_11_live_app_build",
+                "_12_live_app_key_handle",
+            ]
+        },
     ],
 
     "/zkq/gradle/": [ // Gradle 3.0 自动化项目构建技术精讲+实战
