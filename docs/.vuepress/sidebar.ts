@@ -3,6 +3,18 @@ import { defineSidebarConfig } from "vuepress-theme-hope";
 export const sidebarConfig = defineSidebarConfig({
     // 应该把更精确的路径放置在前边
 
+    "/lango-tech/": [ // 朗国科技
+        "primer", // 入门指南
+        {
+            text: "专题",
+            prefix: "subject/",
+            collapsable: true,
+            children: [
+                "surfaceflinger", // SurfaceFlinger
+            ]
+        },
+    ],
+
     "/zkq/c_and_cpp/": [ // 黑马 C/C++ 32 期
         {
             text: "01-C语言基础",

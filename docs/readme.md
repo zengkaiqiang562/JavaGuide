@@ -13,6 +13,9 @@ actions:
   # - text: 知识星球
   #   link: /about-the-author/zhishixingqiu-two-years.md
   #   type: default
+  - text: 朗国科技
+    link: /lango-tech/readme.md
+    type: defaul
   - text: HNAP
     link: /zkq/hnap/readme.md
     type: default 
