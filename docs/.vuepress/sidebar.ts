@@ -6,6 +6,22 @@ export const sidebarConfig = defineSidebarConfig({
     "/lango-tech/": [ // 朗国科技
         "primer", // 入门指南
         {
+            text: "项目管理",
+            prefix: "project_mgr/",
+            collapsable: true,
+            children: [
+                "summary", // 概览
+            ]
+        },
+        {
+            text: "组件管理",
+            prefix: "module_mgr/",
+            collapsable: true,
+            children: [
+                "file_transfer", // 上传下载组件
+            ]
+        },
+        {
             text: "专题",
             prefix: "subject/",
             collapsable: true,
@@ -13,6 +29,7 @@ export const sidebarConfig = defineSidebarConfig({
                 "surfaceflinger", // SurfaceFlinger
             ]
         },
+        
     ],
 
     "/zkq/c_and_cpp/": [ // 黑马 C/C++ 32 期
