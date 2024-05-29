@@ -4,7 +4,15 @@ export const sidebarConfig = defineSidebarConfig({
     // 应该把更精确的路径放置在前边
 
     "/lango-tech/": [ // 朗国科技
-        "primer", // 入门指南
+        {
+            text: "开发指引",
+            prefix: "develop_guide/",
+            collapsable: true,
+            children: [
+                "app_develop_guide", // 应用开发指引
+                "primer", // 入门
+            ]
+        },
         {
             text: "项目管理",
             prefix: "project_mgr/",
