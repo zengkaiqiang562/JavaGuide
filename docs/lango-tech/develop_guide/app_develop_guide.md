@@ -8,6 +8,11 @@ tag:
 
 ## 1. 软件工具
 
+### 软件工具包的下载地址
+
+链接：[https://pan.baidu.com/s/1q62nxZ8muZoZdXsrEo2_rg](https://pan.baidu.com/s/1q62nxZ8muZoZdXsrEo2_rg) 
+提取码：`1234` 
+
 ### 1.1 朗国办公软件
 
 #### 1.1.1 企业微信 & 企业邮箱
@@ -32,7 +37,7 @@ tag:
 
 输入用户名和密码后，点击登录网络，成功后会自动连接名为 `LANGO-5G` 的 `WIFI`。
 
-#### 1.2.3 代码加密软件
+#### 1.1.3 代码加密软件
 
 > 双击软件工具包中的 `Client_Setup23.exe` 进行安装。
 
@@ -44,7 +49,7 @@ tag:
 2. 在登录 `SVN` 服务器时，需要切换业务模式为 **个人模式**；
 3. 如果 `AndroidStudio` 中的项目代码乱码，请先确认当前是否处于工作模式，如果不是，关闭 `AndroidStudio`，切到工作模式成功后，再重新打开 `AndroidStudio`。
 
-### 1.3 `JDK`
+### 1.2 `JDK`
 
 > 双击 `jdk-8u201-windows-x64.exe` 安装 `JDK 1.8`
 > 
@@ -76,7 +81,7 @@ tag:
 
 ![](./images/app_develop_guide/03.png)
 
-### 1.4 `AndroidStudio`
+### 1.3 `AndroidStudio`
 
 > 最新版本的 `AndroidStudio` 下载地址：https://developer.android.com/studio?hl=zh-cn
 > 
@@ -86,7 +91,7 @@ tag:
 
 下载过程中会自动安装 `sdk manager`，记住 `sdk manager` 的安装目录，并将其安装目录下的 `platform-tools` 文件夹添加到环境变量 `Path` 中，以便在命令行中使用 `adb` 命令。
 
-#### 1.4.1 `adb` 常用命令
+#### 1.3.1 `adb` 常用命令
 
 ```shell:no-line-numbers
 # 设备的 连接/断开连接。（也可以不指定端口号，即省略 ":5555"）
@@ -193,6 +198,8 @@ adb reboot
 adb shell input keyevent 4
 # 发送 HOME 按键
 adb shell input keyevent 3
+# 发送 打开最近任务（KEYCODE_APP_SWITCH） 按钮
+adb shell input keyevent 187
 ```
 
 ```shell:no-line-numbers
@@ -213,22 +220,27 @@ adb shell wm density
 adb shell pm clear  <包名>
 ```
 
+```shell:no-line-numbers
+# adb 命令进入工厂菜单
+adb shell am startservice -n com.xbh.factory.menu/.app.TvMenuWindowManagerService -e com.xbh.factory.menu.commmand com.xbh.factory.menu.commmand.factory_men
+```
 
-### 1.5 `Git` 与 `Gerrit`
+
+### 1.4 `Git` 与 `Gerrit`
 
 `Git` 是代码版本管理工具；
 
-而 `Gerrit` 是一个 `Web` 的代码评审工具，在多人协作开发时，用来相互 `review` 代码的。可以理解为：
+而 `Gerrit` 是一个 `Web` 端的代码评审工具，在多人协作开发时，用来相互 `review` 代码的。可以理解为：
 
 ```:no-line-numbers
 代码首先提交到 Gerrit，经过 Reviewer 审阅通过后，才能 submit 到 Git 远程仓库中。
 ```
 
-#### 1.5.1 `Gerrit` 概述 & 项目代码仓库
+#### 1.4.1 `Gerrit` 概述 & 项目代码仓库
 
 应用开发的所有项目仓库，都可以在 `Gerrit` 上看到，`Gerrit` 的地址为：[http://192.168.1.194:8092/](http://192.168.1.194:8092/)
 
-##### 1.5.1.1 配置 `Gerrit`
+##### 1.4.1.1 配置 `Gerrit`
 
 配置步骤如下：
 
@@ -263,7 +275,7 @@ adb shell pm clear  <包名>
 
     ![](./images/primer/05.png)
 
-##### 1.5.1.2 `Gerrit` 界面介绍
+##### 1.4.1.2 `Gerrit` 界面介绍
 
 `Gerrit` 上的仓库列表如下图所示：
 
@@ -289,7 +301,7 @@ adb shell pm clear  <包名>
 
 ![](./images/app_develop_guide/08.png)
 
-#### 1.5.2 `Git` 概述 & 常用的 `Git` 命令
+#### 1.4.2 `Git` 概述 & 常用的 `Git` 命令
 
 > 双击软件工具包中的 `Git-2.16.1.2-64-bit.exe` 安装 `Git` 客户端。
 > 
@@ -299,7 +311,7 @@ adb shell pm clear  <包名>
 
 可以在 `AndroidStudio` 中通过图形化界面使用 `Git`，也可以在 `Git Bash` 终端中通过 `Git` 命令使用 `Git`。以下介绍 `Git Bash` 中常用的 `Git` 命令。
 
-##### 1.5.2.1 常用的 `Git` 命令
+##### 1.4.2.1 常用的 `Git` 命令
 
 ```shell:no-line-numbers
 # 配置用户名和邮箱
@@ -309,7 +321,7 @@ git config --global user.email "邮箱"
 # 配置 git 的默认编辑器为 vim
 git config --global core.editor vim
 
-# clone 远程仓库，clone 时直接复制 1.5.1.2 小节中介绍的仓库详情页中的较长的 clone 命令，并修改端口号即可。
+# clone 远程仓库，clone 时直接复制 1.4.1.2 小节中介绍的仓库详情页中的较长的 clone 命令，并修改端口号即可。
 git clone
 
 # 查看本地和远程仓库的所有分支列表
@@ -354,7 +366,7 @@ git reset HEAD .
 git reset HEAD 1.txt 2.txt 3.txt
 
 # 将暂存区中的修改提交到本地版本库中
-# 该命令执行后会唤起 vim 编辑器，需要在编辑器中根据 1.5.2.2 小节的格式规范编写 message 信息
+# 该命令执行后会唤起 vim 编辑器，需要在编辑器中根据 1.4.2.2 小节的格式规范编写 message 信息
 # 编写完成后，输入 :wq 保存信息并退出编辑器后，暂存区中的修改就会提交到本地版本库中
 git commit
 
@@ -370,7 +382,7 @@ git log -p
 git log --stat
 ```
 
-##### 1.5.2.2 提交信息的格式规范
+##### 1.4.2.2 提交信息的格式规范
 
 根据 `ones` 工作管理平台上的工作项类型，提交信息 `Message` 的格式规范分两种：**需求类型的格式** 和 **`BUG` 类型的格式**：
 
@@ -424,13 +436,13 @@ git log --stat
 > 
 >       ![](./images/app_develop_guide/09.png)
 
-##### 1.5.2.3 示例：记一次代码提交流程
+##### 1.4.2.3 示例：记一次代码提交流程
 
 ```shell:no-line-numbers
 # clone 仓库 XBHWhiteBoard4.0
 # 第一次 clone 仓库可能会要求输入 username 和 password
 # username 就是你的 Gerrit 登录账号
-# password 就是在 1.5.1.1 小节中生成的 token（注意：不是 Gerrit 的登录密码）
+# password 就是在 1.4.1.1 小节中生成的 token（注意：不是 Gerrit 的登录密码）
 git clone "http://zengkaiqiang@192.168.1.194:8089/a/XBHWhiteBoard4.0" && (cd "XBHWhiteBoard4.0" && mkdir -p .git/hooks && curl -Lo `git rev-parse --git-dir`/hooks/commit-msg http://zengkaiqiang@192.168.1.194:8089/tools/hooks/commit-msg; chmod +x `git rev-parse --git-dir`/hooks/commit-msg)
 ```
 
@@ -484,7 +496,7 @@ git push origin HEAD:refs/for/developer_common
 ![](./images/app_develop_guide/14.png)
 
 
-##### 1.5.2.4 示例：创建新分支
+##### 1.4.2.4 示例：创建新分支
 
 ```:no-line-numbers
 step1. 先在 Gerrit 网页端创建新分支
@@ -510,7 +522,7 @@ git branch --set-upstream-to=origin/<newBranch> <newBranch>
 # 也是一样的执行 git push origin HEAD:refs/for/<newBranch> 就可以把代码推送到远程新分支了
 ```
 
-##### 1.5.2.5 示例：合并 `Gerrit` 上的冲突
+##### 1.4.2.5 示例：合并 `Gerrit` 上的冲突
 
 当看到 `Gerrit` 上的某次提交记录中出现 `Merged Conflict` 时表示代码有冲突，此时：
 
@@ -529,7 +541,7 @@ git rebase --continue
 git push origin HEAD:refs/for/<远程分支>
 ```
 
-##### 1.5.2.6 示例：未拉取最新代码前进行 `push` 操作后的纠正处理
+##### 1.4.2.6 示例：未拉取最新代码前进行 `push` 操作后的纠正处理
 
 ```:no-line-numbers
 问题场景：
@@ -590,13 +602,13 @@ git push origin HEAD:refs/for/<远程分支>
 
 ![](./images/app_develop_guide/23.png)
 
-##### 1.5.2.7 在 `Windows` 凭据管理器中查看和编辑 `Gerrit` 账号和 `Token`
+##### 1.4.2.7 在 `Windows` 凭据管理器中查看和编辑 `Gerrit` 账号和 `Token`
 
 如果你所使用的电脑，之前已经登录过其他人的 `Gerrit` 账号，那么你可能需要将 `Windows` 中保存的其他人的 `Gerrit` 账号信息修改成你自己的，如下图所示，在 `Windows` 的凭据管理器中进行修改即可：
 
 ![](./images/app_develop_guide/24.png)
 
-### 1.6 `SVN` & `Apk` 管理 
+### 1.5 `SVN` & `Apk` 管理 
 
 > 双击软件工具包中的 `TortoiseSVN-1.9.6.27867-x64-svn-1.9.6.msi` 安装 `SVN`。
 
@@ -623,9 +635,9 @@ git push origin HEAD:refs/for/<远程分支>
 > 右击某个 `apk` 文件，依次点击 `Copy to clipboard` -> `Urls` 即可复制该 `apk` 文件在 `SVN` 上的链接地址。
 
 
-### 1.7 串口调试
+### 1.6 串口调试
 
-#### 1.7.1 `Xshell` & 串口日志打印
+#### 1.6.1 `Xshell` & 串口日志打印
 
 除了通过 `adb` 无线连接设备打印日志外，我们还可以通过 `Xshell` 串口连接设备来打印日志。另外，当设备无法启动 `Android` 系统时，也可以通过 `Xshell` 串口连接设备来查看是否有错误日志。并且，在设备刷固件的过程中，也会通过 `Xshell` 串口连接设备来输入某些指令。
 
@@ -666,7 +678,7 @@ git push origin HEAD:refs/for/<远程分支>
 > 
 > 2. 可以通过快捷键 `Alt+C` 断开设备的串口连接。
 
-#### 1.7.2 多功能串行口调试助手 & 串口指令下发
+#### 1.6.2 多功能串行口调试助手 & 串口指令下发
 
 > 双击软件工具包中的 `多功能串行口调试助手.exe` 即可打开使用。
 > 
@@ -688,7 +700,7 @@ git push origin HEAD:refs/for/<远程分支>
 > 
 >   ![](./images/app_develop_guide/34.png)
 
-### 1.8 投屏工具 `scrcpy`
+### 1.7 投屏工具 `scrcpy`
 
 > 解压软件工具包中的 `scrcpy-win64-v2.4.zip`，并将解压目录添加到环境变量 `Path` 中即可。
 > 
@@ -703,7 +715,7 @@ git push origin HEAD:refs/for/<远程分支>
 1. 多人共用一台设备时，因为设备可能不在自己工位旁，此时如果需要与设备进行交互，使用投屏工具在电脑上访问设备进行交互即可。
 2. 当要在设备中输入文本时，如输入邮箱，使用投屏工具在电脑上访问设备，用键盘输入会更快些。
 
-### 1.9 工作管理平台 `ones`
+### 1.8 工作管理平台 `ones`
 
 在企业微信的【邮件】中添加了企业邮箱后，访问 `ones` 激活链接：[https://ones.lango-tech.com:7000/project/#/auth/login/email](https://ones.lango-tech.com:7000/project/#/auth/login/email)
 
@@ -788,6 +800,8 @@ git push origin HEAD:refs/for/<远程分支>
 
 升级后的屏幕可能会出现重影，需要再次进入系统设置 -> 关于本机 -> 点击 10 下，在 `FactoryMenu` 弹窗中点击 `DEBUG` 进入 `DEBUG` 弹窗，将 `Panel Index` 由 1 改为 0 即可。
 
+> 9679 平台的屏参出现问题时，注意看 `DEBUG` 弹窗中的 `Panel Single / Duo` 是否设置为 `Single`。
+
 #### 2.1.2 在 `311D2` 平台上刷固件
 
 `311D2` 平台刷固件时，要确认下固件是几 `G` 内存的，应该不能混刷，比如固件是 `8G` 内存的,板子也要找 `8G` 内存的板子。
@@ -834,7 +848,7 @@ git push origin HEAD:refs/for/<远程分支>
 >
 > 1. 如上所示，根据仓库名称在 `Gerrit` 上的 `BROWSE -> Repositories` 界面中搜索仓库即可。如果未搜索到，那么就是你没有访问权限，联系负责人开通权限即可。
 > 
-> 2. 中间件有 3.0、4.0、5.0 这几个版本，每个版本对应两个仓库，其中 `CusSdk` 可以理解为将中间件封装成 SDK 给外部使用，而 `MiddleWare3` 则可以理解为中间件内部的具体实现。
+> 2. 中间件有 3.0、4.0、5.0 这几个版本，每个版本对应两个仓库，其中 `CusSdk` 可以理解为将中间件封装成 `SDK` 给外部使用，而 `MiddleWare3` 则可以理解为中间件内部的具体实现。
 > 
 > 3. `DMS` 具体地是对应 `XbhAdverPlayer3.0` 仓库的 `develop-dms` 分支。
 > 
@@ -856,6 +870,7 @@ git push origin HEAD:refs/for/<远程分支>
     release-g6780-common 分支对应 G6780 平台的公版
     release-a311d2-android13 分支对应 311D2 平台的公版
     release-edla-common 分支对应 8195 平台的公版
+    develop-5.0 分支对应 9679 平台的公版
     ```
 
 2. 第 1 点中提到了公版的概念，这是因为在同一个平台上，面对不同的客户可能需要做定制（即客制化）。原则上，客制化不应该新建分支，而是在分支中以渠道的形式来区分。但是，有的客制化改动较大，项目代码很难以渠道的形式兼容，所以才新建了分支。
