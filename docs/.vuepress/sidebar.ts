@@ -27,6 +27,8 @@ export const sidebarConfig = defineSidebarConfig({
             collapsable: true,
             children: [
                 "file_transfer", // 上传下载组件
+                "http_module", // http 组件
+                "mqtt_module", // mqtt 组件
             ]
         },
         {
