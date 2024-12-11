@@ -53,31 +53,30 @@ dependencies {
 }
 ```
 
-### 1.2 全局配置
+### 1.2 初始化配置
 
-全局配置示例：
+配置示例：
 
 ```kotlin:no-line-numbers
 // 在 Application#onCreate() 中调用此方法初始化
 fun init(context : Context) {
+    val options = XbhGlobalOptions.Builder()
+        .setConnectTimeout(30) // 连接超时时间(s)，不设置默认 10s
+        .setReadTimeout(30)    // IO 流读取操作的超时时间(s)，不设置默认 15s
+        .setWriteTimeout(30)   // IO 流写入操作的超时时间(s)，不设置默认 15s
+        .setEnableCookie(true)                                 // 是否保存 cookie。不设置默认 false
+        .setCookieJar(CookieJarCreator.createDefault(context)) // 保存 cookie 的策略（enableCookie 为 true 时才起作用）
+        .setEnableCache(true)                          // 是否使用本地缓存。不设置默认 false
+        .setCache(CacheCreator.createDefault(context)) // 本地缓存策略（enableCache 为 true 时才起作用）
+        .setRetryOnConnectionFailure(true) // 连接失败时是否重试，不设置默认 true，表示重试
+        .setAllowRedirects(true)           // 是否允许重定向，不设置默认 true，表示允许
+        .setTrustAllCertificate(true)      // 是否信任所有证书，不设置默认 false，表示不信任所有证书
+        .setPassAllHost(true)              // 是否允许所有的主机名都通过服务器的认证，不设置默认 false 不允许
+        .addInterceptor(TestInterceptor()) // 添加拦截器
+        .setLogLevel(HttpLog.Level.DEBUG)  // 日志打印级别，不设置默认 HttpLog.Level#ERROR
+        .build(context);
 
-	val options = XbhGlobalOptions.Builder()
-		.setConnectTimeout(30) // 连接超时时间(s)，不设置默认 10s
-		.setReadTimeout(30)    // IO 流读取操作的超时时间(s)，不设置默认 15s
-		.setWriteTimeout(30)   // IO 流写入操作的超时时间(s)，不设置默认 15s
-		.setEnableCookie(true)                                 // 是否保存 cookie。不设置默认 false
-		.setCookieJar(CookieJarCreator.createDefault(context)) // 保存 cookie 的策略（enableCookie 为 true 时才起作用）
-		.setEnableCache(true)                          // 是否使用本地缓存。不设置默认 false
-		.setCache(CacheCreator.createDefault(context)) // 本地缓存策略（enableCache 为 true 时才起作用）
-		.setRetryOnConnectionFailure(true) // 连接失败时是否重试，不设置默认 true，表示重试
-		.setAllowRedirects(true)           // 是否允许重定向，不设置默认 true，表示允许
-		.setTrustAllCertificate(true)      // 是否信任所有证书，不设置默认 false，表示不信任所有证书
-		.setPassAllHost(true)              // 是否允许所有的主机名都通过服务器的认证，不设置默认 false 不允许
-		.addInterceptor(TestInterceptor()) // 添加拦截器
-		.setLogLevel(HttpLog.Level.DEBUG)  // 日志打印级别，不设置默认 HttpLog.Level#ERROR
-		.build(context);
-
-	XbhHttpManager.getInstance().setup(options);
+    XbhHttpManager.getInstance().setup(options);
 }
 ```
 
@@ -87,21 +86,21 @@ fun init(context : Context) {
 
 ```kotlin:no-line-numbers
 fun getRequest(mac: String?, id: String?, callback: XbhHttpCallback<ResponBean>?) {
-	val getOptions = XbhRequestOptions.GetOptions.Builder()
-		.setBaseUrl("scheme://host:port")
-		.setExtUrl("path")
-		.addHeader("Accept-Encoding: gzip")
-		.addQuery("mac", mac)
-		.addQuery("id", id)
-		.build()
+    val getOptions = XbhRequestOptions.GetOptions.Builder()
+    .setBaseUrl("scheme://host:port")
+    .setExtUrl("path")
+    .addHeader("Accept-Encoding: gzip")
+    .addQuery("mac", mac)
+    .addQuery("id", id)
+    .build()
 
-	XbhHttpManager.getInstance().get(getOptions, ResponBean::class.java, callback)
+    XbhHttpManager.getInstance().get(getOptions, ResponBean::class.java, callback)
 }
 
 class ResponBean {
-	var attr1 :String? = null
-	var attr2 :Int? = null
-	var attr3 :Boolean? = null
+    var attr1 :String? = null
+    var attr2 :Int? = null
+    var attr3 :Boolean? = null
 }
 ```
 
@@ -111,26 +110,26 @@ class ResponBean {
 
 ```kotlin:no-line-numbers
 fun postRequest(requestBean: RequestBean, callback: XbhHttpCallback<ResponBean>?) {
-	val gsonOptions = XbhRequestOptions.GsonOptions.Builder<RequestBean>()
-		.setBaseUrl("scheme://host:port")
-		.setExtUrl("path")
-		.addHeader("Accept-Encoding: gzip")
-		.setBody(requestBean)
-		.build()
+    val gsonOptions = XbhRequestOptions.GsonOptions.Builder<RequestBean>()
+        .setBaseUrl("scheme://host:port")
+        .setExtUrl("path")
+        .addHeader("Accept-Encoding: gzip")
+        .setBody(requestBean)
+        .build()
 
-	XbhHttpManager.getInstance().postGson(gsonOptions, RequestBean::class.java, ResponBean::class.java, callback)
+    XbhHttpManager.getInstance().postGson(gsonOptions, RequestBean::class.java, ResponBean::class.java, callback)
 }
 
 class RequestBean {
-	var attr1 :String? = null
-	var attr2 :Int? = null
-	var attr3 :Boolean? = null
+    var attr1 :String? = null
+    var attr2 :Int? = null
+    var attr3 :Boolean? = null
 }
 
 class ResponBean {
-	var attr1 :String? = null
-	var attr2 :Int? = null
-	var attr3 :Boolean? = null
+    var attr1 :String? = null
+    var attr2 :Int? = null
+    var attr3 :Boolean? = null
 }
 ```
 
@@ -283,9 +282,9 @@ addFile(@NonNull File file, @Nullable String fileName, @Nullable FileType fileTy
 
 ```kotlin:no-line-numbers
 val options = XbhGlobalOptions.Builder()
-	......
-	.setLogLevel(HttpLog.Level.DEBUG)  // 日志打印级别，不设置默认 HttpLog.Level#ERROR
-	.build(context);
+    ......
+    .setLogLevel(HttpLog.Level.DEBUG)  // 日志打印级别，不设置默认 HttpLog.Level#ERROR
+    .build(context);
 
 XbhHttpManager.getInstance().setup(options);
 ```
@@ -302,71 +301,71 @@ XbhHttpManager.getInstance().setup(options);
 
 ```kotlin:no-line-numbers
 val options = XbhGlobalOptions.Builder()
-	......
-	.setEnableCache(true)                          // 是否使用本地缓存。不设置默认 false
-	.setCache(CacheCreator.createDefault(context)) // 本地缓存策略（enableCache 为 true 时才起作用）
-	......
+......
+.setEnableCache(true)                          // 是否使用本地缓存。不设置默认 false
+.setCache(CacheCreator.createDefault(context)) // 本地缓存策略（enableCache 为 true 时才起作用）
+......
 
 
 public static Cache createDefault(@NonNull Context context) {
-	String directory = context.getCacheDir() + File.separator + "XbhHttpCache";
-	/*
-		缓存目录为 /data/data/<包名>/cache/XbhHttpCache
-		缓存大小为 50M
-	*/
-	return create(directory, 1024 * 1024 * 50);
+    String directory = context.getCacheDir() + File.separator + "XbhHttpCache";
+    /*
+        缓存目录为 /data/data/<包名>/cache/XbhHttpCache
+        缓存大小为 50M
+    */
+    return create(directory, 1024 * 1024 * 50);
 }
 ```
 
 ```kotlin:no-line-numbers
 val options = XbhGlobalOptions.Builder()
-	......
-	.setEnableCookie(true)                                 // 是否保存 cookie。不设置默认 false
-	.setCookieJar(CookieJarCreator.createDefault(context)) // 保存 cookie 的策略（enableCookie 为 true 时才起作用）
-	......
+    ......
+    .setEnableCookie(true)                                 // 是否保存 cookie。不设置默认 false
+    .setCookieJar(CookieJarCreator.createDefault(context)) // 保存 cookie 的策略（enableCookie 为 true 时才起作用）
+    ......
 
 
 /**
  * @return 返回一个通过 SharedPreference 保存 cookie 数据的 CookieJar 实例
  */
 public static CookieJar createDefault(Context context) {
-	return create(new SetCookieCache(), new SharedPrefsCookiePersistor(context));
+    return create(new SetCookieCache(), new SharedPrefsCookiePersistor(context));
 }
 ```
 
 ```kotlin:no-line-numbers
 val options = XbhGlobalOptions.Builder()
-	......
-	.setTrustAllCertificate(true)      // 是否信任所有证书，不设置默认 false，表示不信任所有证书
-	.setPassAllHost(true)              // 是否允许所有的主机名都通过服务器的认证，不设置默认 false 不允许
-	......
+    ......
+    .setTrustAllCertificate(true)      // 是否信任所有证书，不设置默认 false，表示不信任所有证书
+    .setPassAllHost(true)              // 是否允许所有的主机名都通过服务器的认证，不设置默认 false 不允许
+    ......
 
 /**
  * @return 返回信任所有证书的 SSLSocketFactory
  */
 public static SSLSocketFactory createForTrustAll() {
-	try {
-		final TrustManager[] trustAllCerts = new TrustManager[] {new AllTrustManager()};
-		final SSLContext sslContext = SSLContext.getInstance("TLS");
-		sslContext.init(null, trustAllCerts, new SecureRandom());
-		return sslContext.getSocketFactory();
-	} catch (Exception e) {
-		e.printStackTrace();
-		HttpLog.e("SSLSocketFactoryCreator --> create()  Exception=" + e);
-		return null;
-	}
+    try {
+        final TrustManager[] trustAllCerts = new TrustManager[] {new AllTrustManager()};
+        final SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, trustAllCerts, new SecureRandom());
+        return sslContext.getSocketFactory();
+    } catch (Exception e) {
+        e.printStackTrace();
+        HttpLog.e("SSLSocketFactoryCreator --> create()  Exception=" + e);
+        return null;
+    }
 }
 
 /**
  * @return 返回一个主机名的检验器，该检验器总是允许主机名通过服务器的认证
  */
 public static HostnameVerifier createForAlwaysPass() {
-	return new HostnameVerifier() {
-		@Override
-		public boolean verify(String hostname, SSLSession session) {
-			return true;
-		}
-	};
+    return new HostnameVerifier() {
+        @Override
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
 }
 ```
 
